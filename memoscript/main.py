@@ -3,12 +3,12 @@
 
 import readline
 import datetime
+import random
 from sqlite3 import connect
 import sys
 
 """
 Текущие проблемы и задачи:
-Нет никакой рандомизированности, я иду строго от водорода до аргона.
 Дельт должно быть больше, 2 или 3.
 Добавить режим первичного заучивания.
 
@@ -72,6 +72,8 @@ def proc():
                             break
                     print("Ещё раз. ", end = '')
                 new_delta = (2 ** (s - 2)) * delta
+                eighth = new_delta // 8
+                new_delta += random.randint(-eighth, eighth)
                 print(f"new_delta = {new_delta}")
                 current_date = int(today())
                 next_date = current_date + new_delta
