@@ -4,6 +4,7 @@
 import readline
 from time import time
 from sqlite3 import connect
+import sys
 
 """
 Текущие проблемы:
@@ -15,13 +16,13 @@ from sqlite3 import connect
 def preproc(): # РАБОТАЕТ!!!
     with connect(dbpath) as c:
         q = "SELECT * FROM elements"
-        iterator = c.execute(q)
-        for number, text in iterator:
+        elem_iterator = c.execute(q)
+        for number, text in elem_iterator:
             # print(f"number = {number}, text = {text}")
             q = f"SELECT * FROM mod1 WHERE element_id = {number}"
-            iterator = c.execute(q)
+            mod1_iterator = c.execute(q)
             try:
-                next(iterator)
+                nnumber, ttext, time = next(mod1_iterator)
             except StopIteration: # это новая карточка, надо добавить в мод.
                 print(f"number = {number}, text = {text} Есть НОВАЯ карточка, её добавляем.")
                 t = int(time())
@@ -29,11 +30,11 @@ def preproc(): # РАБОТАЕТ!!!
                 q = f"INSERT INTO mod1 VALUES(?, ?, ?)"
                 c.execute(q, db_form)
             else:
-                print(f"number = {number}, text = {text} Есть старая карточка, её НЕ добавляем.")
+                print(f"number = {number}, text = {text}, time = {time} Есть старая карточка, её НЕ добавляем.")
 
 def proc():
-    with connect(dbpath) as c:
-        while True:
+    while True:
+        with connect(dbpath) as c:
             q = "SELECT element_id, counter, time FROM mod1 ORDER BY time ASC"
             i = c.execute(q)
             element_id, counter, elemenet_time = next(i)
@@ -46,24 +47,39 @@ def proc():
             number, text = next(i)
             try:
                 guess = int(input(
-                    f'Напиши порядковый номер элемента <{text}>: ')) # это должно лежать в ДБ?
+                    f'Напиши порядковый номер элемента <{text}>: '))
             except ValueError:
                 guess = None
             except EOFError:
-                break
+                print("\nПока!")
+                sys.exit()
             if guess == number:
-                print('Ты молодец!')
+                print("Ты молодец!")
+                while True:
+                    try:
+                        s = int(input('Насколько просто было (2-4)?: '))
+                    except ValueError:
+                        pass
+                    except EOFError:
+                        print("\nПока!")
+                        sys.exit()
+                    else:
+                        if 2 <= s <= 4:
+                            break
+                    print("Ещё раз. ", end = '')
+                k = 2 ** (s - 2)
+                delta = 5 * k # через 5*k мин
+                print(f"delta = {delta}")
                 current_time = int(time())
-                next_time = current_time + 10 * 60 # через 10 мин
+                next_time = current_time + delta * 60
+                print(f"current_time = {current_time}, next_time = {next_time}")
                 q = f"UPDATE mod1 SET counter = {counter + 1}, time = {next_time} WHERE element_id = {element_id}"
                 c.execute(q)
-                
                 # Перезаписать ту хню и время на 10 минут, каунтер +1 (пока в нём смыслу нет, просто на будущее)
             else:
                 print(f"Неправильно! Правильный ответ {number}")
                 # впринципе не надо пока трогать, позднее можно будет перезаписать каунтер мб
                 # можно время апать на пару минут
-        print("Пока!")
 
 
 dbpath = "asd.db"
