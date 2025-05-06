@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import readline
-from time import time
+import time
 from sqlite3 import connect
 import sys
 
@@ -25,7 +25,7 @@ def preproc(): # РАБОТАЕТ!!!
                 nnumber, ttext, time = next(mod1_iterator)
             except StopIteration: # это новая карточка, надо добавить в мод.
                 print(f"number = {number}, text = {text} Есть НОВАЯ карточка, её добавляем.")
-                t = int(time())
+                t = int(time.time())
                 db_form = [number, 0, t]
                 q = f"INSERT INTO mod1 VALUES(?, ?, ?)"
                 c.execute(q, db_form)
@@ -38,7 +38,7 @@ def proc():
             q = "SELECT element_id, counter, time FROM mod1 ORDER BY time ASC"
             i = c.execute(q)
             element_id, counter, elemenet_time = next(i)
-            current_time = int(time())
+            current_time = int(time.time())
             if current_time < elemenet_time: 
                 print("Всё отдрочено!") # Текущая карточка уже отдрочена, а отсортированно всё так что значит что отдрочены все
                 break
@@ -70,7 +70,7 @@ def proc():
                 k = 2 ** (s - 2)
                 delta = 5 * k # через 5*k мин
                 print(f"delta = {delta}")
-                current_time = int(time())
+                current_time = int(time.time())
                 next_time = current_time + delta * 60
                 print(f"current_time = {current_time}, next_time = {next_time}")
                 q = f"UPDATE mod1 SET counter = {counter + 1}, time = {next_time} WHERE element_id = {element_id}"
