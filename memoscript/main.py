@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import readline
-import time
+import datetime
 from sqlite3 import connect
 import sys
 
@@ -12,6 +12,10 @@ import sys
 Нет никакой рандомизированности, я иду строго от водорода до аргона.
 Рефактор нужен.
 """
+
+def today():
+    # return 900000
+    return datetime.date.today().toordinal()
 
 def preproc(): # РАБОТАЕТ!!!
     with connect(dbpath) as c:
@@ -25,8 +29,8 @@ def preproc(): # РАБОТАЕТ!!!
                 nnumber, ttext, time = next(mod1_iterator)
             except StopIteration: # это новая карточка, надо добавить в мод.
                 print(f"number = {number}, text = {text} Есть НОВАЯ карточка, её добавляем.")
-                t = int(time.time())
-                db_form = [number, 0, t]
+                d = int(today())
+                db_form = [number, 0, d]
                 q = f"INSERT INTO mod1 VALUES(?, ?, ?)"
                 c.execute(q, db_form)
             else:
@@ -38,8 +42,8 @@ def proc():
             q = "SELECT element_id, counter, time FROM mod1 ORDER BY time ASC"
             i = c.execute(q)
             element_id, counter, elemenet_time = next(i)
-            current_time = int(time.time())
-            if current_time < elemenet_time: 
+            current_date = int(today())
+            if current_date < elemenet_time: 
                 print("Всё отдрочено!") # Текущая карточка уже отдрочена, а отсортированно всё так что значит что отдрочены все
                 break
             q = f"SELECT id, sym FROM elements WHERE id = {element_id}"
@@ -67,13 +71,15 @@ def proc():
                         if 2 <= s <= 4:
                             break
                     print("Ещё раз. ", end = '')
-                k = 2 ** (s - 2)
-                delta = 5 * k # через 5*k мин
+                
+                delta = 2 ** (s - 2)
                 print(f"delta = {delta}")
-                current_time = int(time.time())
-                next_time = current_time + delta * 60
-                print(f"current_time = {current_time}, next_time = {next_time}")
-                q = f"UPDATE mod1 SET counter = {counter + 1}, time = {next_time} WHERE element_id = {element_id}"
+                
+                current_date = int(today())
+                next_date = current_date + delta
+                
+                print(f"current_date = {current_date}, next_date = {next_date}")
+                q = f"UPDATE mod1 SET counter = {counter + 1}, time = {next_date} WHERE element_id = {element_id}"
                 c.execute(q)
                 # Перезаписать ту хню и время на 10 минут, каунтер +1 (пока в нём смыслу нет, просто на будущее)
             else:
