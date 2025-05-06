@@ -18,17 +18,16 @@ def today():
     # return 739381
     return datetime.date.today().toordinal()
 
-def preproc(): # РАБОТАЕТ!!!
+def preproc():
     with connect(dbpath) as c:
         q = "SELECT * FROM elements"
         elem_iterator = c.execute(q)
         for number, text in elem_iterator:
-            # print(f"number = {number}, text = {text}")
             q = f"SELECT * FROM mod1 WHERE element_id = {number}"
             mod1_iterator = c.execute(q)
             try:
                 nnumber, ttext, time = next(mod1_iterator)
-            except StopIteration: # это новая карточка, надо добавить в мод.
+            except StopIteration:
                 print(f"number = {number}, text = {text} Есть НОВАЯ карточка, её добавляем.")
                 d = int(today())
                 db_form = [number, 1, d]
@@ -44,8 +43,8 @@ def proc():
             i = c.execute(q)
             element_id, delta, elemenet_time = next(i)
             current_date = int(today())
-            if current_date < elemenet_time: 
-                print("Всё отдрочено!") # Текущая карточка уже отдрочена, а отсортированно всё так что значит что отдрочены все
+            if current_date < elemenet_time:
+                print("Всё отдрочено!")
                 break
             q = f"SELECT id, sym FROM elements WHERE id = {element_id}"
             i = c.execute(q)
@@ -72,21 +71,15 @@ def proc():
                         if 2 <= s <= 4:
                             break
                     print("Ещё раз. ", end = '')
-                
                 new_delta = (2 ** (s - 2)) * delta
                 print(f"new_delta = {new_delta}")
-                
                 current_date = int(today())
                 next_date = current_date + new_delta
-                
                 print(f"current_date = {current_date}, next_date = {next_date}")
                 q = f"UPDATE mod1 SET delta = {new_delta}, time = {next_date} WHERE element_id = {element_id}"
                 c.execute(q)
-                # Перезаписать ту хню и время на 10 минут, каунтер +1 (пока в нём смыслу нет, просто на будущее)
             else:
                 print(f"Неправильно! Правильный ответ {number}")
-                # впринципе не надо пока трогать, позднее можно будет перезаписать каунтер мб
-                # можно время апать на пару минут
 
 
 dbpath = "asd.db"
