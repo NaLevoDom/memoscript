@@ -9,14 +9,13 @@ import sys
 """
 Текущие проблемы и задачи:
 Нет никакой рандомизированности, я иду строго от водорода до аргона.
-Дельта никак не участвует в расчётах
-Дельт в таблице будет мб даже две
-Добавить режим обуения
+Дельт должно быть больше, 2 или 3.
+Добавить режим первичного заучивания.
 
 """
 
 def today():
-    # return 900000
+    # return 739381
     return datetime.date.today().toordinal()
 
 def preproc(): # РАБОТАЕТ!!!
@@ -32,7 +31,7 @@ def preproc(): # РАБОТАЕТ!!!
             except StopIteration: # это новая карточка, надо добавить в мод.
                 print(f"number = {number}, text = {text} Есть НОВАЯ карточка, её добавляем.")
                 d = int(today())
-                db_form = [number, 0, d]
+                db_form = [number, 1, d]
                 q = f"INSERT INTO mod1 VALUES(?, ?, ?)"
                 c.execute(q, db_form)
             else:
@@ -41,9 +40,9 @@ def preproc(): # РАБОТАЕТ!!!
 def proc():
     while True:
         with connect(dbpath) as c:
-            q = "SELECT element_id, counter, time FROM mod1 ORDER BY time ASC"
+            q = "SELECT element_id, delta, time FROM mod1 ORDER BY time ASC"
             i = c.execute(q)
-            element_id, counter, elemenet_time = next(i)
+            element_id, delta, elemenet_time = next(i)
             current_date = int(today())
             if current_date < elemenet_time: 
                 print("Всё отдрочено!") # Текущая карточка уже отдрочена, а отсортированно всё так что значит что отдрочены все
@@ -74,14 +73,14 @@ def proc():
                             break
                     print("Ещё раз. ", end = '')
                 
-                delta = 2 ** (s - 2)
-                print(f"delta = {delta}")
+                new_delta = (2 ** (s - 2)) * delta
+                print(f"new_delta = {new_delta}")
                 
                 current_date = int(today())
-                next_date = current_date + delta
+                next_date = current_date + new_delta
                 
                 print(f"current_date = {current_date}, next_date = {next_date}")
-                q = f"UPDATE mod1 SET counter = {counter + 1}, time = {next_date} WHERE element_id = {element_id}"
+                q = f"UPDATE mod1 SET delta = {new_delta}, time = {next_date} WHERE element_id = {element_id}"
                 c.execute(q)
                 # Перезаписать ту хню и время на 10 минут, каунтер +1 (пока в нём смыслу нет, просто на будущее)
             else:

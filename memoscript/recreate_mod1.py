@@ -16,7 +16,7 @@ def create_dbmod_1(): # Элемент в номер / сделано
     with connect(dbpath) as c:
         q = """CREATE TABLE mod1(
         element_id INT PRIMARY KEY,
-        counter INT,
+        delta INT,
         time INT);
         """
         # element_id integer references elements(id)); # Пока без выебонов. По басяцки напишем.
