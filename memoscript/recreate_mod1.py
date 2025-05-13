@@ -16,6 +16,7 @@ def create_dbmod_1(): # Элемент в номер / сделано
         q = """CREATE TABLE mod1(
         element_id INT PRIMARY KEY,
         delta INT,
+        old_delta INT,
         date INT);
         """
         # element_id integer references elements(id)); # Пока без выебонов. По басяцки напишем.
