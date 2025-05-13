@@ -7,10 +7,6 @@ import random
 import sqlite3
 import sys
 
-def today():
-    # return 739402
-    return datetime.date.today().toordinal()
-
 def get_delta(s, delta, old_delta):
     new_k = 2 ** (s - 2)
     new_delta = int(new_k * (5 * delta + old_delta) / 6)
@@ -18,7 +14,7 @@ def get_delta(s, delta, old_delta):
     new_delta += random.randint(-part, part)
     return new_delta
 
-def preproc():
+def handle_new():
     with sqlite3.connect(dbpath) as c:
         q = "SELECT * FROM elements"
         elem_iterator = c.execute(q)
@@ -29,16 +25,14 @@ def preproc():
                 number, delta, old_delta, date = next(mod1_iterator)
             except StopIteration:
                 # print(f"number = {number}, text = {text} Есть НОВАЯ карточка, её добавляем.")
-                d = today()
-                db_form = [number, 1, 1, d]
+                db_form = [number, 1, 1, current_date]
                 q = f"INSERT INTO mod1 VALUES(?, ?, ?, ?)"
                 c.execute(q, db_form)
             # else:
                 # print(f"number = {number}, text = {text}, date = {date} Есть старая карточка, её НЕ добавляем.")
 
-def proc():
+def get_dict():
     dictionary = dict()
-    current_date = today()
     with sqlite3.connect(dbpath) as c:
         q = "SELECT * FROM mod1 ORDER BY date ASC"
         i = c.execute(q)
@@ -46,6 +40,9 @@ def proc():
             if current_date < element_date:
                 break
             dictionary[element_id] = [delta, old_delta, element_date]
+    return dictionary
+
+def proc():
     while dictionary:
         element_id = random.choice(list(dictionary))
         delta, old_delta, element_date = dictionary[element_id]
@@ -77,7 +74,6 @@ def proc():
                             break
                     print("Ещё раз. ", end = '')
                 new_delta = get_delta(s, delta, old_delta)
-                current_date = today()
                 next_date = current_date + new_delta
                 # print(f"new_delta = {new_delta}")
                 # print(f"current_date = {current_date}, next_date = {next_date}")
@@ -87,8 +83,11 @@ def proc():
                 print(f"Неправильно! Правильный ответ {number}")
     print("Всё изучено!\nПока!")
 
-dbpath = "asd.db"
 if __name__ == '__main__':
-    preproc()
+    dbpath = "asd.db"
+    # current_date = 739402
+    current_date = datetime.date.today().toordinal()
+    handle_new()
+    dictionary = get_dict()
     proc()
     
