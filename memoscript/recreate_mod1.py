@@ -8,7 +8,6 @@ dbpath = "asd.db"
 def drop_dbmod_1(): # Элемент в номер / сделано
     with connect(dbpath) as c:
         q = "DROP TABLE mod1"
-        # element_id integer references elements(id)); # Пока без выебонов. По басяцки напишем.
         c.execute(q)
         c.execute("VACUUM")
 
@@ -17,7 +16,7 @@ def create_dbmod_1(): # Элемент в номер / сделано
         q = """CREATE TABLE mod1(
         element_id INT PRIMARY KEY,
         delta INT,
-        time INT);
+        date INT);
         """
         # element_id integer references elements(id)); # Пока без выебонов. По басяцки напишем.
         c.execute(q)

@@ -18,6 +18,12 @@ def today():
     # return 739381
     return datetime.date.today().toordinal()
 
+def get_delta(s, delta):
+    new_delta = (2 ** (s - 2)) * delta
+    eighth = new_delta // 8
+    new_delta += random.randint(-eighth, eighth)
+    return new_delta
+
 def preproc():
     with connect(dbpath) as c:
         q = "SELECT * FROM elements"
@@ -26,23 +32,23 @@ def preproc():
             q = f"SELECT * FROM mod1 WHERE element_id = {number}"
             mod1_iterator = c.execute(q)
             try:
-                nnumber, ttext, time = next(mod1_iterator)
+                number, delta, date = next(mod1_iterator)
             except StopIteration:
                 print(f"number = {number}, text = {text} Есть НОВАЯ карточка, её добавляем.")
-                d = int(today())
+                d = today()
                 db_form = [number, 1, d]
                 q = f"INSERT INTO mod1 VALUES(?, ?, ?)"
                 c.execute(q, db_form)
             else:
-                print(f"number = {number}, text = {text}, time = {time} Есть старая карточка, её НЕ добавляем.")
+                print(f"number = {number}, text = {text}, date = {date} Есть старая карточка, её НЕ добавляем.")
 
 def proc():
     while True:
         with connect(dbpath) as c:
-            q = "SELECT element_id, delta, time FROM mod1 ORDER BY time ASC"
+            q = "SELECT element_id, delta, date FROM mod1 ORDER BY date ASC"
             i = c.execute(q)
             element_id, delta, elemenet_time = next(i)
-            current_date = int(today())
+            current_date = today()
             if current_date < elemenet_time:
                 print("Всё отдрочено!")
                 break
@@ -71,14 +77,12 @@ def proc():
                         if 2 <= s <= 4:
                             break
                     print("Ещё раз. ", end = '')
-                new_delta = (2 ** (s - 2)) * delta
-                eighth = new_delta // 8
-                new_delta += random.randint(-eighth, eighth)
-                print(f"new_delta = {new_delta}")
-                current_date = int(today())
+                new_delta = get_delta(s, delta)
+                current_date = today()
                 next_date = current_date + new_delta
+                print(f"new_delta = {new_delta}")
                 print(f"current_date = {current_date}, next_date = {next_date}")
-                q = f"UPDATE mod1 SET delta = {new_delta}, time = {next_date} WHERE element_id = {element_id}"
+                q = f"UPDATE mod1 SET delta = {new_delta}, date = {next_date} WHERE element_id = {element_id}"
                 c.execute(q)
             else:
                 print(f"Неправильно! Правильный ответ {number}")
