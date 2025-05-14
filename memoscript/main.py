@@ -6,12 +6,15 @@ import datetime
 import random
 import sqlite3
 import sys
+import math
 
 def get_delta(s, delta, old_delta):
-    new_k = 2 ** (s - 2)
-    new_delta = int(new_k * (5 * delta + old_delta) / 6)
+    # new_k = 2 ** (s - 2) 
+    d = {2 : 0.5, 3 : 2, 4 : 4}
+    new_k = d[s]
+    new_delta = math.ceil(new_k * (5 * delta + old_delta) / 6)
     part = new_delta // 12
-    new_delta += random.randint(-part, part)
+    # new_delta += random.randint(-part, part)
     return new_delta
 
 def handle_new():
@@ -24,12 +27,12 @@ def handle_new():
             try:
                 number, delta, old_delta, date = next(mod1_iterator)
             except StopIteration:
-                # print(f"number = {number}, text = {text} Есть НОВАЯ карточка, её добавляем.")
+                print(f"number = {number}, text = {text} Есть НОВАЯ карточка, её добавляем.")
                 db_form = [number, 1, 1, current_date]
                 q = f"INSERT INTO mod1 VALUES(?, ?, ?, ?)"
                 c.execute(q, db_form)
-            # else:
-                # print(f"number = {number}, text = {text}, date = {date} Есть старая карточка, её НЕ добавляем.")
+            else:
+                print(f"number = {number}, text = {text}, date = {date} Есть старая карточка, её НЕ добавляем.")
 
 def get_dict():
     dictionary = dict()
@@ -75,8 +78,8 @@ def proc():
                     print("Ещё раз. ", end = '')
                 new_delta = get_delta(s, delta, old_delta)
                 next_date = current_date + new_delta
-                # print(f"new_delta = {new_delta}")
-                # print(f"current_date = {current_date}, next_date = {next_date}")
+                print(f"new_delta = {new_delta}")
+                print(f"current_date = {current_date}, next_date = {next_date}")
                 q = f"UPDATE mod1 SET delta = {new_delta}, old_delta = {delta}, date = {next_date} WHERE element_id = {element_id}"
                 c.execute(q)
             else:
@@ -87,6 +90,7 @@ if __name__ == '__main__':
     dbpath = "asd.db"
     # current_date = 739402
     current_date = datetime.date.today().toordinal()
+    print(f"current_date = {current_date}")
     handle_new()
     dictionary = get_dict()
     proc()
