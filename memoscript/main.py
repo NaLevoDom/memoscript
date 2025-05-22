@@ -8,17 +8,19 @@ import sqlite3
 import sys
 import math
 
-def get_delta(s, delta, old_delta):
+def get_delta(mod, s, delta, old_delta):
     # new_k = 2 ** (s - 2) 
     if delta == 0:
         delta = 1
     if old_delta == 0:
         old_delta = 1
+    if mod == 2 and s == 3: # чтобы при инициализации стандартный срок был день а не 2
+        return 1 # это уродливый адхок, но что поделать
     d = {2 : 0.5, 3 : 2, 4 : 4}
     new_k = d[s]
     new_delta = math.ceil(new_k * (5 * delta + old_delta) / 6)
     part = new_delta // 12
-    # new_delta += random.randint(-part, part)
+    new_delta += random.randint(-part, part)
     return new_delta
 
 def handle_new():
@@ -47,9 +49,9 @@ def get_dict():
             if current_date < element_date:
                 break
             if delta ==0 and old_delta == 0: # 0 0 - это первый раз
-                mod = "initialization"
+                mod = 1
             else:
-                mod = "repetition"
+                mod = 3
             dictionary[element_id] = [delta, old_delta, element_date, mod]
     return dictionary
 
@@ -57,7 +59,7 @@ def proc():
     while dictionary:
         element_id = random.choice(list(dictionary))
         delta, old_delta, element_date, mod = dictionary[element_id]
-        print(f"delta = {delta}, old_delta = {old_delta}, element_date = {element_date}, mod = {mod}")
+        print(f"\ndelta = {delta}, old_delta = {old_delta}, element_date = {element_date}, mod = {mod}")
         with sqlite3.connect(dbpath) as c:
             q = f"SELECT id, sym FROM elements WHERE id = {element_id}"
             i = c.execute(q)
@@ -82,74 +84,37 @@ def proc():
                         sys.exit()
                     else:
                         if 1 <= s <= 4:
-                            # del dictionary[element_id] # ### WARNING ###
                             break
                     print("Ещё раз. ", end = '')
-                
-                
-                if mod == "repetition":
-                    if s == 1:
-                        dictionary[element_id] = [delta, old_delta, element_date, "good enough"]
-                    else:
-                        new_delta = get_delta(s, delta, old_delta)
-                        next_date = current_date + new_delta
-                        print(f"new_delta = {new_delta}")
-                        print(f"current_date = {current_date}, next_date = {next_date}")
-                        q = f"UPDATE mod1 SET delta = {new_delta}, old_delta = {delta}, date = {next_date} WHERE element_id = {element_id}"
-                        c.execute(q)
-                        del dictionary[element_id]
-                elif mod == "initialization":
-                    if s == 3:
-                        dictionary[element_id] = [delta, old_delta, element_date, "good enough"]
-                    elif s == 4:
-                        new_delta = get_delta(s, delta, old_delta)
-                        next_date = current_date + new_delta
-                        print(f"new_delta = {new_delta}")
-                        print(f"current_date = {current_date}, next_date = {next_date}")
-                        q = f"UPDATE mod1 SET delta = {new_delta}, old_delta = {delta}, date = {next_date} WHERE element_id = {element_id}"
-                        c.execute(q)
-                        del dictionary[element_id]
-                elif mod == "good enough": # good enough
-                    if s == 3: # выводим в люди
-                        new_delta = 1
-                        next_date = current_date + new_delta
-                        print(f"new_delta = {new_delta}")
-                        print(f"current_date = {current_date}, next_date = {next_date}")
-                        q = f"UPDATE mod1 SET delta = {new_delta}, old_delta = {delta}, date = {next_date} WHERE element_id = {element_id}"
-                        c.execute(q)
-                        del dictionary[element_id]
-                    elif s == 4: # сильнее выводим в люди
-                        new_delta = 4
-                        next_date = current_date + new_delta
-                        print(f"new_delta = {new_delta}")
-                        print(f"current_date = {current_date}, next_date = {next_date}")
-                        q = f"UPDATE mod1 SET delta = {new_delta}, old_delta = {delta}, date = {next_date} WHERE element_id = {element_id}"
-                        c.execute(q)
-                        del dictionary[element_id]
-                    else: # шаг назад
-                        dictionary[element_id] = [delta, old_delta, element_date, "initialization"]
-                    
-                
-                
-                
-                
-                
+                if s + mod < 4:
+                    print("it goes to init")
+                    dictionary[element_id] = [delta, old_delta, element_date, 1]
+                elif s + mod == 4:
+                    print("it goes to good")
+                    dictionary[element_id] = [delta, old_delta, element_date, 2]
+                else:
+                    print("let's do the procedure")
+                    new_delta = get_delta(mod, s, delta, old_delta)
+                    next_date = current_date + new_delta
+                    print(f"new_delta = {new_delta}")
+                    print(f"current_date = {current_date}, next_date = {next_date}")
+                    q = f"UPDATE mod1 SET delta = {new_delta}, old_delta = {delta}, date = {next_date} WHERE element_id = {element_id}"
+                    c.execute(q)
+                    del dictionary[element_id]
             else:
-                if mod == "good enough": # шаг назад
-                    dictionary[element_id] = [delta, old_delta, element_date, "initialization"]
-                elif mod == "repetition":
-                    dictionary[element_id] = [delta, old_delta, element_date, "good enough"]
                 print(f"Неправильно! Правильный ответ {number}")
-                
-                
-                
-                
+                if mod == 2: # шаг назад
+                    dictionary[element_id] = [delta, old_delta, element_date, 1]
+                    print("it goes to init")
+                elif mod == 3:
+                    dictionary[element_id] = [delta, old_delta, element_date, 2]
+                    print("it goes to good")
     print("Всё изучено!\nПока!")
 
 if __name__ == '__main__':
     dbpath = "asd.db"
-    # current_date = 739402
     current_date = datetime.date.today().toordinal()
+    # current_date = 739407
     print(f"current_date = {current_date}")
     handle_new()
     dictionary = get_dict()
