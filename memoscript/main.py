@@ -55,6 +55,30 @@ def get_dict():
             dictionary[element_id] = [delta, old_delta, element_date, mod]
     return dictionary
 
+def get_guess(text):
+    try:
+        return int(input(
+            f'Напиши порядковый номер элемента <{text}>: '))
+    except ValueError:
+        return None
+    except EOFError:
+        print("\nПока!")
+        sys.exit()
+
+def get_s():
+    while True:
+        try:
+            s = int(input('Насколько просто было (1-4)?: '))
+        except ValueError:
+            pass
+        except EOFError:
+            print("\nПока!")
+            sys.exit()
+        else:
+            if 1 <= s <= 4:
+                return s
+        print("Ещё раз. ", end = '')
+
 def proc():
     while dictionary:
         element_id = random.choice(list(dictionary))
@@ -64,32 +88,14 @@ def proc():
             q = f"SELECT id, sym FROM elements WHERE id = {element_id}"
             i = c.execute(q)
             number, text = next(i)
-            try:
-                guess = int(input(
-                    f'Напиши порядковый номер элемента <{text}>: '))
-            except ValueError:
-                guess = None
-            except EOFError:
-                print("\nПока!")
-                sys.exit()
+            guess = get_guess(text)
             if guess == number:
                 print("Ты молодец!")
-                while True:
-                    try:
-                        s = int(input('Насколько просто было (1-4)?: '))
-                    except ValueError:
-                        pass
-                    except EOFError:
-                        print("\nПока!")
-                        sys.exit()
-                    else:
-                        if 1 <= s <= 4:
-                            break
-                    print("Ещё раз. ", end = '')
-                if s + mod < 4:
+                s = get_s()
+                if mod + s < 4:
                     print("it goes to init")
                     dictionary[element_id] = [delta, old_delta, element_date, 1]
-                elif s + mod == 4:
+                elif mod + s == 4:
                     print("it goes to good")
                     dictionary[element_id] = [delta, old_delta, element_date, 2]
                 else:
@@ -114,7 +120,8 @@ def proc():
 if __name__ == '__main__':
     dbpath = "asd.db"
     current_date = datetime.date.today().toordinal()
-    # current_date = 739407
+    current_date = 739400
+    auto_eval = True
     print(f"current_date = {current_date}")
     handle_new()
     dictionary = get_dict()
