@@ -33,13 +33,12 @@ def handle_new():
             mod1_iterator = c.execute(q)
             try:
                 number, delta, old_delta, date = next(mod1_iterator)
+                print(f"number = {number}, text = {text}, date = {date} Есть старая карточка, её НЕ добавляем.")
             except StopIteration:
                 print(f"number = {number}, text = {text} Есть НОВАЯ карточка, её добавляем.")
                 db_form = [number, 0, 0, current_date]
                 q = f"INSERT INTO mod1 VALUES(?, ?, ?, ?)"
                 c.execute(q, db_form)
-            else:
-                print(f"number = {number}, text = {text}, date = {date} Есть старая карточка, её НЕ добавляем.")
 
 def get_input(text):
     try:
