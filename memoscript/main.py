@@ -40,7 +40,6 @@ def handle_new():
             else:
                 print(f"number = {number}, text = {text}, date = {date} Есть старая карточка, её НЕ добавляем.")
 
-
 def get_guess(text):
     try:
         return int(input(
@@ -92,36 +91,31 @@ def proc():
         if guess == number:
             print("Ты молодец!")
             s = get_s()
-            if step + s < 4:
-                print("it goes to init")
-                dictionary[element_id] = [delta, old_delta, element_date, 1]
-            elif step + s == 4:
-                print("it goes to good")
-                dictionary[element_id] = [delta, old_delta, element_date, 2]
-            else:
-                print("let's do the procedure")
-                new_delta = get_delta(step, s, delta, old_delta)
-                next_date = current_date + new_delta
-                print(f"new_delta = {new_delta}")
-                print(f"current_date = {current_date}, next_date = {next_date}")
-                del dictionary[element_id]
-                with sqlite3.connect(dbpath) as c:
-                    q = f"UPDATE mod1 SET delta = {new_delta}, old_delta = {delta}, date = {next_date} WHERE element_id = {element_id}"
-                    c.execute(q)
         else:
             print(f"Неправильно! Правильный ответ {number}")
-            if step == 2: # шаг назад
-                dictionary[element_id] = [delta, old_delta, element_date, 1]
-                print("it goes to init")
-            elif step == 3:
-                dictionary[element_id] = [delta, old_delta, element_date, 2]
-                print("it goes to good")
+            s = 1
+        if step + s < 4:
+            print("it goes to init")
+            dictionary[element_id][5] = 1
+        elif step + s == 4:
+            print("it goes to good")
+            dictionary[element_id][5] = 2
+        else:
+            new_delta = get_delta(step, s, delta, old_delta)
+            next_date = current_date + new_delta
+            del dictionary[element_id]
+            print("let's do the procedure")
+            print(f"new_delta = {new_delta}")
+            print(f"current_date = {current_date}, next_date = {next_date}")
+            with sqlite3.connect(dbpath) as c:
+                q = f"UPDATE mod1 SET delta = {new_delta}, old_delta = {delta}, date = {next_date} WHERE element_id = {element_id}"
+                c.execute(q)
     print("Всё изучено!\nПока!")
 
 if __name__ == '__main__':
     dbpath = "asd.db"
     current_date = datetime.date.today().toordinal()
-    current_date = 739400
+    current_date = 739408
     auto_eval = True
     print(f"current_date = {current_date}")
     handle_new()
