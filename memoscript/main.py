@@ -7,6 +7,7 @@ import random
 import sqlite3
 import sys
 import math
+import time
 
 def get_delta(step, s, delta, old_delta):
     # new_k = 2 ** (s - 2) 
@@ -40,17 +41,22 @@ def handle_new():
             else:
                 print(f"number = {number}, text = {text}, date = {date} Есть старая карточка, её НЕ добавляем.")
 
-def get_guess(text, auto_eval):
+def get_input(text):
     try:
-        return int(input(
+        start_time = time.time()
+        guess = int(input(
             f'Напиши порядковый номер элемента <{text}>: '))
+        end_time = time.time()
+        execution_time = end_time - start_time
+        print(f"execution_time = {execution_time}")
+        return guess, execution_time
     except ValueError:
-        return None
+        return (None, None)
     except EOFError:
         print("\nПока!")
         sys.exit()
 
-def get_s():
+def get_manual_s():
     while True:
         try:
             s = int(input('Оцени (1-4)?: '))
@@ -63,6 +69,15 @@ def get_s():
             if 1 <= s <= 4:
                 return s
         print("Ещё раз. ", end = '')
+
+def get_auto_s(execution_time):
+    if execution_time <= 3:
+        return 4
+    if execution_time <= 6:
+        return 3
+    if execution_time <= 9:
+        return 2
+    return 1
 
 def get_dict():
     dictionary = dict()
@@ -87,17 +102,17 @@ def proc():
         element_id = random.choice(list(dictionary))
         number, text, delta, old_delta, element_date, step = dictionary[element_id]
         print(f"\ndelta = {delta}, old_delta = {old_delta}, element_date = {element_date}, step = {step}")
-        guess = get_guess(text,auto_eval)
+        guess, execution_time = get_input(text)
         if auto_eval:
             if guess == number:
                 print("Ты молодец!")
-                s = get_s()
+                s = get_auto_s(execution_time)
             else:
                 print(f"Неправильно! Правильный ответ {number}")
                 s = 1
         else:
             print(f"Правильный ответ {number}")
-            s = get_s()
+            s = get_manual_s()
         if step + s < 4:
             print("it goes to init")
             dictionary[element_id][5] = 1
