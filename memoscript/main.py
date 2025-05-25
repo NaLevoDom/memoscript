@@ -40,7 +40,7 @@ def handle_new():
             else:
                 print(f"number = {number}, text = {text}, date = {date} Есть старая карточка, её НЕ добавляем.")
 
-def get_guess(text):
+def get_guess(text, auto_eval):
     try:
         return int(input(
             f'Напиши порядковый номер элемента <{text}>: '))
@@ -53,7 +53,7 @@ def get_guess(text):
 def get_s():
     while True:
         try:
-            s = int(input('Насколько просто было (1-4)?: '))
+            s = int(input('Оцени (1-4)?: '))
         except ValueError:
             pass
         except EOFError:
@@ -87,13 +87,17 @@ def proc():
         element_id = random.choice(list(dictionary))
         number, text, delta, old_delta, element_date, step = dictionary[element_id]
         print(f"\ndelta = {delta}, old_delta = {old_delta}, element_date = {element_date}, step = {step}")
-        guess = get_guess(text)
-        if guess == number:
-            print("Ты молодец!")
-            s = get_s()
+        guess = get_guess(text,auto_eval)
+        if auto_eval:
+            if guess == number:
+                print("Ты молодец!")
+                s = get_s()
+            else:
+                print(f"Неправильно! Правильный ответ {number}")
+                s = 1
         else:
-            print(f"Неправильно! Правильный ответ {number}")
-            s = 1
+            print(f"Правильный ответ {number}")
+            s = get_s()
         if step + s < 4:
             print("it goes to init")
             dictionary[element_id][5] = 1
@@ -105,8 +109,7 @@ def proc():
             next_date = current_date + new_delta
             del dictionary[element_id]
             print("let's do the procedure")
-            print(f"new_delta = {new_delta}")
-            print(f"current_date = {current_date}, next_date = {next_date}")
+            print(f"new_delta = {new_delta}, current_date = {current_date}, next_date = {next_date}")
             with sqlite3.connect(dbpath) as c:
                 q = f"UPDATE mod1 SET delta = {new_delta}, old_delta = {delta}, date = {next_date} WHERE element_id = {element_id}"
                 c.execute(q)
@@ -115,7 +118,7 @@ def proc():
 if __name__ == '__main__':
     dbpath = "asd.db"
     current_date = datetime.date.today().toordinal()
-    current_date = 739408
+    # current_date = 739408
     auto_eval = True
     print(f"current_date = {current_date}")
     handle_new()
