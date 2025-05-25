@@ -8,13 +8,13 @@ import sqlite3
 import sys
 import math
 
-def get_delta(mod, s, delta, old_delta):
+def get_delta(step, s, delta, old_delta):
     # new_k = 2 ** (s - 2) 
     if delta == 0:
         delta = 1
     if old_delta == 0:
         old_delta = 1
-    if mod == 2 and s == 3: # чтобы при инициализации стандартный срок был день а не 2
+    if step == 2 and s == 3: # чтобы при инициализации стандартный срок был день а не 2
         return 1 # это уродливый адхок, но что поделать
     d = {2 : 0.5, 3 : 2, 4 : 4}
     new_k = d[s]
@@ -40,20 +40,6 @@ def handle_new():
             else:
                 print(f"number = {number}, text = {text}, date = {date} Есть старая карточка, её НЕ добавляем.")
 
-def get_dict():
-    dictionary = dict()
-    with sqlite3.connect(dbpath) as c:
-        q = "SELECT * FROM mod1 ORDER BY date ASC"
-        i = c.execute(q)
-        for element_id, delta, old_delta, element_date in i:
-            if current_date < element_date:
-                break
-            if delta ==0 and old_delta == 0: # 0 0 - это первый раз
-                mod = 1
-            else:
-                mod = 3
-            dictionary[element_id] = [delta, old_delta, element_date, mod]
-    return dictionary
 
 def get_guess(text):
     try:
@@ -79,42 +65,57 @@ def get_s():
                 return s
         print("Ещё раз. ", end = '')
 
+def get_dict():
+    dictionary = dict()
+    with sqlite3.connect(dbpath) as c:
+        q = "SELECT * FROM mod1 ORDER BY date ASC"
+        i = c.execute(q)
+        for element_id, delta, old_delta, element_date in i:
+            qq = f"SELECT id, sym FROM elements WHERE id = {element_id}"
+            ii = c.execute(qq)
+            number, text = next(ii)
+            if current_date < element_date:
+                break
+            if delta ==0 and old_delta == 0: # 0 0 - это первый раз
+                step = 1
+            else:
+                step = 3
+            dictionary[element_id] = [number, text, delta, old_delta, element_date, step]
+    return dictionary
+
 def proc():
     while dictionary:
         element_id = random.choice(list(dictionary))
-        delta, old_delta, element_date, mod = dictionary[element_id]
-        print(f"\ndelta = {delta}, old_delta = {old_delta}, element_date = {element_date}, mod = {mod}")
-        with sqlite3.connect(dbpath) as c:
-            q = f"SELECT id, sym FROM elements WHERE id = {element_id}"
-            i = c.execute(q)
-            number, text = next(i)
-            guess = get_guess(text)
-            if guess == number:
-                print("Ты молодец!")
-                s = get_s()
-                if mod + s < 4:
-                    print("it goes to init")
-                    dictionary[element_id] = [delta, old_delta, element_date, 1]
-                elif mod + s == 4:
-                    print("it goes to good")
-                    dictionary[element_id] = [delta, old_delta, element_date, 2]
-                else:
-                    print("let's do the procedure")
-                    new_delta = get_delta(mod, s, delta, old_delta)
-                    next_date = current_date + new_delta
-                    print(f"new_delta = {new_delta}")
-                    print(f"current_date = {current_date}, next_date = {next_date}")
+        number, text, delta, old_delta, element_date, step = dictionary[element_id]
+        print(f"\ndelta = {delta}, old_delta = {old_delta}, element_date = {element_date}, step = {step}")
+        guess = get_guess(text)
+        if guess == number:
+            print("Ты молодец!")
+            s = get_s()
+            if step + s < 4:
+                print("it goes to init")
+                dictionary[element_id] = [delta, old_delta, element_date, 1]
+            elif step + s == 4:
+                print("it goes to good")
+                dictionary[element_id] = [delta, old_delta, element_date, 2]
+            else:
+                print("let's do the procedure")
+                new_delta = get_delta(step, s, delta, old_delta)
+                next_date = current_date + new_delta
+                print(f"new_delta = {new_delta}")
+                print(f"current_date = {current_date}, next_date = {next_date}")
+                del dictionary[element_id]
+                with sqlite3.connect(dbpath) as c:
                     q = f"UPDATE mod1 SET delta = {new_delta}, old_delta = {delta}, date = {next_date} WHERE element_id = {element_id}"
                     c.execute(q)
-                    del dictionary[element_id]
-            else:
-                print(f"Неправильно! Правильный ответ {number}")
-                if mod == 2: # шаг назад
-                    dictionary[element_id] = [delta, old_delta, element_date, 1]
-                    print("it goes to init")
-                elif mod == 3:
-                    dictionary[element_id] = [delta, old_delta, element_date, 2]
-                    print("it goes to good")
+        else:
+            print(f"Неправильно! Правильный ответ {number}")
+            if step == 2: # шаг назад
+                dictionary[element_id] = [delta, old_delta, element_date, 1]
+                print("it goes to init")
+            elif step == 3:
+                dictionary[element_id] = [delta, old_delta, element_date, 2]
+                print("it goes to good")
     print("Всё изучено!\nПока!")
 
 if __name__ == '__main__':
