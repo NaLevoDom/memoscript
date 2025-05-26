@@ -98,7 +98,6 @@ def proc():
         execution_time = end_time - start_time
         if auto_eval:
             print(f"execution_time = {execution_time}")
-        if auto_eval:
             if guess == number:
                 print("Ты молодец!")
                 s = get_auto_s(execution_time)
