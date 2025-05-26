@@ -129,15 +129,16 @@ def proc():
                 c.execute(q)
     print("Всё изучено!\nПока!")
 
+dbpath = "asd.db"
+start_red = "\033[91m"
+start_green = "\033[92m"
+start_blue = "\033[94m"
+start_normal = "\033[39m"
+current_date = datetime.date.today().toordinal()
+# current_date = 739401
+auto_eval = True
+
 if __name__ == '__main__':
-    dbpath = "asd.db"
-    start_red = "\033[91m"
-    start_green = "\033[92m"
-    start_blue = "\033[94m"
-    start_normal = "\033[39m"
-    current_date = datetime.date.today().toordinal()
-    # current_date = 739401
-    auto_eval = True
     print(f"current_date = {current_date}")
     handle_new()
     dictionary = get_dict()
