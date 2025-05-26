@@ -8,6 +8,10 @@ import sqlite3
 import sys
 import math
 import time
+import os
+
+def ctrl_l():
+    print('\n' * (os.get_terminal_size().lines - 1) + "\033[H\033[J", end = '')
 
 def get_delta(step, s, delta, old_delta):
     # new_k = 2 ** (s - 2) 
@@ -92,6 +96,7 @@ def proc():
         print(f"\ndelta = {delta}, old_delta = {old_delta}, element_date = {element_date}, step = {step}")
         if auto_eval:
             get_input('Нажмите Enter чтобы продолжить...')
+        ctrl_l()
         start_time = time.time()
         guess = get_input(f'Напиши порядковый номер элемента <{text}>: ')
         end_time = time.time()
@@ -130,9 +135,8 @@ if __name__ == '__main__':
     start_green = "\033[92m"
     start_blue = "\033[94m"
     start_normal = "\033[39m"
-    
     current_date = datetime.date.today().toordinal()
-    current_date = 739401
+    # current_date = 739401
     auto_eval = True
     print(f"current_date = {current_date}")
     handle_new()
