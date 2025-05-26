@@ -13,6 +13,33 @@ import os
 def ctrl_l():
     print('\n' * (os.get_terminal_size().lines - 1) + "\033[H\033[J", end = '')
 
+def get_input(text):
+    try:
+        return input(text)
+    except EOFError:
+        print("\nПока!")
+        sys.exit()
+
+def get_auto_s(execution_time):
+    if execution_time <= 3:
+        return 4
+    if execution_time <= 6:
+        return 3
+    if execution_time <= 9:
+        return 2
+    return 1
+
+def get_manual_s():
+        while True:
+            try:
+                s = int(get_input('Оцени (1-4)?: '))
+            except ValueError:
+                pass
+            else:
+                if 1 <= s <= 4:
+                    return s
+            print("Ещё раз. ", end = '')
+
 def get_delta(step, s, delta, old_delta):
     # new_k = 2 ** (s - 2) 
     if delta == 0:
@@ -43,33 +70,6 @@ def handle_new():
                 db_form = [number, 0, 0, current_date]
                 q = f"INSERT INTO mod1 VALUES(?, ?, ?, ?)"
                 c.execute(q, db_form)
-
-def get_input(text):
-    try:
-        return input(text)
-    except EOFError:
-        print("\nПока!")
-        sys.exit()
-
-def get_manual_s():
-        while True:
-            try:
-                s = int(get_input('Оцени (1-4)?: '))
-            except ValueError:
-                pass
-            else:
-                if 1 <= s <= 4:
-                    return s
-            print("Ещё раз. ", end = '')
-
-def get_auto_s(execution_time):
-    if execution_time <= 3:
-        return 4
-    if execution_time <= 6:
-        return 3
-    if execution_time <= 9:
-        return 2
-    return 1
 
 def get_dict():
     dictionary = dict()
@@ -137,7 +137,6 @@ start_normal = "\033[39m"
 current_date = datetime.date.today().toordinal()
 # current_date = 739401
 auto_eval = True
-
 if __name__ == '__main__':
     print(f"current_date = {current_date}")
     handle_new()
