@@ -93,11 +93,11 @@ def proc():
     while dictionary:
         element_id = random.choice(list(dictionary))
         number, text, delta, old_delta, element_date, step = dictionary[element_id]
-        print(f"\ndelta = {delta}, old_delta = {old_delta}, element_date = {element_date}, step = {step}")
         if auto_eval:
-            get_input('Нажмите Enter чтобы продолжить...')
-        ctrl_l()
+            get_input('\nНажмите Enter чтобы продолжить...')
         start_time = time.time()
+        print(f"delta = {delta}, old_delta = {old_delta}, element_date = {element_date}, step = {step}")
+        ctrl_l()
         guess = get_input(f'Напиши порядковый номер элемента <{text}>: ')
         end_time = time.time()
         execution_time = end_time - start_time
