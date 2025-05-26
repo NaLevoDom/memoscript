@@ -9,7 +9,6 @@ def drop_dbmod_1(): # Элемент в номер / сделано
     with connect(dbpath) as c:
         q = "DROP TABLE mod1"
         c.execute(q)
-        c.execute("VACUUM")
 
 def create_dbmod_1(): # Элемент в номер / сделано
     with connect(dbpath) as c:

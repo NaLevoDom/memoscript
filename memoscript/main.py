@@ -42,32 +42,21 @@ def handle_new():
 
 def get_input(text):
     try:
-        start_time = time.time()
-        guess = int(input(
-            f'Напиши порядковый номер элемента <{text}>: '))
-        end_time = time.time()
-        execution_time = end_time - start_time
-        print(f"execution_time = {execution_time}")
-        return guess, execution_time
-    except ValueError:
-        return (None, None)
+        return input(text)
     except EOFError:
         print("\nПока!")
         sys.exit()
 
 def get_manual_s():
-    while True:
-        try:
-            s = int(input('Оцени (1-4)?: '))
-        except ValueError:
-            pass
-        except EOFError:
-            print("\nПока!")
-            sys.exit()
-        else:
-            if 1 <= s <= 4:
-                return s
-        print("Ещё раз. ", end = '')
+        while True:
+            try:
+                s = int(get_input('Оцени (1-4)?: '))
+            except ValueError:
+                pass
+            else:
+                if 1 <= s <= 4:
+                    return s
+            print("Ещё раз. ", end = '')
 
 def get_auto_s(execution_time):
     if execution_time <= 3:
@@ -101,7 +90,14 @@ def proc():
         element_id = random.choice(list(dictionary))
         number, text, delta, old_delta, element_date, step = dictionary[element_id]
         print(f"\ndelta = {delta}, old_delta = {old_delta}, element_date = {element_date}, step = {step}")
-        guess, execution_time = get_input(text)
+        if auto_eval:
+            get_input('Нажмите Enter чтобы продолжить...')
+        start_time = time.time()
+        guess = get_input(f'Напиши порядковый номер элемента <{text}>: ')
+        end_time = time.time()
+        execution_time = end_time - start_time
+        if auto_eval:
+            print(f"execution_time = {execution_time}")
         if auto_eval:
             if guess == number:
                 print("Ты молодец!")
