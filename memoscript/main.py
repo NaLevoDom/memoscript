@@ -99,10 +99,10 @@ def proc():
         if auto_eval:
             print(f"execution_time = {execution_time}")
             if guess == number:
-                print("Ты молодец!")
+                print(f"{start_green}Ты молодец!{start_normal}")
                 s = get_auto_s(execution_time)
             else:
-                print(f"Неправильно! Правильный ответ {number}")
+                print(f"{start_red}Неправильно!{start_normal} Правильный ответ {start_blue}{number}{start_normal}")
                 s = 1
         else:
             print(f"Правильный ответ {number}")
@@ -126,8 +126,13 @@ def proc():
 
 if __name__ == '__main__':
     dbpath = "asd.db"
+    start_red = "\033[91m"
+    start_green = "\033[92m"
+    start_blue = "\033[94m"
+    start_normal = "\033[39m"
+    
     current_date = datetime.date.today().toordinal()
-    # current_date = 739408
+    current_date = 739401
     auto_eval = True
     print(f"current_date = {current_date}")
     handle_new()
