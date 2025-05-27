@@ -20,12 +20,12 @@ def get_input(text):
         print("\nПока!")
         sys.exit()
 
-def get_auto_s(execution_time):
-    if execution_time <= 3:
+def get_auto_s(delay):
+    if delay <= 3:
         return 4
-    if execution_time <= 6:
+    if delay <= 6:
         return 3
-    if execution_time <= 9:
+    if delay <= 9:
         return 2
     return 1
 
@@ -95,17 +95,16 @@ def proc():
         number, text, delta, old_delta, element_date, step = dictionary[element_id]
         if auto_eval:
             get_input('\nНажмите Enter чтобы продолжить...')
-        start_time = time.time()
-        print(f"delta = {delta}, old_delta = {old_delta}, element_date = {element_date}, step = {step}")
         ctrl_l()
+        start_time = time.time()
         guess = get_input(f'Напиши порядковый номер элемента <{text}>: ')
         end_time = time.time()
-        execution_time = end_time - start_time
+        delay = end_time - start_time
         if auto_eval:
-            print(f"execution_time = {execution_time}")
+            print(f"delay = {delay:0.2f}")
             if guess == number:
                 print(f"{start_green}Ты молодец!{start_normal}")
-                s = get_auto_s(execution_time)
+                s = get_auto_s(delay)
             else:
                 print(f"{start_red}Неправильно!{start_normal} Правильный ответ {start_blue}{number}{start_normal}")
                 s = 1
@@ -123,6 +122,7 @@ def proc():
             next_date = current_date + new_delta
             del dictionary[element_id]
             print("let's do the procedure")
+            print(f"delta = {delta}, old_delta = {old_delta}, element_date = {element_date}, step = {step}")
             print(f"new_delta = {new_delta}, current_date = {current_date}, next_date = {next_date}")
             with sqlite3.connect(dbpath) as c:
                 q = f"UPDATE mod1 SET delta = {new_delta}, old_delta = {delta}, date = {next_date} WHERE element_id = {element_id}"
