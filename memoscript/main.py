@@ -60,7 +60,7 @@ def handle_new():
         q = "SELECT * FROM elements"
         elem_iterator = c.execute(q)
         for number, text in elem_iterator:
-            q = f"SELECT * FROM mod1 WHERE element_id = {number}"
+            q = f"SELECT * FROM {mod} WHERE element_id = {number}"
             mod1_iterator = c.execute(q)
             try:
                 number, delta, old_delta, date = next(mod1_iterator)
@@ -68,13 +68,13 @@ def handle_new():
             except StopIteration:
                 print(f"number = {number}, text = {text} Есть НОВАЯ карточка, её добавляем.")
                 db_form = [number, 0, 0, current_date]
-                q = f"INSERT INTO mod1 VALUES(?, ?, ?, ?)"
+                q = f"INSERT INTO {mod} VALUES(?, ?, ?, ?)"
                 c.execute(q, db_form)
 
 def get_dict():
     dictionary = dict()
     with sqlite3.connect(dbpath) as c:
-        q = "SELECT * FROM mod1 ORDER BY date ASC"
+        q = f"SELECT * FROM {mod} ORDER BY date ASC"
         i = c.execute(q)
         for element_id, delta, old_delta, element_date in i:
             qq = f"SELECT id, sym FROM elements WHERE id = {element_id}"
@@ -97,19 +97,27 @@ def proc():
             get_input('\nНажмите Enter чтобы продолжить...')
         ctrl_l()
         start_time = time.time()
-        guess = get_input(f'Напиши порядковый номер элемента <{text}>: ')
+        
+        if mod == "mod1":
+            string = f'Напиши порядковый номер элемента <{text}>: '
+            answer = number
+        elif mod == "mod2":
+            string = f'Напиши обозначение элемента №{number}: '
+            answer = text
+        
+        guess = get_input(string)
         end_time = time.time()
         delay = end_time - start_time
         if auto_eval:
             print(f"delay = {delay:0.2f}")
-            if guess == number:
+            if guess == answer:
                 print(f"{start_green}Ты молодец!{start_normal}")
                 s = get_auto_s(delay)
             else:
-                print(f"{start_red}Неправильно!{start_normal} Правильный ответ {start_blue}{number}{start_normal}")
+                print(f"{start_red}Неправильно!{start_normal} Правильный ответ {start_blue}{answer}{start_normal}")
                 s = 1
         else:
-            print(f"Правильный ответ {number}")
+            print(f"Правильный ответ {answer}")
             s = get_manual_s()
         if step + s < 4:
             print("it goes to init")
@@ -125,11 +133,12 @@ def proc():
             print(f"delta = {delta}, old_delta = {old_delta}, element_date = {element_date}, step = {step}")
             print(f"new_delta = {new_delta}, current_date = {current_date}, next_date = {next_date}")
             with sqlite3.connect(dbpath) as c:
-                q = f"UPDATE mod1 SET delta = {new_delta}, old_delta = {delta}, date = {next_date} WHERE element_id = {element_id}"
+                q = f"UPDATE {mod} SET delta = {new_delta}, old_delta = {delta}, date = {next_date} WHERE element_id = {element_id}"
                 c.execute(q)
     print("Всё изучено!\nПока!")
 
 dbpath = "asd.db"
+mod = "mod2"
 start_red = "\033[91m"
 start_green = "\033[92m"
 start_blue = "\033[94m"
