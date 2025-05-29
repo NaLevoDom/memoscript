@@ -8,12 +8,12 @@ dbpath = "khjgng.db"
 def add_record(identif, sym):
     with connect(dbpath) as c:
         db_form = [identif, sym]
-        q = f"INSERT INTO months VALUES(?, ?)"
+        q = f"INSERT INTO deck VALUES(?, ?)"
         c.execute(q, db_form)
 
 def create_db(): # / сделано
     with connect(dbpath) as c:
-        q = """CREATE TABLE months(
+        q = """CREATE TABLE deck(
         id TEXT PRIMARY KEY,
         sym TEXT);
         """
@@ -22,7 +22,7 @@ def create_db(): # / сделано
 
 def drop_elements(): # Элемент в номер / сделано
     with connect(dbpath) as c:
-        q = "DROP TABLE months"
+        q = "DROP TABLE deck"
         c.execute(q)
 
 def ad_hoc_add(): # / сделано

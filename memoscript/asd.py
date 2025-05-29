@@ -6,9 +6,14 @@ from sqlite3 import connect
 # dbpath = "asd.db"
 dbpath = "khjgng.db"
 
-def one_time_function():
+def create_taskperday_db(): # it is done to both of dbs
     with connect(dbpath) as c:
-        q = f"ALTER TABLE months RENAME TO deck;"
+        q = """CREATE TABLE taskperday(
+        id TEXT PRIMARY KEY,
+        day INT,
+        new INT,
+        total INT);
+        """
         c.execute(q)
 
 def add_record(identif, sym):
@@ -19,16 +24,15 @@ def add_record(identif, sym):
 
 def create_db(): # / сделано
     with connect(dbpath) as c:
-        q = """CREATE TABLE elements(
+        q = """CREATE TABLE deck(
         id TEXT PRIMARY KEY,
         sym TEXT);
         """
         c.execute(q)
-        c.execute("VACUUM")
 
 def drop_elements(): # Элемент в номер / сделано
     with connect(dbpath) as c:
-        q = "DROP TABLE elements"
+        q = "DROP TABLE deck"
         c.execute(q)
 
 def ad_hoc_add(): # / сделано

@@ -135,10 +135,10 @@ def proc():
                 c.execute(q)
     print("Всё изучено!\nПока!")
 
-# dbpath = "asd.db"
-dbpath = "khjgng.db"
-# mod = "mod2"
-mod = "mod1"
+dbpath = "asd.db"
+# dbpath = "khjgng.db"
+mod = "mod2"
+# mod = "mod1"
 start_red = "\033[91m"
 start_green = "\033[92m"
 start_blue = "\033[94m"
