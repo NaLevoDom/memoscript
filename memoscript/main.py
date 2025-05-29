@@ -58,6 +58,7 @@ def get_delta(step, s, delta, old_delta):
 def handle_new():
     with sqlite3.connect(dbpath) as c:
         q = "SELECT * FROM elements"
+        # q = "SELECT * FROM months"
         elem_iterator = c.execute(q)
         for number, text in elem_iterator:
             q = f"SELECT * FROM {mod} WHERE element_id = {number}"
@@ -78,6 +79,7 @@ def get_dict():
         i = c.execute(q)
         for element_id, delta, old_delta, element_date in i:
             qq = f"SELECT id, sym FROM elements WHERE id = {element_id}"
+            # qq = f"SELECT id, sym FROM months WHERE id = {element_id}"
             ii = c.execute(qq)
             number, text = next(ii)
             if current_date < element_date:
@@ -97,14 +99,12 @@ def proc():
             get_input('\nНажмите Enter чтобы продолжить...')
         ctrl_l()
         start_time = time.time()
-        
         if mod == "mod1":
             string = f'Напиши порядковый номер элемента <{text}>: '
             answer = number
         elif mod == "mod2":
             string = f'Напиши обозначение элемента №{number}: '
             answer = text
-        
         guess = get_input(string)
         end_time = time.time()
         delay = end_time - start_time
@@ -138,7 +138,9 @@ def proc():
     print("Всё изучено!\nПока!")
 
 dbpath = "asd.db"
+# dbpath = "khjgng.db"
 mod = "mod2"
+# mod = "mod1"
 start_red = "\033[91m"
 start_green = "\033[92m"
 start_blue = "\033[94m"
