@@ -6,6 +6,9 @@ from sqlite3 import connect
 # dbpath = "asd.db"
 dbpath = "khjgng.db"
 
+
+
+
 def create_taskperday_db(): # it is done to both of dbs
     with connect(dbpath) as c:
         q = """CREATE TABLE taskperday(
@@ -19,8 +22,15 @@ def create_taskperday_db(): # it is done to both of dbs
 def add_record(identif, sym):
     with connect(dbpath) as c:
         db_form = [identif, sym]
-        q = f"INSERT INTO elements VALUES(?, ?)"
+        q = f"INSERT INTO deck VALUES(?, ?)"
         c.execute(q, db_form)
+
+# def add_record2(identif, sym):
+#     with connect(dbpath) as c:
+#         q = f"INSERT INTO taskperday VALUES(1, ?, ?, ?)"
+#         c.execute(q, db_form)
+
+
 
 def create_db(): # / сделано
     with connect(dbpath) as c:

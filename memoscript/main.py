@@ -76,6 +76,8 @@ def get_dict():
     with sqlite3.connect(dbpath) as c:
         q = f"SELECT * FROM {mod} ORDER BY date ASC"
         i = c.execute(q)
+        new_counter = 0 # по идее тут он должен из базы его брать
+        total_counter = 0
         for element_id, delta, old_delta, element_date in i:
             qq = f"SELECT id, sym FROM deck WHERE id = {element_id}"
             ii = c.execute(qq)
@@ -83,10 +85,25 @@ def get_dict():
             if current_date < element_date:
                 break
             if delta ==0 and old_delta == 0: # 0 0 - это первый раз
-                step = 1
+                if total_counter < 24:
+                    if new_counter < 6:
+                        step = 1 
+                        total_counter += 1 # а тут он должен обновлять значение в базе
+                        new_counter += 1
+                    else:
+                        continue
+                else:
+                    break
             else:
-                step = 3
+                if total_counter < 24:
+                    step = 3
+                    total_counter += 1
+                else:
+                    break
+            
+            
             dictionary[element_id] = [number, text, delta, old_delta, element_date, step]
+    print(f"\nToday we got {new_counter} new tasks, and {total_counter} total")
     return dictionary
 
 def proc():
@@ -135,16 +152,16 @@ def proc():
                 c.execute(q)
     print("Всё изучено!\nПока!")
 
-dbpath = "asd.db"
-# dbpath = "khjgng.db"
-mod = "mod2"
-# mod = "mod1"
+# dbpath = "asd.db"
+dbpath = "khjgng.db"
+# mod = "mod2"
+mod = "mod1"
 start_red = "\033[91m"
 start_green = "\033[92m"
 start_blue = "\033[94m"
 start_normal = "\033[39m"
 current_date = datetime.date.today().toordinal()
-# current_date = 739401
+# current_date = 739404
 auto_eval = True
 if __name__ == '__main__':
     print(f"current_date = {current_date}")
