@@ -57,8 +57,7 @@ def get_delta(step, s, delta, old_delta):
 
 def handle_new():
     with sqlite3.connect(dbpath) as c:
-        q = "SELECT * FROM elements"
-        # q = "SELECT * FROM months"
+        q = "SELECT * FROM deck"
         elem_iterator = c.execute(q)
         for number, text in elem_iterator:
             q = f"SELECT * FROM {mod} WHERE element_id = {number}"
@@ -78,8 +77,7 @@ def get_dict():
         q = f"SELECT * FROM {mod} ORDER BY date ASC"
         i = c.execute(q)
         for element_id, delta, old_delta, element_date in i:
-            qq = f"SELECT id, sym FROM elements WHERE id = {element_id}"
-            # qq = f"SELECT id, sym FROM months WHERE id = {element_id}"
+            qq = f"SELECT id, sym FROM deck WHERE id = {element_id}"
             ii = c.execute(qq)
             number, text = next(ii)
             if current_date < element_date:
@@ -137,10 +135,10 @@ def proc():
                 c.execute(q)
     print("Всё изучено!\nПока!")
 
-dbpath = "asd.db"
-# dbpath = "khjgng.db"
-mod = "mod2"
-# mod = "mod1"
+# dbpath = "asd.db"
+dbpath = "khjgng.db"
+# mod = "mod2"
+mod = "mod1"
 start_red = "\033[91m"
 start_green = "\033[92m"
 start_blue = "\033[94m"

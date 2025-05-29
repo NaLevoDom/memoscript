@@ -3,7 +3,13 @@
 
 from sqlite3 import connect
 
-dbpath = "asd.db"
+# dbpath = "asd.db"
+dbpath = "khjgng.db"
+
+def one_time_function():
+    with connect(dbpath) as c:
+        q = f"ALTER TABLE months RENAME TO deck;"
+        c.execute(q)
 
 def add_record(identif, sym):
     with connect(dbpath) as c:
