@@ -32,7 +32,10 @@ def add_record2():
         q = f"INSERT INTO taskperday VALUES(1, 739400, 0, 0)"
         c.execute(q)
 
-
+def add_record3():
+    with connect("khjgng.db") as c:
+        q = f"INSERT INTO taskperday VALUES(2, 739400, 0, 0)"
+        c.execute(q)
 
 def create_db(): # / сделано
     with connect(dbpath) as c:
@@ -80,7 +83,10 @@ def add_qa_records(): # done
         c.execute(q)
 
 
-
+def add_qa_records2(): # done
+    with connect("khjgng.db") as c:
+        q = "INSERT INTO qa VALUES(2, 1, 'Напиши месяц №{0}: ')"
+        c.execute(q)
 
 
 

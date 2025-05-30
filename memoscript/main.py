@@ -184,8 +184,8 @@ def proc():
                 c.execute(q)
     print("Всё изучено!\nПока!")
 
-dbpath = "asd.db"
-# dbpath = "khjgng.db"
+# dbpath = "asd.db"
+dbpath = "khjgng.db"
 mod = "2"
 # mod = "1"
 start_red = "\033[91m"
