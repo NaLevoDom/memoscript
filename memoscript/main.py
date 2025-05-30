@@ -41,7 +41,6 @@ def get_manual_s():
             print("Ещё раз. ", end = '')
 
 def get_delta(step, s, delta, old_delta):
-    # new_k = 2 ** (s - 2) 
     if delta == 0:
         delta = 1
     if old_delta == 0:
@@ -77,29 +76,23 @@ def get_dict():
         q = f"SELECT * FROM taskperday WHERE id = {mod}"
         i = c.execute(q)
         idd, day, new, total = next(i)
-        
         old_new = new
         old_total = total
-        
         print(f"В таскпердее было id = {idd}, day = {day}, new = {new}, total = {total}")
-        
         if current_date != day:
             q = f"UPDATE taskperday SET day = {current_date}, new = 0, total = 0 WHERE id = {mod}"
             c.execute(q)
             new = 0
             total = 0
-            
             old_new = new
             old_total = total
-            
             print(f"Так как дата устаревшая обнуляем счётчики.")
-            
         q = f"SELECT * FROM mod{mod} ORDER BY date ASC"
         i = c.execute(q)
         for element_id, delta, old_delta, element_date in i:
-            qq = f"SELECT id, sym FROM deck WHERE id = {element_id}"
+            qq = f"SELECT id, sym FROM deck WHERE id = {element_id}" # ###??? id, sym а что там ещё?
             ii = c.execute(qq)
-            number, text = next(ii)
+            number, text = next(ii) # ### vars = next(ii)
             if current_date < element_date:
                 break
             if delta ==0 and old_delta == 0: # 0 0 - это первый раз
@@ -118,9 +111,8 @@ def get_dict():
                     total += 1
                 else:
                     break
-            
-            
-            dictionary[element_id] = [number, text, delta, old_delta, element_date, step]
+            dictionary[element_id] = [number, text, delta, old_delta, element_date, step] 
+            # ### dictionary[element_id] = [vars,[delta, old_delta, element_date, step]]
     print(f"Докидываем {new - old_new} новых, а в целом {total - old_total} карточек.")
     return dictionary
 
@@ -132,12 +124,26 @@ def proc():
             get_input('\nНажмите Enter чтобы продолжить...')
         ctrl_l()
         start_time = time.time()
-        if mod == "1":
-            string = f'Напиши порядковый номер элемента <{text}>: '
-            answer = number
-        elif mod == "2":
-            string = f'Напиши обозначение элемента №{number}: '
-            answer = text
+        
+        
+        with sqlite3.connect(dbpath) as c:
+            q = f"SELECT * FROM qa WHERE mod_id = {mod}"
+            i = c.execute(q)
+            mod_id, answer_index, question = next(i)
+        
+        string = question.format(number, text) # *vars
+        answer = (number, text)[answer_index]
+        
+        
+        # if mod == "1":
+        #     string = f'Напиши порядковый номер элемента <{text}>: '
+        #     answer = number
+        # elif mod == "2":
+        #     string = f'Напиши обозначение элемента №{number}: '
+        #     answer = text
+        
+        
+        
         guess = get_input(string)
         end_time = time.time()
         delay = end_time - start_time
@@ -165,7 +171,6 @@ def proc():
             print("let's do the procedure")
             print(f"delta = {delta}, old_delta = {old_delta}, element_date = {element_date}, step = {step}")
             print(f"new_delta = {new_delta}, current_date = {current_date}, next_date = {next_date}")
-            
             with sqlite3.connect(dbpath) as c:
                 q = f"SELECT * FROM taskperday WHERE id = {mod}"
                 i = c.execute(q)
@@ -175,17 +180,14 @@ def proc():
                 else:
                     q = f"UPDATE taskperday SET total = {total + 1} WHERE id = {mod}"
                 c.execute(q)
-                
                 q = f"UPDATE mod{mod} SET delta = {new_delta}, old_delta = {delta}, date = {next_date} WHERE element_id = {element_id}"
                 c.execute(q)
-                
-                
     print("Всё изучено!\nПока!")
 
 dbpath = "asd.db"
 # dbpath = "khjgng.db"
-# mod = "2"
-mod = "1"
+mod = "2"
+# mod = "1"
 start_red = "\033[91m"
 start_green = "\033[92m"
 start_blue = "\033[94m"
