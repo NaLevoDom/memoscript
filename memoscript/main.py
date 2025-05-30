@@ -60,7 +60,7 @@ def handle_new():
         q = "SELECT * FROM deck"
         elem_iterator = c.execute(q)
         for number, text in elem_iterator:
-            q = f"SELECT * FROM {mod} WHERE element_id = {number}"
+            q = f"SELECT * FROM mod{mod} WHERE element_id = {number}"
             mod1_iterator = c.execute(q)
             try:
                 number, delta, old_delta, date = next(mod1_iterator)
@@ -68,16 +68,34 @@ def handle_new():
             except StopIteration:
                 print(f"number = {number}, text = {text} Есть НОВАЯ карточка, её добавляем.")
                 db_form = [number, 0, 0, current_date]
-                q = f"INSERT INTO {mod} VALUES(?, ?, ?, ?)"
+                q = f"INSERT INTO mod{mod} VALUES(?, ?, ?, ?)"
                 c.execute(q, db_form)
 
 def get_dict():
     dictionary = dict()
     with sqlite3.connect(dbpath) as c:
-        q = f"SELECT * FROM {mod} ORDER BY date ASC"
+        q = f"SELECT * FROM taskperday WHERE id = {mod}"
         i = c.execute(q)
-        new_counter = 0 # по идее тут он должен из базы его брать
-        total_counter = 0
+        idd, day, new, total = next(i)
+        
+        old_new = new
+        old_total = total
+        
+        print(f"В таскпердее было id = {idd}, day = {day}, new = {new}, total = {total}")
+        
+        if current_date != day:
+            q = f"UPDATE taskperday SET day = {current_date}, new = 0, total = 0 WHERE id = {mod}"
+            c.execute(q)
+            new = 0
+            total = 0
+            
+            old_new = new
+            old_total = total
+            
+            print(f"Так как дата устаревшая обнуляем счётчики.")
+            
+        q = f"SELECT * FROM mod{mod} ORDER BY date ASC"
+        i = c.execute(q)
         for element_id, delta, old_delta, element_date in i:
             qq = f"SELECT id, sym FROM deck WHERE id = {element_id}"
             ii = c.execute(qq)
@@ -85,25 +103,25 @@ def get_dict():
             if current_date < element_date:
                 break
             if delta ==0 and old_delta == 0: # 0 0 - это первый раз
-                if total_counter < 24:
-                    if new_counter < 6:
+                if total < 24:
+                    if new < 8:
                         step = 1 
-                        total_counter += 1 # а тут он должен обновлять значение в базе
-                        new_counter += 1
+                        total += 1
+                        new += 1
                     else:
                         continue
                 else:
                     break
             else:
-                if total_counter < 24:
+                if total < 24:
                     step = 3
-                    total_counter += 1
+                    total += 1
                 else:
                     break
             
             
             dictionary[element_id] = [number, text, delta, old_delta, element_date, step]
-    print(f"\nToday we got {new_counter} new tasks, and {total_counter} total")
+    print(f"Докидываем {new - old_new} новых, а в целом {total - old_total} карточек.")
     return dictionary
 
 def proc():
@@ -114,10 +132,10 @@ def proc():
             get_input('\nНажмите Enter чтобы продолжить...')
         ctrl_l()
         start_time = time.time()
-        if mod == "mod1":
+        if mod == "1":
             string = f'Напиши порядковый номер элемента <{text}>: '
             answer = number
-        elif mod == "mod2":
+        elif mod == "2":
             string = f'Напиши обозначение элемента №{number}: '
             answer = text
         guess = get_input(string)
@@ -147,21 +165,33 @@ def proc():
             print("let's do the procedure")
             print(f"delta = {delta}, old_delta = {old_delta}, element_date = {element_date}, step = {step}")
             print(f"new_delta = {new_delta}, current_date = {current_date}, next_date = {next_date}")
+            
             with sqlite3.connect(dbpath) as c:
-                q = f"UPDATE {mod} SET delta = {new_delta}, old_delta = {delta}, date = {next_date} WHERE element_id = {element_id}"
+                q = f"SELECT * FROM taskperday WHERE id = {mod}"
+                i = c.execute(q)
+                idd, day, new, total = next(i)
+                if step < 3:
+                    q = f"UPDATE taskperday SET new = {new + 1}, total = {total + 1} WHERE id = {mod}"
+                else:
+                    q = f"UPDATE taskperday SET total = {total + 1} WHERE id = {mod}"
                 c.execute(q)
+                
+                q = f"UPDATE mod{mod} SET delta = {new_delta}, old_delta = {delta}, date = {next_date} WHERE element_id = {element_id}"
+                c.execute(q)
+                
+                
     print("Всё изучено!\nПока!")
 
-# dbpath = "asd.db"
-dbpath = "khjgng.db"
-# mod = "mod2"
-mod = "mod1"
+dbpath = "asd.db"
+# dbpath = "khjgng.db"
+# mod = "2"
+mod = "1"
 start_red = "\033[91m"
 start_green = "\033[92m"
 start_blue = "\033[94m"
 start_normal = "\033[39m"
 current_date = datetime.date.today().toordinal()
-# current_date = 739404
+# current_date = 739405
 auto_eval = True
 if __name__ == '__main__':
     print(f"current_date = {current_date}")

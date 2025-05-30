@@ -25,10 +25,15 @@ def add_record(identif, sym):
         q = f"INSERT INTO deck VALUES(?, ?)"
         c.execute(q, db_form)
 
-# def add_record2(identif, sym):
-#     with connect(dbpath) as c:
-#         q = f"INSERT INTO taskperday VALUES(1, ?, ?, ?)"
-#         c.execute(q, db_form)
+def add_record2():
+    with connect("asd.db") as c:
+        q = f"INSERT INTO taskperday VALUES(1, 739400, 0, 0)"
+        c.execute(q)
+        q = f"INSERT INTO taskperday VALUES(2, 739400, 0, 0)"
+        c.execute(q)
+    with connect("khjgng.db") as c:
+        q = f"INSERT INTO taskperday VALUES(1, 739400, 0, 0)"
+        c.execute(q)
 
 
 
