@@ -59,8 +59,9 @@ def handle_new():
         q = "SELECT * FROM deck"
         elem_iterator = c.execute(q)
         for number, text in elem_iterator:
-            q = f"SELECT * FROM mod{mod} WHERE element_id = {number}"
-            mod1_iterator = c.execute(q)
+            q = f"SELECT * FROM mod{mod} WHERE element_id = '{number}'"
+            # print(q)
+            mod1_iterator = c.execute(q) # что за дурацкое имя переменной?
             try:
                 number, delta, old_delta, date = next(mod1_iterator)
                 print(f"number = {number}, text = {text}, date = {date} Есть старая карточка, её НЕ добавляем.")
@@ -90,7 +91,7 @@ def get_dict():
         q = f"SELECT * FROM mod{mod} ORDER BY date ASC"
         i = c.execute(q)
         for element_id, delta, old_delta, element_date in i:
-            qq = f"SELECT id, sym FROM deck WHERE id = {element_id}" # ###??? id, sym а что там ещё?
+            qq = f"SELECT id, sym FROM deck WHERE id = '{element_id}'" # ###??? id, sym а что там ещё?
             ii = c.execute(qq)
             number, text = next(ii) # ### vars = next(ii)
             if current_date < element_date:
@@ -180,14 +181,15 @@ def proc():
                 else:
                     q = f"UPDATE taskperday SET total = {total + 1} WHERE id = {mod}"
                 c.execute(q)
-                q = f"UPDATE mod{mod} SET delta = {new_delta}, old_delta = {delta}, date = {next_date} WHERE element_id = {element_id}"
+                q = f"UPDATE mod{mod} SET delta = {new_delta}, old_delta = {delta}, date = {next_date} WHERE element_id = '{element_id}'"
                 c.execute(q)
     print("Всё изучено!\nПока!")
 
 # dbpath = "asd.db"
 dbpath = "khjgng.db"
-mod = "2"
-# mod = "1"
+dbpath = "asd3.db"
+# mod = "2"
+mod = "1"
 start_red = "\033[91m"
 start_green = "\033[92m"
 start_blue = "\033[94m"
