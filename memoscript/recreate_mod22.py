@@ -30,6 +30,6 @@ def create_dbmod_1(): # Элемент в номер / сделано
         c.execute("VACUUM")
 
 if __name__ == '__main__':
-    # taskperday_update()
-    # drop_dbmod_1()
+    taskperday_update()
+    drop_dbmod_1()
     create_dbmod_1()
