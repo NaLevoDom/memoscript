@@ -59,7 +59,7 @@ def handle_new():
         q = "SELECT * FROM deck"
         elem_iterator = c.execute(q)
         for number, text in elem_iterator:
-            q = f"SELECT * FROM mod{mod} WHERE element_id = '{number}'"
+            q = f"SELECT * FROM mod_{mod} WHERE element_id = '{number}'"
             # print(q)
             mod1_iterator = c.execute(q) # что за дурацкое имя переменной?
             try:
@@ -68,7 +68,7 @@ def handle_new():
             except StopIteration:
                 print(f"number = {number}, text = {text} Есть НОВАЯ карточка, её добавляем.")
                 db_form = [number, 0, 0, current_date]
-                q = f"INSERT INTO mod{mod} VALUES(?, ?, ?, ?)"
+                q = f"INSERT INTO mod_{mod} VALUES(?, ?, ?, ?)"
                 c.execute(q, db_form)
 
 def get_dict():
@@ -88,7 +88,7 @@ def get_dict():
             old_new = new
             old_total = total
             print(f"Так как дата устаревшая обнуляем счётчики.")
-        q = f"SELECT * FROM mod{mod} ORDER BY date ASC"
+        q = f"SELECT * FROM mod_{mod} ORDER BY date ASC"
         i = c.execute(q)
         for element_id, delta, old_delta, element_date in i:
             qq = f"SELECT id, sym FROM deck WHERE id = '{element_id}'" # ###??? id, sym а что там ещё?
@@ -167,13 +167,13 @@ def proc():
                 else:
                     q = f"UPDATE taskperday SET total = {total + 1} WHERE id = {mod}"
                 c.execute(q)
-                q = f"UPDATE mod{mod} SET delta = {new_delta}, old_delta = {delta}, date = {next_date} WHERE element_id = '{element_id}'"
+                q = f"UPDATE mod_{mod} SET delta = {new_delta}, old_delta = {delta}, date = {next_date} WHERE element_id = '{element_id}'"
                 c.execute(q)
     print("Всё изучено!\nПока!")
 
-# dbpath = "asd.db"
-# dbpath = "khjgng.db"
-dbpath = "asd3.db"
+dbpath = "asd.db"
+# dbpath = "asd2.db"
+# dbpath = "asd3.db"
 # mod = "2"
 mod = "1"
 start_red = "\033[91m"
@@ -181,7 +181,7 @@ start_green = "\033[92m"
 start_blue = "\033[94m"
 start_normal = "\033[39m"
 current_date = datetime.date.today().toordinal()
-# current_date = 739405
+current_date = 739405
 auto_eval = True
 if __name__ == '__main__':
     print(f"current_date = {current_date}")
