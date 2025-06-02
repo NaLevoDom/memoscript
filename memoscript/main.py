@@ -186,7 +186,7 @@ def proc():
     print("Всё изучено!\nПока!")
 
 # dbpath = "asd.db"
-dbpath = "khjgng.db"
+# dbpath = "khjgng.db"
 dbpath = "asd3.db"
 # mod = "2"
 mod = "1"
