@@ -17,7 +17,7 @@ current_date = datetime.date.today().toordinal()
 
 def taskperday_update():
     with sqlite3.connect(dbpath) as c:
-        q = f"UPDATE taskperday SET day = {current_date}, new = 0, total = 0 WHERE id = 1"
+        q = f"UPDATE taskperday SET day = {current_date}, new = 0, total = 0 WHERE mod_id = 1"
         c.execute(q)
 
 def drop_mod():
@@ -28,7 +28,7 @@ def drop_mod():
 def create_mod():
     with sqlite3.connect(dbpath) as c:
         q = f"""CREATE TABLE IF NOT EXISTS mod_{mod_id}(
-        element_id INT PRIMARY KEY,
+        card_id INT PRIMARY KEY,
         delta INT,
         old_delta INT,
         date INT);

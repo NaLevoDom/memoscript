@@ -24,7 +24,8 @@ cards = [['1', 'H'], ['2', 'He'], ['3', 'Li'], ['4', 'Be'], ['5', 'B'], ['6', 'C
 def create_deck():
     with sqlite3.connect(dbpath) as c:
         q = """CREATE TABLE deck(
-        id TEXT,
+        id INTEGER PRIMARY KEY,
+        num TEXT,
         sym TEXT);
         """
         c.execute(q)
@@ -32,7 +33,7 @@ def create_deck():
 def create_taskperday(): # it is done to both of dbs
     with sqlite3.connect(dbpath) as c:
         q = """CREATE TABLE taskperday(
-        id TEXT PRIMARY KEY,
+        mod_id TEXT PRIMARY KEY,
         day INT,
         new INT,
         total INT);
@@ -48,15 +49,15 @@ def create_qa():
         """
         c.execute(q)
 
-def add_deck_record(identif, sym):
+def add_deck_record(i):
     with sqlite3.connect(dbpath) as c:
-        db_form = [identif, sym]
-        q = f"INSERT INTO deck VALUES(?, ?)"
+        db_form = [None] + i
+        q = f"INSERT INTO deck VALUES(?, ?, ?)"
         c.execute(q, db_form)
 
 def add_deck_records(l):
-    for identif, sym in l:
-        add_deck_record(identif, sym)
+    for i in l:
+        add_deck_record(i)
 
 if __name__ == '__main__':
     create_deck()
