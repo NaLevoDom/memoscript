@@ -125,26 +125,12 @@ def proc():
             get_input('\nНажмите Enter чтобы продолжить...')
         ctrl_l()
         start_time = time.time()
-        
-        
         with sqlite3.connect(dbpath) as c:
             q = f"SELECT * FROM qa WHERE mod_id = {mod}"
             i = c.execute(q)
             mod_id, answer_index, question = next(i)
-        
         string = question.format(number, text) # *vars
         answer = (number, text)[answer_index]
-        
-        
-        # if mod == "1":
-        #     string = f'Напиши порядковый номер элемента <{text}>: '
-        #     answer = number
-        # elif mod == "2":
-        #     string = f'Напиши обозначение элемента №{number}: '
-        #     answer = text
-        
-        
-        
         guess = get_input(string)
         end_time = time.time()
         delay = end_time - start_time
