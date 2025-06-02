@@ -5,10 +5,15 @@ import sqlite3
 import datetime
 
 dbpath = "asd.db"
-mod_id = "1"
-qa = "'1', 0, 'Напиши порядковый номер элемента <{1}>: '"
-# mod_id = "2"
-# qa = "2, 1, 'Напиши обозначение элемента №{0}: '"
+# mod_id = "1"
+# qa = "'1', 0, 'Напиши порядковый номер элемента <{1}>: '" # ### почему тут кавычки на единице?
+mod_id = "2"
+qa = "2, 1, 'Напиши обозначение элемента №{0}: '"
+
+
+# dbpath = "asd2.db"
+# mod_id = "1"
+# qa = "1, 0, 'Какой страны столица {1}?: '"
 
 # qa = "1, 0, 'Напиши порядковый номер месяца <{1}>: '"
 # qa = "2, 1, 'Напиши месяц №{0}: '"
@@ -22,7 +27,7 @@ def taskperday_update():
 
 def drop_mod():
     with sqlite3.connect(dbpath) as c:
-        q = f"DROP TABLE IF EXISTS mod{mod_id}"
+        q = f"DROP TABLE IF EXISTS mod_{mod_id}"
         c.execute(q)
 
 def create_mod():
@@ -41,7 +46,7 @@ def add_taskperday_record():
         c.execute(q)
 
 def add_qa_record():
-    with sqlite3.connect("asd.db") as c:
+    with sqlite3.connect(dbpath) as c:
         q = f"INSERT INTO qa VALUES({qa})"
         c.execute(q)
     
