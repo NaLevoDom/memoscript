@@ -62,7 +62,6 @@ def handle_new():
         i = c.execute(q)
         for idd, number, text in i:
             q = f"SELECT * FROM mod_{mod} WHERE card_id = '{idd}'"
-            # print(q)
             ii = c.execute(q)
             try:
                 idd, delta, old_delta, date = next(ii)
@@ -95,7 +94,8 @@ def get_dict():
         for card_id, delta, old_delta, element_date in i:
             qq = f"SELECT * FROM deck WHERE id = '{card_id}'"
             ii = c.execute(qq)
-            idd, number, text = next(ii) # ### vars = next(ii)
+            fields = next(ii)
+            fields = fields[1:]
             if current_date < element_date:
                 break
             if delta ==0 and old_delta == 0: # 0 0 - это первый раз
@@ -114,8 +114,7 @@ def get_dict():
                     total += 1
                 else:
                     break
-            dictionary[card_id] = [number, text, delta, old_delta, element_date, step]
-            # ### dictionary[card_id] = [vars,[delta, old_delta, element_date, step]]
+            dictionary[card_id] = [fields ,delta, old_delta, element_date, step]
     print(f"Докидываем {new - old_new} новых, а в целом {total - old_total} карточек.")
     return dictionary
 
@@ -126,9 +125,9 @@ def proc():
         mod_id, auto_eval, answer_index, question = next(i)
     while dictionary:
         card_id = random.choice(list(dictionary))
-        number, text, delta, old_delta, element_date, step = dictionary[card_id]
-        string = question.format(number, text) # *vars
-        answer = (number, text)[answer_index]
+        fields, delta, old_delta, element_date, step = dictionary[card_id]
+        string = question.format(*fields)
+        answer = fields[answer_index]
         get_input('\nНажмите Enter чтобы продолжить...')
         ctrl_l()
         start_time = time.time()
@@ -137,6 +136,7 @@ def proc():
         delay = end_time - start_time
         if auto_eval:
             print(f"delay = {delay:0.2f}")
+            print(answer)
             if guess.lower() == answer.lower():
                 print(f"{start_green}Ты молодец!{start_normal}")
                 s = get_auto_s(delay, answer)
@@ -148,10 +148,10 @@ def proc():
             s = get_manual_s()
         if step + s < 4:
             print("it goes to init")
-            dictionary[card_id][5] = 1
+            dictionary[card_id][4] = 1
         elif step + s == 4:
             print("it goes to good")
-            dictionary[card_id][5] = 2
+            dictionary[card_id][4] = 2
         else:
             new_delta = get_delta(step, s, delta, old_delta)
             next_date = current_date + new_delta
@@ -173,8 +173,8 @@ def proc():
     print("Всё изучено!\nПока!")
 
 # dbpath = "asd.db"
-# dbpath = "asd2.db"
-dbpath = "asd3.db"
+dbpath = "asd2.db"
+# dbpath = "asd3.db"
 # mod = "2"
 mod = "1"
 start_red = "\033[91m"
@@ -183,7 +183,6 @@ start_blue = "\033[94m"
 start_normal = "\033[39m"
 current_date = datetime.date.today().toordinal()
 # current_date = 739406
-# auto_eval = True
 if __name__ == '__main__':
     os.chdir(os.path.dirname(__file__))
     print(f"current_date = {current_date}")
