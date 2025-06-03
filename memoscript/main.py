@@ -173,10 +173,10 @@ def proc():
     print("Всё изучено!\nПока!")
 
 # dbpath = "asd.db"
-dbpath = "asd2.db"
-# dbpath = "asd3.db"
-mod = "2"
-# mod = "1"
+# dbpath = "asd2.db"
+dbpath = "asd3.db"
+# mod = "2"
+mod = "1"
 start_red = "\033[91m"
 start_green = "\033[92m"
 start_blue = "\033[94m"
@@ -185,6 +185,7 @@ current_date = datetime.date.today().toordinal()
 # current_date = 739406
 # auto_eval = True
 if __name__ == '__main__':
+    os.chdir(os.path.dirname(__file__))
     print(f"current_date = {current_date}")
     handle_new()
     dictionary = get_dict()
