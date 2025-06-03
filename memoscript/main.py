@@ -120,19 +120,18 @@ def get_dict():
     return dictionary
 
 def proc():
+    with sqlite3.connect(dbpath) as c:
+        q = f"SELECT * FROM qa WHERE mod_id = {mod}"
+        i = c.execute(q)
+        mod_id, auto_eval, answer_index, question = next(i)
     while dictionary:
         card_id = random.choice(list(dictionary))
         number, text, delta, old_delta, element_date, step = dictionary[card_id]
-        if auto_eval:
-            get_input('\nНажмите Enter чтобы продолжить...')
-        ctrl_l()
-        start_time = time.time()
-        with sqlite3.connect(dbpath) as c:
-            q = f"SELECT * FROM qa WHERE mod_id = {mod}"
-            i = c.execute(q)
-            mod_id, answer_index, question = next(i)
         string = question.format(number, text) # *vars
         answer = (number, text)[answer_index]
+        get_input('\nНажмите Enter чтобы продолжить...')
+        ctrl_l()
+        start_time = time.time()
         guess = get_input(string)
         end_time = time.time()
         delay = end_time - start_time
@@ -173,18 +172,18 @@ def proc():
                 c.execute(q)
     print("Всё изучено!\nПока!")
 
-dbpath = "asd.db"
-# dbpath = "asd2.db"
+# dbpath = "asd.db"
+dbpath = "asd2.db"
 # dbpath = "asd3.db"
-# mod = "2"
-mod = "1"
+mod = "2"
+# mod = "1"
 start_red = "\033[91m"
 start_green = "\033[92m"
 start_blue = "\033[94m"
 start_normal = "\033[39m"
 current_date = datetime.date.today().toordinal()
 # current_date = 739406
-auto_eval = True
+# auto_eval = True
 if __name__ == '__main__':
     print(f"current_date = {current_date}")
     handle_new()
