@@ -20,12 +20,14 @@ def get_input(text):
         print("\nПока!")
         sys.exit()
 
-def get_auto_s(delay):
-    if delay <= 3:
+def get_auto_s(delay, answer): # это всё ещё бред, но лучше чем было
+    k = math.sqrt(len(answer))
+    print(f"{2*k:0.2f} {4*k:0.2f} {6*k:0.2f}")
+    if delay <= k * 2:
         return 4
-    if delay <= 6:
+    if delay <= k * 4:
         return 3
-    if delay <= 9:
+    if delay <= k * 6:
         return 2
     return 1
 
@@ -136,9 +138,9 @@ def proc():
         delay = end_time - start_time
         if auto_eval:
             print(f"delay = {delay:0.2f}")
-            if guess == answer:
+            if guess.lower() == answer.lower():
                 print(f"{start_green}Ты молодец!{start_normal}")
-                s = get_auto_s(delay)
+                s = get_auto_s(delay, answer)
             else:
                 print(f"{start_red}Неправильно!{start_normal} Правильный ответ {start_blue}{answer}{start_normal}")
                 s = 1
@@ -181,7 +183,7 @@ start_green = "\033[92m"
 start_blue = "\033[94m"
 start_normal = "\033[39m"
 current_date = datetime.date.today().toordinal()
-# current_date = 739405
+# current_date = 739406
 auto_eval = True
 if __name__ == '__main__':
     print(f"current_date = {current_date}")
