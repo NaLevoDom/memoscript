@@ -99,8 +99,8 @@ def get_dict():
             if current_date < element_date:
                 break
             if delta ==0 and old_delta == 0: # 0 0 - это первый раз
-                if total < 24:
-                    if new < 8:
+                if total < total_limit:
+                    if new < new_limit:
                         step = 1 
                         total += 1
                         new += 1
@@ -109,7 +109,7 @@ def get_dict():
                 else:
                     break
             else:
-                if total < 24:
+                if total < total_limit:
                     step = 3
                     total += 1
                 else:
@@ -173,14 +173,19 @@ def proc():
     print("Всё изучено!\nПока!")
 
 # dbpath = "asd.db"
-dbpath = "asd2.db"
-# dbpath = "asd3.db"
-# mod = "2"
-mod = "1"
+# dbpath = "asd2.db"
+dbpath = "asd3.db"
+mod = "2"
+# mod = "1"
 start_red = "\033[91m"
 start_green = "\033[92m"
 start_blue = "\033[94m"
 start_normal = "\033[39m"
+# new_limit = 100
+new_limit = 8
+total_limit = 24
+# total_limit = 100
+
 current_date = datetime.date.today().toordinal()
 # current_date = 739406
 if __name__ == '__main__':
