@@ -65,9 +65,9 @@ def handle_new():
             ii = c.execute(q)
             try:
                 idd, delta, old_delta, date = next(ii)
-                print(f"number = {number}, text = {text}, date = {date} Есть старая карточка, её НЕ добавляем.")
+                # print(f"number = {number}, text = {text}, date = {date} Есть старая карточка, её НЕ добавляем.")
             except StopIteration:
-                print(f"number = {number}, text = {text} Есть НОВАЯ карточка, её добавляем.")
+                # print(f"number = {number}, text = {text} Есть НОВАЯ карточка, её добавляем.")
                 db_form = [idd, 0, 0, current_date]
                 q = f"INSERT INTO mod_{mod} VALUES(?, ?, ?, ?)"
                 c.execute(q, db_form)
@@ -136,7 +136,7 @@ def proc():
         delay = end_time - start_time
         if auto_eval:
             print(f"delay = {delay:0.2f}")
-            print(answer)
+            # print(answer)
             if guess.lower() == answer.lower():
                 print(f"{start_green}Ты молодец!{start_normal}")
                 s = get_auto_s(delay, answer)
@@ -172,22 +172,22 @@ def proc():
                 c.execute(q)
     print("Всё изучено!\nПока!")
 
-# dbpath = "asd.db"
+dbpath = "asd.db"
 # dbpath = "asd2.db"
-dbpath = "asd3.db"
+# dbpath = "asd3.db"
 mod = "2"
 # mod = "1"
 start_red = "\033[91m"
 start_green = "\033[92m"
 start_blue = "\033[94m"
 start_normal = "\033[39m"
-# new_limit = 100
-new_limit = 8
-total_limit = 24
-# total_limit = 100
+new_limit = 100
+# new_limit = 8
+total_limit = 100
+# total_limit = 24
 
 current_date = datetime.date.today().toordinal()
-# current_date = 739406
+# current_date = 739410
 if __name__ == '__main__':
     os.chdir(os.path.dirname(__file__))
     print(f"current_date = {current_date}")
