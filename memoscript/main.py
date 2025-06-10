@@ -98,24 +98,20 @@ def get_dict():
             ii = c.execute(qq)
             fields = next(ii)
             fields = fields[1:]
-            if current_date < element_date:
+            if current_date < element_date or total >= total_limit:
                 break
             if delta ==0 and old_delta == 0: # 0 0 - это первый раз
-                if total < total_limit:
-                    if new < new_limit:
-                        step = 1 
-                        total += 1
-                        new += 1
-                    else:
-                        continue
-                else:
-                    break
-            else:
-                if total < total_limit:
-                    step = 3
+                if new < new_limit:
+                    step = 1 
                     total += 1
+                    new += 1
                 else:
-                    break
+                    continue
+            else:
+                step = 3
+                total += 1
+
+            
             dictionary[card_id] = [fields ,delta, old_delta, element_date, step]
     print(f"Докидываем {new - old_new} новых, а в целом {total - old_total} карточек.")
     return dictionary
@@ -183,8 +179,8 @@ def proc():
             
     print("Всё изучено!\nПока!")
 
-dbpath = "asd.db"
-# dbpath = "asd2.db"
+# dbpath = "asd.db"
+dbpath = "asd2.db"
 # dbpath = "asd3.db"
 mod = "2"
 # mod = "1"
