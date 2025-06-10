@@ -128,6 +128,14 @@ def proc():
         fields, delta, old_delta, element_date, step = dictionary[card_id]
         string = question.format(*fields)
         answer = fields[answer_index]
+        
+        if step == 1 and len(dictionary) == 1:
+            print("\nперенос последнего инита на следующий день")
+            with sqlite3.connect(dbpath) as c:
+                q = f"UPDATE mod_{mod} SET delta = {delta}, old_delta = {old_delta}, date = {current_date + 1} WHERE card_id = '{card_id}'"
+                c.execute(q)
+            break
+        
         get_input('\nНажмите Enter чтобы продолжить...')
         ctrl_l()
         start_time = time.time()
@@ -148,10 +156,10 @@ def proc():
             s = get_manual_s()
         if step + s < 4:
             print("it goes to init")
-            dictionary[card_id][4] = 1
+            dictionary[card_id][4] = 1 # step = 1
         elif step + s == 4:
             print("it goes to good")
-            dictionary[card_id][4] = 2
+            dictionary[card_id][4] = 2 # step = 2
         else:
             new_delta = get_delta(step, s, delta, old_delta)
             next_date = current_date + new_delta
@@ -172,11 +180,11 @@ def proc():
                 c.execute(q)
     print("Всё изучено!\nПока!")
 
-dbpath = "asd.db"
+# dbpath = "asd.db"
 # dbpath = "asd2.db"
-# dbpath = "asd3.db"
-mod = "2"
-# mod = "1"
+dbpath = "asd3.db"
+# mod = "2"
+mod = "1"
 start_red = "\033[91m"
 start_green = "\033[92m"
 start_blue = "\033[94m"
