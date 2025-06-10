@@ -89,6 +89,8 @@ def get_dict():
             old_new = new
             old_total = total
             print(f"Так как дата устаревшая обнуляем счётчики.")
+        
+        
         q = f"SELECT * FROM mod_{mod} ORDER BY date ASC"
         i = c.execute(q)
         for card_id, delta, old_delta, element_date in i:
@@ -118,6 +120,21 @@ def get_dict():
     print(f"Докидываем {new - old_new} новых, а в целом {total - old_total} карточек.")
     return dictionary
 
+def write_db(mod, step, new_delta, delta, next_date, card_id):
+    # print("let's do the procedure")
+    # print(f"new_delta = {new_delta}, current_date = {current_date}, next_date = {next_date}")
+    with sqlite3.connect(dbpath) as c:
+        q = f"SELECT * FROM taskperday WHERE mod_id = {mod}"
+        i = c.execute(q)
+        idd, day, new, total = next(i)
+        if step < 3:
+            q = f"UPDATE taskperday SET new = {new + 1}, total = {total + 1} WHERE mod_id = {mod}"
+        else:
+            q = f"UPDATE taskperday SET total = {total + 1} WHERE mod_id = {mod}"
+        c.execute(q)
+        q = f"UPDATE mod_{mod} SET delta = {new_delta}, old_delta = {delta}, date = {next_date} WHERE card_id = '{card_id}'"
+        c.execute(q)
+
 def proc():
     with sqlite3.connect(dbpath) as c:
         q = f"SELECT * FROM qa WHERE mod_id = {mod}"
@@ -130,10 +147,8 @@ def proc():
         answer = fields[answer_index]
         
         if step == 1 and len(dictionary) == 1:
-            print("\nперенос последнего инита на следующий день")
-            with sqlite3.connect(dbpath) as c:
-                q = f"UPDATE mod_{mod} SET delta = {delta}, old_delta = {old_delta}, date = {current_date + 1} WHERE card_id = '{card_id}'"
-                c.execute(q)
+            print("\nперенос оставшегося инита на следующий день")
+            write_db(mod, step, delta, old_delta, current_date + 1, card_id)
             break
         
         get_input('\nНажмите Enter чтобы продолжить...')
@@ -164,38 +179,26 @@ def proc():
             new_delta = get_delta(step, s, delta, old_delta)
             next_date = current_date + new_delta
             del dictionary[card_id]
-            print("let's do the procedure")
-            print(f"delta = {delta}, old_delta = {old_delta}, element_date = {element_date}, step = {step}")
-            print(f"new_delta = {new_delta}, current_date = {current_date}, next_date = {next_date}")
-            with sqlite3.connect(dbpath) as c:
-                q = f"SELECT * FROM taskperday WHERE mod_id = {mod}"
-                i = c.execute(q)
-                idd, day, new, total = next(i)
-                if step < 3:
-                    q = f"UPDATE taskperday SET new = {new + 1}, total = {total + 1} WHERE mod_id = {mod}"
-                else:
-                    q = f"UPDATE taskperday SET total = {total + 1} WHERE mod_id = {mod}"
-                c.execute(q)
-                q = f"UPDATE mod_{mod} SET delta = {new_delta}, old_delta = {delta}, date = {next_date} WHERE card_id = '{card_id}'"
-                c.execute(q)
+            write_db(mod, step, new_delta, delta, next_date, card_id)
+            
     print("Всё изучено!\nПока!")
 
-# dbpath = "asd.db"
+dbpath = "asd.db"
 # dbpath = "asd2.db"
-dbpath = "asd3.db"
-# mod = "2"
-mod = "1"
+# dbpath = "asd3.db"
+mod = "2"
+# mod = "1"
 start_red = "\033[91m"
 start_green = "\033[92m"
 start_blue = "\033[94m"
 start_normal = "\033[39m"
-new_limit = 100
-# new_limit = 8
-total_limit = 100
-# total_limit = 24
+# new_limit = 100
+new_limit = 8
+# total_limit = 100
+total_limit = 24
 
 current_date = datetime.date.today().toordinal()
-# current_date = 739410
+# current_date = 739417
 if __name__ == '__main__':
     os.chdir(os.path.dirname(__file__))
     print(f"current_date = {current_date}")
