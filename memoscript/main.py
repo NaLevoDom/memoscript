@@ -65,9 +65,9 @@ def handle_new():
             ii = c.execute(q)
             try:
                 idd, delta, old_delta, date = next(ii)
-                # print(f"number = {number}, text = {text}, date = {date} Есть старая карточка, её НЕ добавляем.")
+                print(f"number = {number}, text = {text}, date = {date} Есть старая карточка, её НЕ добавляем.")
             except StopIteration:
-                # print(f"number = {number}, text = {text} Есть НОВАЯ карточка, её добавляем.")
+                print(f"number = {number}, text = {text} Есть НОВАЯ карточка, её добавляем.")
                 db_form = [idd, 0, 0, current_date]
                 q = f"INSERT INTO mod_{mod} VALUES(?, ?, ?, ?)"
                 c.execute(q, db_form)
@@ -112,9 +112,6 @@ def get_dict():
                 step = 3
                 total += 1
                 dictionary[card_id] = [fields ,delta, old_delta, element_date, step]
-            
-            
-            
     print(f"Докидываем {new - old_new} новых, а в целом {total - old_total} карточек.")
     random.shuffle(init_list)
     return dictionary, init_list
@@ -126,7 +123,7 @@ def write_db(mod, step, new_delta, delta, next_date, card_id):
         q = f"SELECT * FROM taskperday WHERE mod_id = {mod}"
         i = c.execute(q)
         idd, day, new, total = next(i)
-        if step < 3:
+        if step < 3: # пахнет ошибкой... ### а что если степ был 3 а стал 1 или 2?
             q = f"UPDATE taskperday SET new = {new + 1}, total = {total + 1} WHERE mod_id = {mod}"
         else:
             q = f"UPDATE taskperday SET total = {total + 1} WHERE mod_id = {mod}"
@@ -156,7 +153,7 @@ def proc():
                     next_time, card_id, fields ,delta, old_delta, element_date, step = card
                     print("\nперенос оставшегося инита на следующий день")
                     print(f"fileds = {fields}")
-                    write_db(mod, step, delta, old_delta, current_date + 1, card_id)
+                    write_db(mod, step, delta, old_delta, current_date, card_id)
                 break
         elif dictionary:
             card_id = random.choice(list(dictionary))
@@ -200,8 +197,8 @@ def proc():
             write_db(mod, step, new_delta, delta, next_date, card_id)
     print("Всё изучено!\nПока!")
 
-# dbpath = "asd.db"
-dbpath = "asd2.db"
+dbpath = "asd.db"
+# dbpath = "asd2.db"
 # dbpath = "asd3.db"
 # mod = "2"
 mod = "1"
@@ -215,7 +212,7 @@ new_limit = 8
 total_limit = 24
 
 current_date = datetime.date.today().toordinal()
-current_date = 739417
+# current_date = 739417
 if __name__ == '__main__':
     os.chdir(os.path.dirname(__file__))
     print(f"current_date = {current_date}")
