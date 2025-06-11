@@ -140,24 +140,17 @@ def proc():
         i = c.execute(q)
         mod_id, auto_eval, answer_index, question = next(i)
     while True:
-        if init_list and dictionary:
+        if init_list: #  and dictionary
             init_list.sort(key = lambda l: l[0])
             card_time = init_list[0][0]
             current_time = time.time()
             if card_time <= current_time: # созрела карточка
-                print("\nягодка созрела (живы оба контейнера)")
+                # print("\nягодка созрела")
                 next_time, card_id, fields ,delta, old_delta, element_date, step = init_list.pop(0)
-            else:
-                print("\nягодка не созрела, ешь что дают (живы оба контейнера)")
+            elif dictionary:
+                # print("\nягодка не созрела")
                 card_id = random.choice(list(dictionary))
                 fields, delta, old_delta, element_date, step = dictionary[card_id]
-        elif init_list:
-            init_list.sort(key = lambda l: l[0])
-            card_time = init_list[0][0]
-            current_time = time.time()
-            if card_time <= current_time: # созрела карточка
-                next_time, card_id, fields ,delta, old_delta, element_date, step = init_list.pop(0)
-                print("\nягодка созрела (дикшинари мёртв)")
             else:
                 for card in init_list: # всё остальное откладывается на следующий день
                     next_time, card_id, fields ,delta, old_delta, element_date, step = card
@@ -168,7 +161,7 @@ def proc():
         elif dictionary:
             card_id = random.choice(list(dictionary))
             fields, delta, old_delta, element_date, step = dictionary[card_id]
-            print("\nЖив только dictinary, едим что есть")
+            # print("\nЖив только dictinary, едим что есть")
         else:
             break
         string = question.format(*fields)
@@ -222,7 +215,7 @@ new_limit = 8
 total_limit = 24
 
 current_date = datetime.date.today().toordinal()
-current_date = 739425
+current_date = 739417
 if __name__ == '__main__':
     os.chdir(os.path.dirname(__file__))
     print(f"current_date = {current_date}")
