@@ -74,6 +74,8 @@ def handle_new():
 
 def get_dict():
     dictionary = dict()
+    init_list = []
+    next_time = time.time()
     with sqlite3.connect(dbpath) as c:
         q = f"SELECT * FROM taskperday WHERE mod_id = {mod}"
         i = c.execute(q)
@@ -89,8 +91,6 @@ def get_dict():
             old_new = new
             old_total = total
             print(f"Так как дата устаревшая обнуляем счётчики.")
-        
-        
         q = f"SELECT * FROM mod_{mod} ORDER BY date ASC"
         i = c.execute(q)
         for card_id, delta, old_delta, element_date in i:
@@ -105,16 +105,19 @@ def get_dict():
                     step = 1 
                     total += 1
                     new += 1
+                    init_list.append([next_time, card_id, fields ,delta, old_delta, element_date, step])
                 else:
                     continue
             else:
                 step = 3
                 total += 1
-
+                dictionary[card_id] = [fields ,delta, old_delta, element_date, step]
             
-            dictionary[card_id] = [fields ,delta, old_delta, element_date, step]
+            
+            
     print(f"Докидываем {new - old_new} новых, а в целом {total - old_total} карточек.")
-    return dictionary
+    random.shuffle(init_list)
+    return dictionary, init_list
 
 def write_db(mod, step, new_delta, delta, next_date, card_id):
     # print("let's do the procedure")
@@ -136,16 +139,64 @@ def proc():
         q = f"SELECT * FROM qa WHERE mod_id = {mod}"
         i = c.execute(q)
         mod_id, auto_eval, answer_index, question = next(i)
-    while dictionary:
-        card_id = random.choice(list(dictionary))
-        fields, delta, old_delta, element_date, step = dictionary[card_id]
+    while dictionary or init_list:
+        
+        
+        if init_list and dictionary:
+            init_list.sort(key = lambda l: l[0])
+            card_time = init_list[0][0]
+            current_time = time.time()
+            if card_time <= current_time: # созрела карточка
+                print("\nягодка созрела (живы оба контейнера)")
+                next_time, card_id, fields ,delta, old_delta, element_date, step = init_list.pop(0)
+            else:
+                print("\nягодка не созрела, ешь что дают (живы оба контейнера)")
+                card_id = random.choice(list(dictionary))
+                fields, delta, old_delta, element_date, step = dictionary[card_id]
+        elif init_list:
+            # дикшинари кончился
+            init_list.sort(key = lambda l: l[0])
+            card_time = init_list[0][0]
+            current_time = time.time()
+            if card_time <= current_time: # созрела карточка
+                next_time, card_id, fields ,delta, old_delta, element_date, step = init_list.pop(0)
+                print("\nягодка созрела (дикшинари мёртв)")
+            else:
+                for card in init_list: # всё остальное откладывается на следующий день
+                    next_time, card_id, fields ,delta, old_delta, element_date, step = card
+                    print("\nперенос оставшегося инита на следующий день")
+                    print(f"fileds = {fields}")
+                    
+                    # ### WARNING ### А ПОЧЕМУ ЭТО НЕ ЗАВЕРШАЕТ ПРОГРАММУ????
+                    
+                    
+                    write_db(mod, step, delta, old_delta, current_date + 1, card_id)
+                
+                break
+                
+        elif dictionary:
+            card_id = random.choice(list(dictionary))
+            fields, delta, old_delta, element_date, step = dictionary[card_id]
+            print("\nЖив только dictinary, едим что есть")
+        else:
+            break
+        
+
+
+        # card_id = random.choice(list(dictionary))
+        # fields, delta, old_delta, element_date, step = dictionary[card_id]
+        
+        
         string = question.format(*fields)
         answer = fields[answer_index]
         
-        if step == 1 and len(dictionary) == 1:
-            print("\nперенос оставшегося инита на следующий день")
-            write_db(mod, step, delta, old_delta, current_date + 1, card_id)
-            break
+#         
+#         if step == 1 and len(dictionary) == 1:
+#             print("\nперенос оставшегося инита на следующий день")
+#             write_db(mod, step, delta, old_delta, current_date + 1, card_id)
+#             break
+#         
+        
         
         get_input('\nНажмите Enter чтобы продолжить...')
         ctrl_l()
@@ -153,6 +204,7 @@ def proc():
         guess = get_input(string)
         end_time = time.time()
         delay = end_time - start_time
+        
         if auto_eval:
             print(f"delay = {delay:0.2f}")
             # print(answer)
@@ -165,25 +217,84 @@ def proc():
         else:
             print(f"Правильный ответ {answer}")
             s = get_manual_s()
-        if step + s < 4:
-            print("it goes to init")
-            dictionary[card_id][4] = 1 # step = 1
-        elif step + s == 4:
-            print("it goes to good")
-            dictionary[card_id][4] = 2 # step = 2
-        else:
-            new_delta = get_delta(step, s, delta, old_delta)
-            next_date = current_date + new_delta
-            del dictionary[card_id]
-            write_db(mod, step, new_delta, delta, next_date, card_id)
+
+        
+        if step != 3: # good or init, i.e. it's init_list
+            if step + s < 4:
+                print("it goes to init")
+                print("code 1")
+                current_time = time.time()
+                next_time = current_time + 1 * 60
+                step = 1
+                init_list.append([next_time, card_id, fields ,delta, old_delta, element_date, step])
+            elif step + s == 4:
+                print("it goes to good")
+                print("code 2")
+                current_time = time.time()
+                next_time = current_time + 2 * 60
+                step = 2
+                init_list.append([next_time, card_id, fields ,delta, old_delta, element_date, step])
+            else:
+                print("let's do the procedure")
+                print("code 3")
+                new_delta = get_delta(step, s, delta, old_delta)
+                next_date = current_date + new_delta
+                # del dictionary[card_id]
+                write_db(mod, step, new_delta, delta, next_date, card_id)
+
+        else: # repeat, i.e. it's dictionary. Now my task is эски.
+            if step + s < 4: # если я правильно понимаю, этот вариант невозможен.ТОЧНО!!! ### ЭТО НЕ МОЖЕТ БЫТ
+                del dictionary[card_id] # ### по идее можно вынести за скобки
+                print("it goes to init")
+                print("code 4")
+                current_time = time.time() # ### тоже
+                next_time = current_time + 1 * 60
+                step = 1
+                init_list.append([next_time, card_id, fields ,delta, old_delta, element_date, step])
+                # dictionary[card_id][4] = 1 # step = 1
+            elif step + s == 4:
+                print("it goes to good")
+                print("code 5")
+                del dictionary[card_id]
+                current_time = time.time()
+                next_time = current_time + 2 * 60
+                step = 2
+                init_list.append([next_time, card_id, fields ,delta, old_delta, element_date, step])
+                # dictionary[card_id][4] = 2 # step = 2
+            else:
+                print("let's do the procedure")
+                print("code 6")
+                new_delta = get_delta(step, s, delta, old_delta)
+                next_date = current_date + new_delta
+                del dictionary[card_id]
+                write_db(mod, step, new_delta, delta, next_date, card_id)
+            
+            
+            
+            
+        
+        
+        # if step + s < 4:
+        #     print("it goes to init")
+        #     dictionary[card_id][4] = 1 # step = 1
+        # elif step + s == 4:
+        #     print("it goes to good")
+        #     dictionary[card_id][4] = 2 # step = 2
+        # else:
+        #     new_delta = get_delta(step, s, delta, old_delta)
+        #     next_date = current_date + new_delta
+        #     del dictionary[card_id]
+        #     write_db(mod, step, new_delta, delta, next_date, card_id)
+            
+            
             
     print("Всё изучено!\nПока!")
 
 # dbpath = "asd.db"
 dbpath = "asd2.db"
 # dbpath = "asd3.db"
-mod = "2"
-# mod = "1"
+# mod = "2"
+mod = "1"
 start_red = "\033[91m"
 start_green = "\033[92m"
 start_blue = "\033[94m"
@@ -194,11 +305,11 @@ new_limit = 8
 total_limit = 24
 
 current_date = datetime.date.today().toordinal()
-# current_date = 739417
+current_date = 739417
 if __name__ == '__main__':
     os.chdir(os.path.dirname(__file__))
     print(f"current_date = {current_date}")
     handle_new()
-    dictionary = get_dict()
+    dictionary, init_list = get_dict()
     proc()
     
