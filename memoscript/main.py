@@ -60,14 +60,20 @@ def handle_new():
     with sqlite3.connect(dbpath) as c:
         q = "SELECT * FROM deck"
         i = c.execute(q)
-        for idd, number, text in i:
+        # for idd, number, text in i:
+        for container in i:
+            # print(container)
+            # idd, number, text = container
+            idd = container[0]
+            fields = container[1:]
             q = f"SELECT * FROM mod_{mod} WHERE card_id = '{idd}'"
             ii = c.execute(q)
             try:
                 idd, delta, old_delta, date = next(ii)
-                print(f"number = {number}, text = {text}, date = {date} Есть старая карточка, её НЕ добавляем.")
+                # print(f"number = {number}, text = {text}, date = {date} Есть старая карточка, её НЕ добавляем.")
+                print(f"fields = {fields}, date = {date} Есть старая карточка.")
             except StopIteration:
-                print(f"number = {number}, text = {text} Есть НОВАЯ карточка, её добавляем.")
+                print(f"fields = {fields} Есть НОВАЯ карточка.")
                 db_form = [idd, 0, 0, current_date]
                 q = f"INSERT INTO mod_{mod} VALUES(?, ?, ?, ?)"
                 c.execute(q, db_form)
@@ -75,7 +81,8 @@ def handle_new():
 def get_dict():
     dictionary = dict()
     init_list = []
-    next_time = time.time()
+    # next_time = time.time()
+    next_time = 0
     with sqlite3.connect(dbpath) as c:
         q = f"SELECT * FROM taskperday WHERE mod_id = {mod}"
         i = c.execute(q)
@@ -105,7 +112,7 @@ def get_dict():
                     step = 1 
                     total += 1
                     new += 1
-                    init_list.append([next_time, card_id, fields ,delta, old_delta, element_date, step])
+                    init_list.append([next_time, card_id, fields, delta, old_delta, element_date, step])
                 else:
                     continue
             else:
@@ -143,7 +150,7 @@ def proc():
             current_time = time.time()
             if card_time <= current_time: # созрела карточка
                 # print("\nягодка созрела")
-                next_time, card_id, fields ,delta, old_delta, element_date, step = init_list.pop(0)
+                next_time, card_id, fields, delta, old_delta, element_date, step = init_list.pop(0)
             elif dictionary:
                 # print("\nягодка не созрела")
                 card_id = random.choice(list(dictionary))
@@ -186,10 +193,10 @@ def proc():
         current_time = time.time()
         if step + s < 4:
             print("it goes to init")
-            init_list.append([current_time + 1 * 60, card_id, fields ,delta, old_delta, element_date, 1])
+            init_list.append([current_time + 1 * 60, card_id, fields, delta, old_delta, element_date, 1])
         elif step + s == 4:
             print("it goes to good")
-            init_list.append([current_time + 2 * 60, card_id, fields ,delta, old_delta, element_date, 2])
+            init_list.append([current_time + 2 * 60, card_id, fields, delta, old_delta, element_date, 2])
         else: # step + s > 4
             print("let's do the procedure")
             new_delta = get_delta(step, s, delta, old_delta)
@@ -200,16 +207,17 @@ def proc():
 dbpath = "asd.db"
 # dbpath = "asd2.db"
 # dbpath = "asd3.db"
+# mod = "1"
 # mod = "2"
-mod = "1"
+mod = "3"
 start_red = "\033[91m"
 start_green = "\033[92m"
 start_blue = "\033[94m"
 start_normal = "\033[39m"
 # new_limit = 100
-new_limit = 8
+new_limit = 100
 # total_limit = 100
-total_limit = 24
+total_limit = 100
 
 current_date = datetime.date.today().toordinal()
 # current_date = 739417
