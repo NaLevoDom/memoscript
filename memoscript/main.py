@@ -204,9 +204,9 @@ def proc():
             write_db(mod, step, new_delta, delta, next_date, card_id)
     print("Всё изучено!\nПока!")
 
-dbpath = "asd.db"
+# dbpath = "asd.db"
 # dbpath = "asd2.db"
-# dbpath = "asd3.db"
+dbpath = "asd3.db"
 # mod = "1"
 # mod = "2"
 mod = "3"
