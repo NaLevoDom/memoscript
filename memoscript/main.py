@@ -57,7 +57,6 @@ def get_delta(step, s, delta, old_delta):
     return new_delta
 
 def handle_new(n, c):
-
     q = "SELECT * FROM deck"
     i = c.execute(q)
     counter = 0
@@ -77,6 +76,45 @@ def handle_new(n, c):
             q = f"INSERT INTO mod_{mod} VALUES(?, ?, ?, ?)"
             c.execute(q, db_form)
             counter += 1
+
+def get_dict_infinite_mod():
+    dictionary = dict()
+    with sqlite3.connect(dbpath) as c:
+        q = "SELECT * FROM deck"
+        i = c.execute(q)
+        for container in i:
+            card_id = container[0]
+            fields = container[1:]
+            dictionary[card_id] = fields
+    return dictionary
+    
+def proc_infinite_mod():
+    with sqlite3.connect(dbpath) as c:
+        q = f"SELECT * FROM qa WHERE mod_id = {mod}"
+        i = c.execute(q)
+        mod_id, auto_eval, answer_index, question = next(i)
+    if dictionary:
+        while True:
+            card_id = random.choice(list(dictionary))
+            fields = dictionary[card_id]
+            string = question.format(*fields)
+            answer = fields[answer_index]
+            get_input('\nНажмите Enter чтобы продолжить...')
+            ctrl_l()
+            start_time = time.time()
+            guess = get_input(string)
+            end_time = time.time()
+            delay = end_time - start_time
+            if auto_eval:
+                print(f"delay = {delay:0.2f}")
+                if guess.lower() == answer.lower():
+                    print(f"{start_green}Ты молодец!{start_normal}")
+                else:
+                    print(f"{start_red}Неправильно!{start_normal} Правильный ответ {start_blue}{answer}{start_normal}")
+            else:
+                print(f"Правильный ответ {answer}")
+    print("колода пуста")
+
 
 def get_dict():
     dictionary = dict()
@@ -106,12 +144,11 @@ def get_dict():
                 break
             total += 1
             new += 1
-        print(init_list)
-        print(new_limit - new)
+        # print(init_list)
+        # print(new_limit - new)
         handle_new(new_limit - new, c)
         total = old_total
         new = old_new
-        
         # ещё раз то же самое
         q = f"SELECT * FROM mod_{mod} WHERE delta = 0 and old_delta = 0"
         i = c.execute(q)
@@ -127,7 +164,7 @@ def get_dict():
             total += 1
             new += 1
             init_list.append([next_time, card_id, fields, delta, old_delta, element_date, step])
-        print(init_list)
+        # print(init_list)
         q = f"SELECT * FROM mod_{mod} WHERE delta != 0 or old_delta != 0 ORDER BY date ASC"
         i = c.execute(q)
         for card_id, delta, old_delta, element_date in i:
@@ -139,7 +176,7 @@ def get_dict():
             step = 3
             total += 1
             dictionary[card_id] = [fields ,delta, old_delta, element_date, step]
-        print(init_list)
+        # print(init_list)
     print(f"Докидываем {new - old_new} новых, а в целом {total - old_total} карточек.")
     random.shuffle(init_list)
     return dictionary, init_list
@@ -207,7 +244,6 @@ def proc():
         delay = end_time - start_time
         if auto_eval:
             print(f"delay = {delay:0.2f}")
-            # print(answer)
             if guess.lower() == answer.lower():
                 print(f"{start_green}Ты молодец!{start_normal}")
                 s = get_auto_s(delay, answer)
@@ -236,11 +272,12 @@ def proc():
             write_db(mod, step, new_delta, delta, next_date, card_id)
     print("Всё изучено!\nПока!")
 
+infinite_mod = False
 # dbpath = "asd.db"
 dbpath = "asd2.db"
 # dbpath = "asd3.db"
-mod = "1"
-# mod = "2"
+# mod = "1"
+mod = "2"
 # mod = "3"
 start_red = "\033[91m"
 start_green = "\033[92m"
@@ -255,8 +292,11 @@ current_date = datetime.date.today().toordinal()
 if __name__ == '__main__':
     os.chdir(os.path.dirname(__file__))
     print(f"current_date = {current_date}")
-    # handle_new()
     # print_mod()
-    dictionary, init_list = get_dict()
-    proc()
+    if infinite_mod:
+        dictionary = get_dict_infinite_mod()
+        proc_infinite_mod()
+    else:
+        dictionary, init_list = get_dict()
+        proc()
     
