@@ -56,29 +56,45 @@ def get_delta(step, s, delta, old_delta):
     new_delta += random.randint(-part, part)
     return new_delta
 
-def handle_new():
+def handle_new(n):
     with sqlite3.connect(dbpath) as c:
         q = "SELECT * FROM deck"
         i = c.execute(q)
-        # for idd, number, text in i:
+        counter = 0
         for container in i:
-            # print(container)
-            # idd, number, text = container
+            if counter >= n: # n ведь отрицательный может быть, поэтому >= а не просто ==
+                break
             idd = container[0]
             fields = container[1:]
             q = f"SELECT * FROM mod_{mod} WHERE card_id = '{idd}'"
             ii = c.execute(q)
             try:
                 idd, delta, old_delta, date = next(ii)
-                # print(f"number = {number}, text = {text}, date = {date} Есть старая карточка, её НЕ добавляем.")
-                print(f"fields = {fields}, date = {date} Есть старая карточка.")
+                # print(f"fields = {fields}, date = {date} Есть старая карточка.")
             except StopIteration:
-                print(f"fields = {fields} Есть НОВАЯ карточка.")
+                print(f"fields = {fields} Есть НОВАЯ карточка. ЕЁ ДОКИДЫВАЕЕЕМ ЫЫЫАоаоа")
                 db_form = [idd, 0, 0, current_date]
                 q = f"INSERT INTO mod_{mod} VALUES(?, ?, ?, ?)"
                 c.execute(q, db_form)
+                counter += 1
 
 def get_dict():
+    
+    """
+    Мы заглядываем в мод, делаем запрос конкретно по новым карточкам.
+    т.е. delta = 0 and old_delta = 0. Забираем их список. Если того что 
+    там лежит не достаточно, то вызываем переписанный handle_new 
+    и просим его докинуть в мод некоторое количество карточек. Остальное
+    досыпаем из репита (т.е. специальный запрос delta != 0 or old_delta != 0).
+    
+    
+    А что касается той фичи что я хотел (часть с конца очереди, часть с начала)
+    как ни странно, всё ещё реализема, просто теперь очередь будет строиться
+    не по дате а по id. 
+    
+    """
+    
+    
     dictionary = dict()
     init_list = []
     # next_time = time.time()
@@ -98,27 +114,63 @@ def get_dict():
             old_new = new
             old_total = total
             print(f"Так как дата устаревшая обнуляем счётчики.")
-        q = f"SELECT * FROM mod_{mod} ORDER BY date ASC"
+        
+        q = f"SELECT * FROM mod_{mod} WHERE delta = 0 and old_delta = 0"
         i = c.execute(q)
         for card_id, delta, old_delta, element_date in i:
-            qq = f"SELECT * FROM deck WHERE id = '{card_id}'"
-            ii = c.execute(qq)
-            fields = next(ii)
-            fields = fields[1:]
             if current_date < element_date or total >= total_limit:
                 break
-            if delta ==0 and old_delta == 0: # 0 0 - это первый раз
-                if new < new_limit:
-                    step = 1 
-                    total += 1
-                    new += 1
-                    init_list.append([next_time, card_id, fields, delta, old_delta, element_date, step])
-                else:
-                    continue
-            else:
-                step = 3
-                total += 1
-                dictionary[card_id] = [fields ,delta, old_delta, element_date, step]
+            if new == new_limit:
+                break
+            # qq = f"SELECT * FROM deck WHERE id = '{card_id}'"
+            # ii = c.execute(qq)
+            # fields = next(ii)[1:]
+            # step = 1
+            total += 1
+            new += 1
+            # init_list.append([next_time, card_id, fields, delta, old_delta, element_date, step])
+        print(init_list)
+        
+        # ### тут надо вызывать хэндл новый.
+    print(new_limit - new)
+    handle_new(new_limit - new)
+    total = old_total
+    new = old_new
+        
+    with sqlite3.connect(dbpath) as c:
+        # ещё раз то же самое
+        q = f"SELECT * FROM mod_{mod} WHERE delta = 0 and old_delta = 0"
+        i = c.execute(q)
+        for card_id, delta, old_delta, element_date in i: # накидываю новых что есть уже моде.
+            if current_date < element_date or total >= total_limit:
+                break
+            if new == new_limit:
+                break
+            qq = f"SELECT * FROM deck WHERE id = '{card_id}'"
+            ii = c.execute(qq)
+            fields = next(ii)[1:]
+            step = 1 
+            total += 1
+            new += 1
+            init_list.append([next_time, card_id, fields, delta, old_delta, element_date, step])
+        print(init_list)
+        
+        # ### теперь репит
+        
+        q = f"SELECT * FROM mod_{mod} WHERE delta != 0 or old_delta != 0 ORDER BY date ASC"
+        i = c.execute(q)
+        for card_id, delta, old_delta, element_date in i:
+            if current_date < element_date or total >= total_limit:
+                break
+            qq = f"SELECT * FROM deck WHERE id = '{card_id}'"
+            ii = c.execute(qq)
+            fields = next(ii)[1:]
+            step = 3
+            total += 1
+            dictionary[card_id] = [fields ,delta, old_delta, element_date, step]
+        print(init_list)
+        
+
     print(f"Докидываем {new - old_new} новых, а в целом {total - old_total} карточек.")
     random.shuffle(init_list)
     return dictionary, init_list
@@ -137,6 +189,16 @@ def write_db(mod, step, new_delta, delta, next_date, card_id):
         c.execute(q)
         q = f"UPDATE mod_{mod} SET delta = {new_delta}, old_delta = {delta}, date = {next_date} WHERE card_id = '{card_id}'"
         c.execute(q)
+
+def print_mod():
+    with sqlite3.connect(dbpath) as c:
+        q = f"SELECT * FROM mod_{mod} ORDER BY date ASC"
+        i = c.execute(q)
+        for card_id, delta, old_delta, element_date in i:
+            qq = f"SELECT * FROM deck WHERE id = {card_id}"
+            ii = c.execute(qq)
+            fields = next(ii)[1:]
+            print(f"fields = {fields}, delta = {delta}, old_delta = {old_delta}, element_date = {element_date}")
 
 def proc():
     with sqlite3.connect(dbpath) as c:
@@ -160,7 +222,7 @@ def proc():
                     next_time, card_id, fields ,delta, old_delta, element_date, step = card
                     print("\nперенос оставшегося инита на следующий день")
                     print(f"fileds = {fields}")
-                    write_db(mod, step, delta, old_delta, current_date, card_id)
+                    write_db(mod, step, delta, old_delta, current_date + 1, card_id)
                 break
         elif dictionary:
             card_id = random.choice(list(dictionary))
@@ -200,31 +262,32 @@ def proc():
         else: # step + s > 4
             print("let's do the procedure")
             new_delta = get_delta(step, s, delta, old_delta)
+            print(f"new_delta is {new_delta}")
             next_date = current_date + new_delta
             write_db(mod, step, new_delta, delta, next_date, card_id)
     print("Всё изучено!\nПока!")
 
 # dbpath = "asd.db"
-# dbpath = "asd2.db"
-dbpath = "asd3.db"
-# mod = "1"
+dbpath = "asd2.db"
+# dbpath = "asd3.db"
+mod = "1"
 # mod = "2"
-mod = "3"
+# mod = "3"
 start_red = "\033[91m"
 start_green = "\033[92m"
 start_blue = "\033[94m"
 start_normal = "\033[39m"
 # new_limit = 100
-new_limit = 100
+new_limit = 8
 # total_limit = 100
-total_limit = 100
-
+total_limit = 24
 current_date = datetime.date.today().toordinal()
-# current_date = 739417
+# current_date = 739418
 if __name__ == '__main__':
     os.chdir(os.path.dirname(__file__))
     print(f"current_date = {current_date}")
-    handle_new()
+    # handle_new()
+    # print_mod()
     dictionary, init_list = get_dict()
     proc()
     
