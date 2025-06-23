@@ -10,6 +10,7 @@ import math
 import time
 import os
 import types
+import re
 
 import vyhuhol
 
@@ -59,15 +60,29 @@ def get_delta(step, s, delta, old_delta):
     new_delta += random.randint(-part, part)
     return new_delta
 
-def get_dict_infinite_mod():
-    dictionary = dict()
-    with sqlite3.connect(dbpath) as c:
-        q = "SELECT * FROM deck"
-        i = c.execute(q)
-        for container in i:
-            card_id = container[0]
-            fields = container
-            dictionary[card_id] = fields
+def get_dict_infinite_mod(ifinite_id_list):
+    
+    if not(ifinite_id_list):
+        dictionary = dict()
+        with sqlite3.connect(dbpath) as c:
+            q = "SELECT * FROM deck"
+            i = c.execute(q)
+            for container in i:
+                card_id = container[0]
+                fields = container
+                dictionary[card_id] = fields
+    else:
+        dictionary = dict()
+        with sqlite3.connect(dbpath) as c:
+            for idd in ifinite_id_list:
+                q = f"SELECT * FROM deck WHERE id = {idd}"
+                i = c.execute(q)
+                for container in i: # так пишут только мудаки ибо тут цикл не нужен, тут нужен единократный next, но мне лень править, оно и так работает
+                    card_id = container[0]
+                    fields = container
+                    dictionary[card_id] = fields
+    
+    
     return dictionary
     
 def proc_infinite_mod():
@@ -295,12 +310,34 @@ def proc():
             write_db(mod, step, new_delta, delta, next_date, card_id)
     print("Всё изучено!\nПока!")
 
+def ranger(s):
+    l = []
+    if re.fullmatch(r"\d+", s) is not None:
+        l = [int(s)]
+    if re.fullmatch(r"\d+-\d+", s) is not None:
+        ss = s.split('-')
+        n1 = int(ss[0])
+        n2 = int(ss[1])
+        l = list(range(n1, n2 + 1))
+    if not(l):
+        print(f"'{s}' is not correct option")
+        sys.exit(0)
+    return l
+
+def get_ifinite_id_list(infinite_ids):
+    l = []
+    for el in infinite_ids:
+        l += ranger(el)
+    return l
+    # надо на дубликаты ещё проверять по идее ### 
+    
+
 def handle_args(args):
     p = vyhuhol.Parser(args)
     p.add_pattern(write_to = ['name'], keys = ['-n', '--name'], valency = 1, positional = True)
     p.add_pattern(write_to = ['mod_id'], keys = ['-m', '--mod-id'], valency = 1, positional = True)
-    p.add_pattern(set_to = {"infinite" : 1}, keys = ['-i', '--infinite'], valency = 0)
-    p.defaults = types.SimpleNamespace(name = None, mod_id = None, infinite = 0)
+    p.add_pattern(set_to = {"is_infinite" : 1}, write_to = ['infinite_ids'], keys = ['-i', '--infinite'], valency = '*')
+    p.defaults = types.SimpleNamespace(name = None, mod_id = None, is_infinite = 0)
     r = p.parse()
     return r
 
@@ -308,7 +345,9 @@ if __name__ == '__main__':
     r = handle_args(sys.argv)
     dbpath = 'decks/' + r.name[0] + '.db'
     mod = r.mod_id[0]
-    infinite_mod = r.infinite
+    infinite_mod = r.is_infinite
+    infinite_ids = r.infinite_ids
+    
     start_red = "\033[91m"
     start_green = "\033[92m"
     start_blue = "\033[94m"
@@ -323,7 +362,8 @@ if __name__ == '__main__':
     print(f"current_date = {current_date}")
     # print_mod()
     if infinite_mod:
-        dictionary = get_dict_infinite_mod()
+        ifinite_id_list = get_ifinite_id_list(infinite_ids)
+        dictionary = get_dict_infinite_mod(ifinite_id_list)
         proc_infinite_mod()
     else:
         dictionary, init_list = get_dict()
