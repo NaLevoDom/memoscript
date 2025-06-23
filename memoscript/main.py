@@ -74,7 +74,7 @@ def handle_new(n, c):
             idd, delta, old_delta, date = next(ii)
             # print(f"fields = {fields}, date = {date} Есть старая карточка.")
         except StopIteration:
-            print(f"fields = {fields} Есть НОВАЯ карточка. ЕЁ ДОКИДЫВАЕЕЕМ ЫЫЫАоаоа")
+            print(f"fields = {fields} Есть НОВАЯ карточка")
             db_form = [idd, 0, 0, current_date]
             q = f"INSERT INTO mod_{mod} VALUES(?, ?, ?, ?)"
             c.execute(q, db_form)

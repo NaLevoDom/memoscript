@@ -8,9 +8,9 @@ import types
 
 import vyhuhol
 
-def taskperday_update(dbpath):
+def taskperday_update(dbpath, mod_id):
     with sqlite3.connect(dbpath) as c:
-        q = f"UPDATE taskperday SET day = {current_date}, new = 0, total = 0 WHERE mod_id = 1"
+        q = f"UPDATE taskperday SET day = {current_date}, new = 0, total = 0 WHERE mod_id = {mod_id}"
         c.execute(q)
 
 def drop_mod(dbpath, mod_id):
@@ -58,7 +58,7 @@ if __name__ == '__main__':
     question = r.question[0]
     auto_eval = r.auto_eval
     current_date = datetime.date.today().toordinal()
-    taskperday_update(dbpath)
+    taskperday_update(dbpath, mod_id)
     drop_mod(dbpath, mod_id)
     create_mod(dbpath, mod_id)
     add_taskperday_record(dbpath, mod_id)
