@@ -30,7 +30,7 @@ def handle_args(args):
 
 if __name__ == '__main__':
     r = handle_args(sys.argv)
-    dbpath = r.name[0] + '.db'
+    dbpath = 'decks/' + r.name[0] + '.db'
     i = r.fields
     update_deck_record(dbpath, i)
     

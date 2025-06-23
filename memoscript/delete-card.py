@@ -34,7 +34,7 @@ def get_qa(dbpath):
 
 if __name__ == '__main__':
     r = handle_args(sys.argv)
-    dbpath = r.name[0] + '.db'
+    dbpath = 'decks/' + r.name[0] + '.db'
     card_id = r.card_id[0]
     delete_deck_record(dbpath, card_id)
     qa = get_qa(dbpath)

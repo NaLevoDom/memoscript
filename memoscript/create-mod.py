@@ -52,7 +52,7 @@ def handle_args(args):
 
 if __name__ == '__main__':
     r = handle_args(sys.argv)
-    dbpath = r.name[0] + '.db'
+    dbpath = 'decks/' + r.name[0] + '.db'
     mod_id = r.mod_id[0]
     answer_index = r.answer_index[0]
     question = r.question[0]

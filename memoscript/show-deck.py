@@ -40,7 +40,7 @@ def get_qa(dbpath):
 
 if __name__ == '__main__':
     r = handle_args(sys.argv)
-    dbpath = r.name[0] + '.db'
+    dbpath = 'decks/' + r.name[0] + '.db'
     print_deck(dbpath)
     qa = get_qa(dbpath)
     for mod_id, auto_eval, answer_index, question in qa:
