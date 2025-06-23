@@ -163,9 +163,15 @@ def get_dict():
         q = f"SELECT * FROM mod_{mod} WHERE delta = 0 and old_delta = 0"
         i = c.execute(q)
         for card_id, delta, old_delta, element_date in i:
-            if current_date < element_date or total >= total_limit:
+            if  total >= total_limit:
+                print("Сработал первый брейк")
+                break
+            if current_date < element_date:
+                print("Сработал второй брейк")
+                print(f"current_date = {current_date}, element_date = {element_date}")
                 break
             if new == new_limit:
+                print("Сработал третий брейк")
                 break
             total += 1
             new += 1
