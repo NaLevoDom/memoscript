@@ -21,7 +21,7 @@ def handle_args(args):
     r = p.parse()
     return r
 
-if __name__ == '__main__':
+if __name__ == '__main__': # ### надо чтобы он отложенные на следующий день карточки вертал на сегодня
     current_date = datetime.date.today().toordinal()
     r = handle_args(sys.argv)
     dbpath = 'decks/' + r.name[0] + '.db'

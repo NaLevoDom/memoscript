@@ -160,7 +160,7 @@ def get_dict():
             old_new = new
             old_total = total
             print(f"Так как дата устаревшая обнуляем счётчики.")
-        q = f"SELECT * FROM mod_{mod} WHERE delta = 0 and old_delta = 0"
+        q = f"SELECT * FROM mod_{mod} WHERE delta = 0 and old_delta = 0 ORDER BY date ASC"
         i = c.execute(q)
         for card_id, delta, old_delta, element_date in i:
             if  total >= total_limit:
@@ -181,7 +181,7 @@ def get_dict():
         
         print("Насыпаем инитов из мода")
         
-        q = f"SELECT * FROM mod_{mod} WHERE delta = 0 and old_delta = 0"
+        q = f"SELECT * FROM mod_{mod} WHERE delta = 0 and old_delta = 0 ORDER BY date ASC"
         i = c.execute(q)
         for card_id, delta, old_delta, element_date in i: # накидываю новых что есть уже моде.
             if total >= total_limit:
