@@ -59,27 +59,6 @@ def get_delta(step, s, delta, old_delta):
     new_delta += random.randint(-part, part)
     return new_delta
 
-def handle_new(n, c):
-    q = "SELECT * FROM deck"
-    i = c.execute(q)
-    counter = 0
-    for container in i:
-        if counter >= n: # n ведь отрицательный может быть, поэтому >= а не просто ==
-            break
-        idd = container[0]
-        fields = container
-        q = f"SELECT * FROM mod_{mod} WHERE card_id = '{idd}'"
-        ii = c.execute(q)
-        try:
-            idd, delta, old_delta, date = next(ii)
-            # print(f"fields = {fields}, date = {date} Есть старая карточка.")
-        except StopIteration:
-            print(f"fields = {fields} Есть НОВАЯ карточка")
-            db_form = [idd, 0, 0, current_date]
-            q = f"INSERT INTO mod_{mod} VALUES(?, ?, ?, ?)"
-            c.execute(q, db_form)
-            counter += 1
-
 def get_dict_infinite_mod():
     dictionary = dict()
     with sqlite3.connect(dbpath) as c:
@@ -119,6 +98,45 @@ def proc_infinite_mod():
                 print(f"Правильный ответ {answer}")
     print("колода пуста")
 
+def write_db(mod, step, new_delta, delta, next_date, card_id):
+    with sqlite3.connect(dbpath) as c:
+        q = f"SELECT * FROM taskperday WHERE mod_id = {mod}"
+        i = c.execute(q)
+        idd, day, new, total = next(i)
+        if step < 3: # пахнет ошибкой... ### а что если степ был 3 а стал 1 или 2?
+            q = f"UPDATE taskperday SET new = {new + 1}, total = {total + 1} WHERE mod_id = {mod}"
+        else:
+            q = f"UPDATE taskperday SET total = {total + 1} WHERE mod_id = {mod}"
+        c.execute(q)
+        q = f"UPDATE mod_{mod} SET delta = {new_delta}, old_delta = {delta}, date = {next_date} WHERE card_id = '{card_id}'"
+        c.execute(q)
+
+def handle_new(n, c):
+    
+    print(f"В расписание мода можем докинуть {n} инитов")
+    
+    q = "SELECT * FROM deck"
+    i = c.execute(q)
+    counter = 0
+    for container in i:
+        if counter >= n: # n ведь отрицательный может быть, поэтому >= а не просто ==
+            break
+        idd = container[0]
+        fields = container
+        q = f"SELECT * FROM mod_{mod} WHERE card_id = '{idd}'"
+        ii = c.execute(q)
+        try:
+            idd, delta, old_delta, date = next(ii)
+            # print(f"fields = {fields}, date = {date} Есть старая карточка.")
+        except StopIteration:
+            print(f"fields = {fields} Есть НОВАЯ карточка")
+            db_form = [idd, 0, 0, current_date]
+            q = f"INSERT INTO mod_{mod} VALUES(?, ?, ?, ?)"
+            c.execute(q, db_form)
+            counter += 1
+    
+    print(f"Докидываем {counter} инитов")
+
 def get_dict():
     dictionary = dict()
     init_list = []
@@ -156,7 +174,11 @@ def get_dict():
         handle_new(new_limit - new, c)
         total = old_total
         new = old_new
+        
         # ещё раз то же самое
+        
+        print("Насыпаем инитов из мода")
+        
         q = f"SELECT * FROM mod_{mod} WHERE delta = 0 and old_delta = 0"
         i = c.execute(q)
         for card_id, delta, old_delta, element_date in i: # накидываю новых что есть уже моде.
@@ -170,8 +192,14 @@ def get_dict():
             step = 1 
             total += 1
             new += 1
-            init_list.append([next_time, card_id, fields, delta, old_delta, element_date, step])
+            container = [next_time, card_id, fields, delta, old_delta, element_date, step]
+            init_list.append(container)
+            print(container)
+            
         # print(init_list)
+        
+        print("Насыпаем репитов из мода")
+        
         q = f"SELECT * FROM mod_{mod} WHERE delta != 0 or old_delta != 0 ORDER BY date ASC"
         i = c.execute(q)
         for card_id, delta, old_delta, element_date in i:
@@ -183,24 +211,13 @@ def get_dict():
             fields = next(ii) # ###
             step = 3
             total += 1
-            dictionary[card_id] = [fields ,delta, old_delta, element_date, step]
+            container = [fields ,delta, old_delta, element_date, step]
+            print(container)
+            dictionary[card_id] = container
         # print(init_list)
     print(f"Докидываем {new - old_new} новых, а в целом {total - old_total} карточек.")
     random.shuffle(init_list)
     return dictionary, init_list
-
-def write_db(mod, step, new_delta, delta, next_date, card_id):
-    with sqlite3.connect(dbpath) as c:
-        q = f"SELECT * FROM taskperday WHERE mod_id = {mod}"
-        i = c.execute(q)
-        idd, day, new, total = next(i)
-        if step < 3: # пахнет ошибкой... ### а что если степ был 3 а стал 1 или 2?
-            q = f"UPDATE taskperday SET new = {new + 1}, total = {total + 1} WHERE mod_id = {mod}"
-        else:
-            q = f"UPDATE taskperday SET total = {total + 1} WHERE mod_id = {mod}"
-        c.execute(q)
-        q = f"UPDATE mod_{mod} SET delta = {new_delta}, old_delta = {delta}, date = {next_date} WHERE card_id = '{card_id}'"
-        c.execute(q)
 
 def proc():
     with sqlite3.connect(dbpath) as c:
