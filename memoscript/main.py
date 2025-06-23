@@ -9,6 +9,9 @@ import sys
 import math
 import time
 import os
+import types
+
+import vyhuhol
 
 def ctrl_l():
     print('\n' * (os.get_terminal_size().lines - 1) + "\033[H\033[J", end = '')
@@ -64,7 +67,7 @@ def handle_new(n, c):
         if counter >= n: # n ведь отрицательный может быть, поэтому >= а не просто ==
             break
         idd = container[0]
-        fields = container[1:]
+        fields = container
         q = f"SELECT * FROM mod_{mod} WHERE card_id = '{idd}'"
         ii = c.execute(q)
         try:
@@ -84,7 +87,7 @@ def get_dict_infinite_mod():
         i = c.execute(q)
         for container in i:
             card_id = container[0]
-            fields = container[1:]
+            fields = container
             dictionary[card_id] = fields
     return dictionary
     
@@ -93,6 +96,7 @@ def proc_infinite_mod():
         q = f"SELECT * FROM qa WHERE mod_id = {mod}"
         i = c.execute(q)
         mod_id, auto_eval, answer_index, question = next(i)
+    print(f"mod_id = {mod_id}, auto_eval = {auto_eval}, answer_index = {answer_index}, question = {question}")
     if dictionary:
         while True:
             card_id = random.choice(list(dictionary))
@@ -115,7 +119,6 @@ def proc_infinite_mod():
                 print(f"Правильный ответ {answer}")
     print("колода пуста")
 
-
 def get_dict():
     dictionary = dict()
     init_list = []
@@ -123,7 +126,11 @@ def get_dict():
     with sqlite3.connect(dbpath) as c:
         q = f"SELECT * FROM taskperday WHERE mod_id = {mod}"
         i = c.execute(q)
-        idd, day, new, total = next(i)
+        try:
+            idd, day, new, total = next(i)
+        except StopIteration:
+            print(f"There's no '{mod}' mod in this deck")
+            sys.exit(1)
         old_new = new
         old_total = total
         print(f"В таскпердее было id = {idd}, day = {day}, new = {new}, total = {total}")
@@ -159,7 +166,7 @@ def get_dict():
                 break
             qq = f"SELECT * FROM deck WHERE id = '{card_id}'"
             ii = c.execute(qq)
-            fields = next(ii)[1:]
+            fields = next(ii)
             step = 1 
             total += 1
             new += 1
@@ -172,7 +179,8 @@ def get_dict():
                 break
             qq = f"SELECT * FROM deck WHERE id = '{card_id}'"
             ii = c.execute(qq)
-            fields = next(ii)[1:]
+            # fields = next(ii)[1:]
+            fields = next(ii) # ###
             step = 3
             total += 1
             dictionary[card_id] = [fields ,delta, old_delta, element_date, step]
@@ -193,16 +201,6 @@ def write_db(mod, step, new_delta, delta, next_date, card_id):
         c.execute(q)
         q = f"UPDATE mod_{mod} SET delta = {new_delta}, old_delta = {delta}, date = {next_date} WHERE card_id = '{card_id}'"
         c.execute(q)
-
-def print_mod():
-    with sqlite3.connect(dbpath) as c:
-        q = f"SELECT * FROM mod_{mod} ORDER BY date ASC"
-        i = c.execute(q)
-        for card_id, delta, old_delta, element_date in i:
-            qq = f"SELECT * FROM deck WHERE id = {card_id}"
-            ii = c.execute(qq)
-            fields = next(ii)[1:]
-            print(f"fields = {fields}, delta = {delta}, old_delta = {old_delta}, element_date = {element_date}")
 
 def proc():
     with sqlite3.connect(dbpath) as c:
@@ -272,24 +270,30 @@ def proc():
             write_db(mod, step, new_delta, delta, next_date, card_id)
     print("Всё изучено!\nПока!")
 
-infinite_mod = False
-# dbpath = "asd.db"
-dbpath = "asd2.db"
-# dbpath = "asd3.db"
-# mod = "1"
-mod = "2"
-# mod = "3"
-start_red = "\033[91m"
-start_green = "\033[92m"
-start_blue = "\033[94m"
-start_normal = "\033[39m"
-# new_limit = 100
-new_limit = 8
-# total_limit = 100
-total_limit = 24
-current_date = datetime.date.today().toordinal()
-# current_date = 739418
+def handle_args(args):
+    p = vyhuhol.Parser(args)
+    p.add_pattern(write_to = ['name'], keys = ['-n', '--name'], valency = 1, positional = True)
+    p.add_pattern(write_to = ['mod_id'], keys = ['-m', '--mod-id'], valency = 1, positional = True)
+    p.add_pattern(set_to = {"infinite" : 1}, keys = ['-i', '--infinite'], valency = 0)
+    p.defaults = types.SimpleNamespace(name = None, mod_id = None, infinite = 0)
+    r = p.parse()
+    return r
+
 if __name__ == '__main__':
+    r = handle_args(sys.argv)
+    dbpath = r.name[0] + '.db'
+    mod = r.mod_id[0]
+    infinite_mod = r.infinite
+    start_red = "\033[91m"
+    start_green = "\033[92m"
+    start_blue = "\033[94m"
+    start_normal = "\033[39m"
+    # new_limit = 100
+    new_limit = 8
+    # total_limit = 100
+    total_limit = 24
+    current_date = datetime.date.today().toordinal()
+    # current_date = 739418
     os.chdir(os.path.dirname(__file__))
     print(f"current_date = {current_date}")
     # print_mod()
