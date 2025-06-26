@@ -306,7 +306,7 @@ def ranger(s):
         sys.exit(0)
     return l
 
-def get_ifinite_id_list(infinite_ids):
+def get_id_list(infinite_ids):
     l = []
     for el in infinite_ids:
         l += ranger(el)
@@ -342,7 +342,7 @@ if __name__ == '__main__':
     print(f"current_date = {current_date}")
     # print_mod()
     if infinite_mod:
-        ifinite_id_list = get_ifinite_id_list(infinite_ids)
+        ifinite_id_list = get_id_list(infinite_ids)
         dictionary = get_dict_infinite_mod(ifinite_id_list)
         proc_infinite_mod()
     else:
