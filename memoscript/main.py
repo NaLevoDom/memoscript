@@ -61,28 +61,23 @@ def get_delta(step, s, delta, old_delta):
     return new_delta
 
 def get_dict_infinite_mod(ifinite_id_list):
-    
-    if not(ifinite_id_list):
+    with sqlite3.connect(dbpath) as c:
         dictionary = dict()
-        with sqlite3.connect(dbpath) as c:
+        if ifinite_id_list:
+            for idd in ifinite_id_list:
+                q = f"SELECT * FROM deck WHERE id = {idd}"
+                i = c.execute(q)
+                container = next(i)
+                card_id = container[0]
+                fields = container
+                dictionary[card_id] = fields
+        else:
             q = "SELECT * FROM deck"
             i = c.execute(q)
             for container in i:
                 card_id = container[0]
                 fields = container
                 dictionary[card_id] = fields
-    else:
-        dictionary = dict()
-        with sqlite3.connect(dbpath) as c:
-            for idd in ifinite_id_list:
-                q = f"SELECT * FROM deck WHERE id = {idd}"
-                i = c.execute(q)
-                for container in i: # так пишут только мудаки ибо тут цикл не нужен, тут нужен единократный next, но мне лень править, оно и так работает
-                    card_id = container[0]
-                    fields = container
-                    dictionary[card_id] = fields
-    
-    
     return dictionary
     
 def proc_infinite_mod():
@@ -127,9 +122,7 @@ def write_db(mod, step, new_delta, delta, next_date, card_id):
         c.execute(q)
 
 def handle_new(n, c):
-    
     print(f"В расписание мода можем докинуть {n} инитов")
-    
     q = "SELECT * FROM deck"
     i = c.execute(q)
     counter = 0
@@ -149,7 +142,6 @@ def handle_new(n, c):
             q = f"INSERT INTO mod_{mod} VALUES(?, ?, ?, ?)"
             c.execute(q, db_form)
             counter += 1
-    
     print(f"Докидываем {counter} инитов")
 
 def get_dict():
@@ -191,11 +183,8 @@ def get_dict():
         handle_new(new_limit - new, c)
         total = old_total
         new = old_new
-        
         # ещё раз то же самое
-        
         print("Насыпаем инитов из мода")
-        
         q = f"SELECT * FROM mod_{mod} WHERE delta = 0 and old_delta = 0 ORDER BY date ASC"
         i = c.execute(q)
         for card_id, delta, old_delta, element_date in i: # накидываю новых что есть уже моде.
@@ -218,11 +207,8 @@ def get_dict():
             container = [next_time, card_id, fields, delta, old_delta, element_date, step]
             init_list.append(container)
             print(container)
-            
         # print(init_list)
-        
         print("Насыпаем репитов из мода")
-        
         q = f"SELECT * FROM mod_{mod} WHERE delta != 0 or old_delta != 0 ORDER BY date ASC"
         i = c.execute(q)
         for card_id, delta, old_delta, element_date in i:
@@ -260,12 +246,8 @@ def proc():
                 card_id = random.choice(list(dictionary))
                 fields, delta, old_delta, element_date, step = dictionary[card_id]
             else:
-                for card in init_list: # всё остальное откладывается на следующий день
-                    next_time, card_id, fields ,delta, old_delta, element_date, step = card
-                    print("\nперенос оставшегося инита на следующий день")
-                    print(f"fileds = {fields}")
-                    write_db(mod, step, delta, old_delta, current_date + 1, card_id)
-                break
+                next_time, card_id, fields, delta, old_delta, element_date, step = init_list.pop(0) # не смотрим созрела ли, тупо берём, но тем не менее зрелость карточки всё равно проявлется тем что самые зрелые выпадают раньше
+                # откладывания не нужны
         elif dictionary:
             card_id = random.choice(list(dictionary))
             fields, delta, old_delta, element_date, step = dictionary[card_id]
@@ -330,7 +312,6 @@ def get_ifinite_id_list(infinite_ids):
         l += ranger(el)
     return l
     # надо на дубликаты ещё проверять по идее ### 
-    
 
 def handle_args(args):
     p = vyhuhol.Parser(args)
@@ -347,7 +328,6 @@ if __name__ == '__main__':
     mod = r.mod_id[0]
     infinite_mod = r.is_infinite
     infinite_ids = r.infinite_ids
-    
     start_red = "\033[91m"
     start_green = "\033[92m"
     start_blue = "\033[94m"
