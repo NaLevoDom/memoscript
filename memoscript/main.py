@@ -46,19 +46,27 @@ def get_manual_s():
                     return s
             print("Ещё раз. ", end = '')
 
-def get_delta(step, s, delta, old_delta):
-    if delta == 0:
-        delta = 1
-    if old_delta == 0:
-        old_delta = 1
-    if step == 2 and s == 3: # чтобы при инициализации стандартный срок был день а не 2
-        return 1 # это уродливый адхок, но что поделать
-    d = {2 : 0.5, 3 : 2, 4 : 4}
-    new_k = d[s]
-    new_delta = math.ceil(new_k * (5 * delta + old_delta) / 6)
-    part = new_delta // 12
-    new_delta += random.randint(-part, part)
-    return new_delta
+def get_delta(delta, old_delta, counter, attempts):
+    # рандом ещё вернуть надо ### ###
+    if old_delta == 0: # всё таки без уродливых адхоков не обошлось)))
+        return 1
+    new_delta = math.ceil(counter * (5 * delta + old_delta) / (3 * attempts) + 0.1)
+    
+    
+    # if delta == 0:
+    #     delta = 1
+    # if old_delta == 0:
+    #     old_delta = 1
+    # if step == 2 and s == 3: # чтобы при инициализации стандартный срок был день а не 2
+    #     return 1 # это уродливый адхок, но что поделать
+    # d = {2 : 0.5, 3 : 2, 4 : 4}
+    # new_k = d[s]
+    # new_delta = math.ceil(new_k * (5 * delta + old_delta) / 6)
+    # part = new_delta // 12
+    # new_delta += random.randint(-part, part)
+    # return new_delta
+    
+
 
 def get_dict_infinite_mod(ifinite_id_list):
     with sqlite3.connect(dbpath) as c:
@@ -108,15 +116,18 @@ def proc_infinite_mod():
                 print(f"Правильный ответ {answer}")
     print("колода пуста")
 
-def write_db(mod, step, new_delta, delta, next_date, card_id):
+def write_db(mod, new_delta, delta, old_delta, next_date, card_id):
     with sqlite3.connect(dbpath) as c:
         q = f"SELECT * FROM taskperday WHERE mod_id = {mod}"
         i = c.execute(q)
         idd, day, new, total = next(i)
-        if step < 3: # пахнет ошибкой... ### а что если степ был 3 а стал 1 или 2?
+        # if step < 3: # пахнет ошибкой... ### а что если степ был 3 а стал 1 или 2?
+        if delta + old_delta == 0:
             q = f"UPDATE taskperday SET new = {new + 1}, total = {total + 1} WHERE mod_id = {mod}"
+            print("инит пошел под запись")
         else:
             q = f"UPDATE taskperday SET total = {total + 1} WHERE mod_id = {mod}"
+            print("репит пошел под запись")
         c.execute(q)
         q = f"UPDATE mod_{mod} SET delta = {new_delta}, old_delta = {delta}, date = {next_date} WHERE card_id = '{card_id}'"
         c.execute(q)
@@ -144,6 +155,13 @@ def handle_new(n, c):
             counter += 1
     print(f"Докидываем {counter} инитов")
 
+def get_limit(delta, old_delta):
+    if delta + old_delta <= 2:
+        return 6
+    if delta + old_delta == 3:
+        return 3
+    return 1
+
 def get_dict():
     dictionary = dict()
     init_list = []
@@ -167,7 +185,8 @@ def get_dict():
             old_new = new
             old_total = total
             print(f"Так как дата устаревшая обнуляем счётчики.")
-        q = f"SELECT * FROM mod_{mod} WHERE delta = 0 and old_delta = 0 ORDER BY date ASC"
+        # q = f"SELECT * FROM mod_{mod} WHERE delta = 0 and old_delta = 0 ORDER BY date ASC"
+        q = f"SELECT * FROM mod_{mod} WHERE delta + old_delta = 0 ORDER BY date ASC"
         i = c.execute(q)
         for card_id, delta, old_delta, element_date in i:
             if  total >= total_limit:
@@ -185,7 +204,7 @@ def get_dict():
         new = old_new
         # ещё раз то же самое
         print("Насыпаем инитов из мода")
-        q = f"SELECT * FROM mod_{mod} WHERE delta = 0 and old_delta = 0 ORDER BY date ASC"
+        # q = f"SELECT * FROM mod_{mod} WHERE delta = 0 and old_delta = 0 ORDER BY date ASC"
         i = c.execute(q)
         for card_id, delta, old_delta, element_date in i: # накидываю новых что есть уже моде.
             if total >= total_limit:
@@ -201,15 +220,20 @@ def get_dict():
             qq = f"SELECT * FROM deck WHERE id = '{card_id}'"
             ii = c.execute(qq)
             fields = next(ii)
-            step = 1 
+            # step = 1 
+            
+            attempts = 0
+            counter = 0
+            limit = get_limit(delta, old_delta)
+            
             total += 1
             new += 1
-            container = [next_time, card_id, fields, delta, old_delta, element_date, step]
+            container = [next_time, card_id, fields, delta, old_delta, element_date, attempts, counter, limit]
             init_list.append(container)
             print(container)
         # print(init_list)
         print("Насыпаем репитов из мода")
-        q = f"SELECT * FROM mod_{mod} WHERE delta != 0 or old_delta != 0 ORDER BY date ASC"
+        q = f"SELECT * FROM mod_{mod} WHERE delta + old_delta > 0 ORDER BY date ASC"
         i = c.execute(q)
         for card_id, delta, old_delta, element_date in i:
             if current_date < element_date or total >= total_limit:
@@ -218,23 +242,20 @@ def get_dict():
             ii = c.execute(qq)
             # fields = next(ii)[1:]
             fields = next(ii) # ###
-            step = 3
+            # step = 3
+            attempts = 0
+            counter = 0
+            limit = get_limit(delta, old_delta)
+            
             total += 1
             next_time = float('+inf')
-            container = [next_time, card_id, fields, delta, old_delta, element_date, step]
+            container = [next_time, card_id, fields, delta, old_delta, element_date, attempts, counter, limit]
             init_list.append(container)
             print(container)
         # print(init_list)
     print(f"Докидываем {new - old_new} новых, а в целом {total - old_total} карточек.")
     random.shuffle(init_list)
     return init_list
-
-def get_limit(delta, old_delta):
-    if delta + old_delta <= 2:
-        return 6
-    if delta + old_delta == 3:
-        return 3
-    return 1
 
 def proc():
     with sqlite3.connect(dbpath) as c:
@@ -245,14 +266,14 @@ def proc():
         init_list.sort(key = lambda l: l[0])
         current_time = time.time()
         if init_list[0][0] <= current_time: # созрела карточка
-                # print("\nягодка созрела")
-                next_time, card_id, fields, delta, old_delta, element_date, step = init_list.pop(0)
+            # print("\nягодка созрела")
+            next_time, card_id, fields, delta, old_delta, element_date, attempts, counter, limit = init_list.pop(0)
         elif init_list[-1][0] == float('+inf'):
-                # print("\nберём репит в работу")
-                next_time, card_id, fields, delta, old_delta, element_date, step = init_list.pop()
+            # print("\nберём репит в работу")
+            next_time, card_id, fields, delta, old_delta, element_date, attempts, counter, limit = init_list.pop()
         else:
             # print('\nберём в работу ближайшую к зрелости')
-            next_time, card_id, fields, delta, old_delta, element_date, step = init_list.pop(0)
+            next_time, card_id, fields, delta, old_delta, element_date, attempts, counter, limit = init_list.pop(0)
         string = question.format(*fields)
         answer = fields[answer_index]
         get_input('\nНажмите Enter чтобы продолжить...')
@@ -273,20 +294,45 @@ def proc():
             print(f"Правильный ответ {answer}")
             s = get_manual_s()
         current_time = time.time()
-        if step + s < 4:
-            print("it goes to init")
-            init_list.append([current_time + 1 * 60, card_id, fields, delta, old_delta, element_date, 1])
-        elif step + s == 4:
-            print("it goes to good")
-            init_list.append([current_time + 2 * 60, card_id, fields, delta, old_delta, element_date, 2])
-        else: # step + s > 4
+        
+        attempts += 1
+        next_time = current_time + s * 30
+        if s == 1:
+            counter = 0
+            print("s = 1, обнуляем счётчик")
+        elif s == 2:
+            print("s = 2, do nothing")
+        elif s == 3:
+            print("s = 3, счётчик + 1")
+            counter += 1
+        elif s == 4:
+            print("s = 4, счётчик + 1.5")
+            counter += 1.5
+        if counter >= limit:
             print("let's do the procedure")
-            new_delta = get_delta(step, s, delta, old_delta)
-            if step != 3 and next_time != 0:
-                new_delta = 1
+            new_delta = get_delta(delta, old_delta, counter, attempts)
             print(f"new_delta is {new_delta}")
             next_date = current_date + new_delta
-            write_db(mod, step, new_delta, delta, next_date, card_id)
+            write_db(mod, new_delta, delta, old_delta, next_date, card_id)
+        else:
+            init_list.append([next_time, card_id, fields, delta, old_delta, element_date, attempts, counter, limit])
+        print(f"attempts = {attempts}, counter = {counter}, limit = {limit}")
+        
+        
+        # if step + s < 4:
+        #     print("it goes to init")
+        #     init_list.append([current_time + 1 * 60, card_id, fields, delta, old_delta, element_date, 1])
+        # elif step + s == 4:
+        #     print("it goes to good")
+        #     init_list.append([current_time + 2 * 60, card_id, fields, delta, old_delta, element_date, 2])
+        # else: # step + s > 4
+        #     print("let's do the procedure")
+        #     new_delta = get_delta(step, s, delta, old_delta)
+        #     if step != 3 and next_time != 0:
+        #         new_delta = 1
+        #     print(f"new_delta is {new_delta}")
+        #     next_date = current_date + new_delta
+        #     write_db(mod, step, new_delta, delta, next_date, card_id)
             
     print("Всё изучено!\nПока!")
 
