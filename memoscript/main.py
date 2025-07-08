@@ -220,40 +220,39 @@ def get_dict():
             fields = next(ii) # ###
             step = 3
             total += 1
-            container = [fields ,delta, old_delta, element_date, step]
+            next_time = float('+inf')
+            container = [next_time, card_id, fields, delta, old_delta, element_date, step]
+            init_list.append(container)
             print(container)
-            dictionary[card_id] = container
         # print(init_list)
     print(f"Докидываем {new - old_new} новых, а в целом {total - old_total} карточек.")
     random.shuffle(init_list)
-    return dictionary, init_list
+    return init_list
+
+def get_limit(delta, old_delta):
+    if delta + old_delta <= 2:
+        return 6
+    if delta + old_delta == 3:
+        return 3
+    return 1
 
 def proc():
     with sqlite3.connect(dbpath) as c:
         q = f"SELECT * FROM qa WHERE mod_id = {mod}"
         i = c.execute(q)
         mod_id, auto_eval, answer_index, question = next(i)
-    while True:
-        if init_list:
-            init_list.sort(key = lambda l: l[0])
-            card_time = init_list[0][0]
-            current_time = time.time()
-            if card_time <= current_time: # созрела карточка
+    while init_list:
+        init_list.sort(key = lambda l: l[0])
+        current_time = time.time()
+        if init_list[0][0] <= current_time: # созрела карточка
                 # print("\nягодка созрела")
                 next_time, card_id, fields, delta, old_delta, element_date, step = init_list.pop(0)
-            elif dictionary:
-                # print("\nягодка не созрела")
-                card_id = random.choice(list(dictionary))
-                fields, delta, old_delta, element_date, step = dictionary[card_id]
-            else:
-                next_time, card_id, fields, delta, old_delta, element_date, step = init_list.pop(0) # не смотрим созрела ли, тупо берём, но тем не менее зрелость карточки всё равно проявлется тем что самые зрелые выпадают раньше
-                # откладывания не нужны
-        elif dictionary:
-            card_id = random.choice(list(dictionary))
-            fields, delta, old_delta, element_date, step = dictionary[card_id]
-            # print("\nЖив только dictinary, едим что есть")
+        elif init_list[-1][0] == float('+inf'):
+                # print("\nберём репит в работу")
+                next_time, card_id, fields, delta, old_delta, element_date, step = init_list.pop()
         else:
-            break
+            # print('\nберём в работу ближайшую к зрелости')
+            next_time, card_id, fields, delta, old_delta, element_date, step = init_list.pop(0)
         string = question.format(*fields)
         answer = fields[answer_index]
         get_input('\nНажмите Enter чтобы продолжить...')
@@ -273,8 +272,6 @@ def proc():
         else:
             print(f"Правильный ответ {answer}")
             s = get_manual_s()
-        if step == 3:
-            del dictionary[card_id]
         current_time = time.time()
         if step + s < 4:
             print("it goes to init")
@@ -290,6 +287,7 @@ def proc():
             print(f"new_delta is {new_delta}")
             next_date = current_date + new_delta
             write_db(mod, step, new_delta, delta, next_date, card_id)
+            
     print("Всё изучено!\nПока!")
 
 def ranger(s):
@@ -346,6 +344,6 @@ if __name__ == '__main__':
         dictionary = get_dict_infinite_mod(ifinite_id_list)
         proc_infinite_mod()
     else:
-        dictionary, init_list = get_dict()
+        init_list = get_dict()
         proc()
     
