@@ -35,6 +35,18 @@ def get_auto_s(delay, answer): # это всё ещё бред, но лучше 
         return 2
     return 1
 
+def get_auto_s(delay, answer):
+    l = len(answer)
+    t = delay - 0.8 - 0.16 * l
+    print(f"{t=:0.2f}")
+    if t < 2:
+        return 4
+    if t < 4:
+        return 3
+    if t < 6:
+        return 2
+    return 1
+
 def get_manual_s():
     while True:
         try:
@@ -105,7 +117,6 @@ def write_db(mod, new_delta, delta, old_delta, next_date, card_id):
         q = f"SELECT * FROM taskperday WHERE mod_id = {mod}"
         i = c.execute(q)
         idd, day, new, total = next(i)
-        # if step < 3: # пахнет ошибкой... ### а что если степ был 3 а стал 1 или 2?
         if delta + old_delta == 0:
             q = f"UPDATE taskperday SET new = {new + 1}, total = {total + 1} WHERE mod_id = {mod}"
             print("инит пошел под запись")
