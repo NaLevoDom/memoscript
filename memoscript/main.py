@@ -51,7 +51,7 @@ def get_delta(delta, old_delta, counter, attempts):
     if old_delta == 0: # всё таки без уродливых адхоков не обошлось)))
         return 1
     new_delta = math.ceil(counter * (5 * delta + old_delta) / (3 * attempts) + 0.1)
-    
+    return new_delta
     
     # if delta == 0:
     #     delta = 1
