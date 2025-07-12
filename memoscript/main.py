@@ -37,13 +37,14 @@ def get_auto_s(delay, answer): # это всё ещё бред, но лучше 
 
 def get_auto_s(delay, answer):
     l = len(answer)
-    t = delay - 0.8 - 0.16 * l
+    # t = delay - 0.8 - 0.16 * l
+    t = delay - 1 - l / 4
     print(f"{t=:0.2f}")
-    if t < 2:
+    if t < 3:
         return 4
-    if t < 4:
-        return 3
     if t < 6:
+        return 3
+    if t < 9:
         return 2
     return 1
 
@@ -59,9 +60,15 @@ def get_manual_s():
         print("Ещё раз. ", end = '')
 
 def get_delta(delta, old_delta, counter, attempts):
-    new_delta = math.ceil(counter * (5 * delta + old_delta) / (3 * attempts) + 0.1)
+    if delta == 0:
+        delta = 1
+    if old_delta == 0:
+        old_delta = 1
+    new_delta = int(counter * (5 * delta + old_delta) / (3 * attempts))
     part = new_delta // 12
     new_delta += random.randint(-part, part)
+    if new_delta < 1:
+        new_delta = 1
     return new_delta
 
 def get_dict_infinite_mod(ifinite_id_list):
@@ -152,14 +159,8 @@ def handle_new(n, c):
 
 def get_limit(delta, old_delta):
     summ = delta + old_delta
-    if summ == 0:
-        return 6
-    if summ == 1:
-        return 5
-    if summ == 2:
-        return 4
-    if summ == 3:
-        return 3
+    if summ <= 3:
+        return 5 - summ
     return 1
 
 def get_list():
@@ -197,12 +198,9 @@ def get_list():
                 break
             total += 1
             new += 1
-        # print(init_list)
-        # print(new_limit - new)
         handle_new(new_limit - new, c)
         total = old_total
         new = old_new
-        # ещё раз то же самое
         print("Насыпаем инитов из мода")
         i = c.execute(q)
         for card_id, delta, old_delta, element_date in i: # накидываю новых что есть уже моде.
@@ -227,7 +225,6 @@ def get_list():
             container = [next_time, card_id, fields, delta, old_delta, element_date, attempts, counter, limit]
             init_list.append(container)
             print(container)
-        # print(init_list)
         print("Насыпаем репитов из мода")
         q = f"SELECT * FROM mod_{mod} WHERE delta + old_delta > 0 ORDER BY date ASC"
         i = c.execute(q)
@@ -290,8 +287,8 @@ def proc(init_list):
         attempts += 1
         next_time = current_time + s * 30
         if s == 1:
-            print("s = 1, счётчик - 3")
-            counter -= 3
+            print("s = 1, счётчик - 2.5")
+            counter -= 2.5
             if counter < 0:
                 counter = 0
         elif s == 2:
@@ -330,8 +327,8 @@ def ranger(s):
 
 def get_id_list(infinite_ids):
     l = []
-    for el in infinite_ids:
-        l += ranger(el)
+    for idd in infinite_ids:
+        l += ranger(idd)
     return l
 
 def handle_args(args):
