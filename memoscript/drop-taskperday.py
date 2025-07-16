@@ -10,8 +10,9 @@ import vyhuhol
 
 def taskperday_update(dbpath, mod_id):
     with sqlite3.connect(dbpath) as c:
-        q = f"UPDATE taskperday SET day = {current_date}, new = 0, total = 0 WHERE mod_id = {mod_id}"
-        c.execute(q)
+        q = f"UPDATE taskperday SET day = ?, new = 0, total = 0 WHERE mod_id = ?"
+        db_form = [current_date, mod_id]
+        c.execute(q, db_form)
 
 def handle_args(args):
     p = vyhuhol.Parser(args)
@@ -21,7 +22,7 @@ def handle_args(args):
     r = p.parse()
     return r
 
-if __name__ == '__main__': # ### надо чтобы он отложенные на следующий день карточки вертал на сегодня
+if __name__ == '__main__':
     current_date = datetime.date.today().toordinal()
     r = handle_args(sys.argv)
     dbpath = 'decks/' + r.name[0] + '.db'

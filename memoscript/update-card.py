@@ -7,7 +7,7 @@ import types
 
 import vyhuhol
 
-def update_deck_record(dbpath, i):
+def update_deck_record(dbpath, i): # ### надо намутить экранирование с вопросительными знаками, но тут что то слишком хитро всё)) 
     with sqlite3.connect(dbpath) as c:
         idd = i.pop(0)
         count = 1

@@ -6,11 +6,9 @@ import datetime
 import random
 import sqlite3
 import sys
-import math
 import time
 import os
 import types
-import re
 
 import vyhuhol
 
@@ -23,17 +21,6 @@ def get_input(text):
     except EOFError:
         print("\nПока!")
         sys.exit()
-
-def get_auto_s(delay, answer): # это всё ещё бред, но лучше чем было
-    k = math.sqrt(len(answer))
-    print(f"{2*k:0.2f} {4*k:0.2f} {6*k:0.2f}")
-    if delay <= k * 2:
-        return 4
-    if delay <= k * 4:
-        return 3
-    if delay <= k * 6:
-        return 2
-    return 1
 
 def get_auto_s(delay, answer):
     l = len(answer)
@@ -64,75 +51,31 @@ def get_delta(delta, old_delta, counter, attempts):
         delta = 1
     if old_delta == 0:
         old_delta = 1
-    new_delta = int(counter * (5 * delta + old_delta) / (3 * attempts))
+    new_delta = int(counter * (5 * delta + old_delta) / (3 * attempts)) # mean required!
     part = new_delta // 12
     new_delta += random.randint(-part, part)
     if new_delta < 1:
         new_delta = 1
     return new_delta
 
-def get_dict_infinite_mod(ifinite_id_list):
-    with sqlite3.connect(dbpath) as c:
-        dictionary = dict()
-        if ifinite_id_list:
-            for idd in ifinite_id_list:
-                q = f"SELECT * FROM deck WHERE id = {idd}"
-                i = c.execute(q)
-                container = next(i)
-                card_id = container[0]
-                fields = container
-                dictionary[card_id] = fields
-        else:
-            q = "SELECT * FROM deck"
-            i = c.execute(q)
-            for container in i:
-                card_id = container[0]
-                fields = container
-                dictionary[card_id] = fields
-    return dictionary
-    
-def proc_infinite_mod(dictionary):
-    with sqlite3.connect(dbpath) as c:
-        q = f"SELECT * FROM qa WHERE mod_id = {mod}"
-        i = c.execute(q)
-        mod_id, auto_eval, answer_index, question = next(i)
-    print(f"{mod_id=}, {auto_eval=}, {answer_index=}, {question=}")
-    if dictionary:
-        while True:
-            card_id = random.choice(list(dictionary))
-            fields = dictionary[card_id]
-            string = question.format(*fields)
-            answer = fields[answer_index]
-            get_input('\nНажмите Enter чтобы продолжить...')
-            ctrl_l()
-            start_time = time.time()
-            guess = get_input(string)
-            end_time = time.time()
-            delay = end_time - start_time
-            if auto_eval:
-                print(f"delay = {delay:0.2f}")
-                if guess.lower() == answer.lower():
-                    print(f"{start_green}Ты молодец!{start_normal}")
-                else:
-                    print(f"{start_red}Неправильно!{start_normal} Правильный ответ {start_blue}{answer}{start_normal}")
-            else:
-                print(f"Правильный ответ {answer}")
-    print("колода пуста")
-
 def write_db(mod, new_delta, delta, old_delta, next_date, card_id):
     with sqlite3.connect(dbpath) as c:
-        q = f"SELECT * FROM taskperday WHERE mod_id = {mod}"
-        i = c.execute(q)
+        q = f"SELECT * FROM taskperday WHERE mod_id = ?"
+        db_form = [mod]
+        i = c.execute(q, db_form)
         idd, day, new, total = next(i)
         if delta + old_delta == 0:
-            q = f"UPDATE taskperday SET new = {new + 1}, total = {total + 1} WHERE mod_id = {mod}"
+            q = f"UPDATE taskperday SET new = ?, total = ? WHERE mod_id = ?"
+            db_form = [new + 1, total + 1, mod]
             print("инит пошел под запись")
         else:
-            q = f"UPDATE taskperday SET total = {total + 1} WHERE mod_id = {mod}"
+            q = f"UPDATE taskperday SET total = ? WHERE mod_id = ?"
+            db_form = [total + 1, mod]
             print("репит пошел под запись")
-        c.execute(q)
-        q = f"UPDATE mod_{mod} SET delta = {new_delta}, old_delta = {delta}, date = {next_date} WHERE card_id = '{card_id}'"
-        c.execute(q)
+        c.execute(q, db_form)
+        q = f"UPDATE mod_{mod} SET delta = ?, old_delta = ?, date = ? WHERE card_id = ?"
+        db_form = [new_delta, delta, next_date, card_id]
+        c.execute(q, db_form)
 
 def handle_new(n, c):
     print(f"В расписание мода можем докинуть {n} инитов")
@@ -144,8 +87,9 @@ def handle_new(n, c):
             break
         idd = container[0]
         fields = container
-        q = f"SELECT * FROM mod_{mod} WHERE card_id = '{idd}'"
-        ii = c.execute(q)
+        q = f"SELECT * FROM mod_{mod} WHERE card_id = ?"
+        db_form = [idd]
+        ii = c.execute(q, db_form)
         try:
             idd, delta, old_delta, date = next(ii)
             # print(f"fields = {fields}, date = {date} Есть старая карточка.")
@@ -164,12 +108,11 @@ def get_limit(delta, old_delta):
     return 1
 
 def get_list():
-    dictionary = dict()
     init_list = []
-    next_time = 0
     with sqlite3.connect(dbpath) as c:
-        q = f"SELECT * FROM taskperday WHERE mod_id = {mod}"
-        i = c.execute(q)
+        q = f"SELECT * FROM taskperday WHERE mod_id = ?"
+        db_form = [mod]
+        i = c.execute(q, db_form)
         try:
             idd, day, new, total = next(i)
         except StopIteration:
@@ -179,14 +122,14 @@ def get_list():
         old_total = total
         print(f"В таскпердее было id={idd}, {day=}, {new=}, {total=}")
         if current_date != day:
-            q = f"UPDATE taskperday SET day = {current_date}, new = 0, total = 0 WHERE mod_id = {mod}"
-            c.execute(q)
+            q = f"UPDATE taskperday SET day = ?, new = 0, total = 0 WHERE mod_id = ?"
+            db_form = [current_date, mod]
+            c.execute(q, db_form)
             new = 0
             total = 0
             old_new = new
             old_total = total
             print(f"Так как дата устаревшая обнуляем счётчики.")
-        # q = f"SELECT * FROM mod_{mod} WHERE delta = 0 and old_delta = 0 ORDER BY date ASC"
         q = f"SELECT * FROM mod_{mod} WHERE delta + old_delta = 0 ORDER BY date ASC"
         i = c.execute(q)
         for card_id, delta, old_delta, element_date in i:
@@ -203,6 +146,7 @@ def get_list():
         new = old_new
         print("Насыпаем инитов из мода")
         i = c.execute(q)
+        next_time = 0
         for card_id, delta, old_delta, element_date in i: # накидываю новых что есть уже моде.
             if total >= total_limit:
                 print("Сработал первый брейк")
@@ -214,8 +158,9 @@ def get_list():
             if new == new_limit:
                 print("Сработал третий брейк")
                 break
-            qq = f"SELECT * FROM deck WHERE id = '{card_id}'"
-            ii = c.execute(qq)
+            qq = f"SELECT * FROM deck WHERE id = ?"
+            db_form = [card_id]
+            ii = c.execute(qq, db_form)
             fields = next(ii)
             attempts = 0
             counter = 0
@@ -228,17 +173,18 @@ def get_list():
         print("Насыпаем репитов из мода")
         q = f"SELECT * FROM mod_{mod} WHERE delta + old_delta > 0 ORDER BY date ASC"
         i = c.execute(q)
+        next_time = float('+inf')
         for card_id, delta, old_delta, element_date in i:
             if current_date < element_date or total >= total_limit:
                 break
-            qq = f"SELECT * FROM deck WHERE id = '{card_id}'"
-            ii = c.execute(qq)
+            qq = f"SELECT * FROM deck WHERE id = ?"
+            db_form = [card_id]
+            ii = c.execute(qq, db_form)
             fields = next(ii)
             attempts = 0
             counter = 0
             limit = get_limit(delta, old_delta)
             total += 1
-            next_time = float('+inf')
             container = [next_time, card_id, fields, delta, old_delta, element_date, attempts, counter, limit]
             init_list.append(container)
             print(container)
@@ -249,10 +195,43 @@ def get_list():
 
 def proc(init_list):
     with sqlite3.connect(dbpath) as c:
-        q = f"SELECT * FROM qa WHERE mod_id = {mod}"
-        i = c.execute(q)
+        q = f"SELECT * FROM qa WHERE mod_id = ?"
+        db_form = [mod]
+        i = c.execute(q, db_form)
         mod_id, auto_eval, answer_index, question = next(i)
-    while init_list:
+    previous = None
+    # while init_list:
+    while True:
+        if not(init_list):
+            print("инит пуст")
+            if previous:
+                next_time, card_id, fields, delta, old_delta, element_date, attempts, counter, limit = previous
+                write_db(mod, 0, delta, old_delta, current_date + 1, card_id)
+                print("code 1")
+                print("Откладывается 1 карточек (привиус)")
+                print(f'{fields} откладывается')
+            break
+        temp_list = init_list
+        if previous:
+            temp_list = init_list + [previous] # нельзя менять на temp_list += [previous], ибо каким-то хером это добавит [previous] и в init_list
+        if len(temp_list) <= 2:
+            i = 0
+            for next_time, card_id, fields, delta, old_delta, element_date, attempts, counter, limit in temp_list:
+                i += 1
+                if limit - counter <= 1.5 and (limit != 1 or attempts <= 2):
+                    break
+            else:
+                print("code 2")
+                print(f"Откладывается {i} карточек")
+                if previous:
+                    print("Среди них есть привиус")
+                else:
+                    print("Среди них нету привиуса")
+                
+                for next_time, card_id, fields, delta, old_delta, element_date, attempts, counter, limit in temp_list:
+                    print(f'{fields} откладывается')
+                    write_db(mod, 0, delta, old_delta, current_date + 1, card_id)
+                break
         init_list.sort(key = lambda l: l[0])
         current_time = time.time()
         if init_list[0][0] <= current_time: # созрела карточка
@@ -287,10 +266,8 @@ def proc(init_list):
         attempts += 1
         next_time = current_time + s * 30
         if s == 1:
-            print("s = 1, счётчик - 2.5")
-            counter -= 2.5
-            if counter < 0:
-                counter = 0
+            print("s = 1, обнуляем счётчик")
+            counter = 0
         elif s == 2:
             print("s = 2, do nothing")
         elif s == 3:
@@ -299,71 +276,47 @@ def proc(init_list):
         elif s == 4:
             print("s = 4, счётчик + 1.5")
             counter += 1.5
+        
+        if previous:
+            init_list.append(previous)
+        
         if counter >= limit:
             print("let's do the procedure")
             new_delta = get_delta(delta, old_delta, counter, attempts)
             print(f"{new_delta=}")
             next_date = current_date + new_delta
             write_db(mod, new_delta, delta, old_delta, next_date, card_id)
+            previous = None
         else:
-            init_list.append([next_time, card_id, fields, delta, old_delta, element_date, attempts, counter, limit])
-        # print(f"attempts = {attempts}, counter = {counter}, limit = {limit}")
+            # init_list.append([next_time, card_id, fields, delta, old_delta, element_date, attempts, counter, limit])
+            previous = [next_time, card_id, fields, delta, old_delta, element_date, attempts, counter, limit]
+
         print(f"{attempts=}, {counter=}, {limit=}")
     print("Всё изучено!\nПока!")
-
-def ranger(s):
-    l = []
-    if re.fullmatch(r"\d+", s) is not None:
-        l = [int(s)]
-    if re.fullmatch(r"\d+-\d+", s) is not None:
-        ss = s.split('-')
-        n1 = int(ss[0])
-        n2 = int(ss[1])
-        l = list(range(n1, n2 + 1))
-    if not(l):
-        print(f"'{s}' is not correct option")
-        sys.exit(0)
-    return l
-
-def get_id_list(infinite_ids):
-    l = []
-    for idd in infinite_ids:
-        l += ranger(idd)
-    return l
 
 def handle_args(args):
     p = vyhuhol.Parser(args)
     p.add_pattern(write_to = ['name'], keys = ['-n', '--name'], valency = 1, positional = True)
     p.add_pattern(write_to = ['mod_id'], keys = ['-m', '--mod-id'], valency = 1, positional = True)
-    p.add_pattern(set_to = {"is_infinite" : 1}, write_to = ['infinite_ids'], keys = ['-i', '--infinite'], valency = '*')
-    p.defaults = types.SimpleNamespace(name = None, mod_id = None, is_infinite = 0)
+    p.defaults = types.SimpleNamespace(name = None, mod_id = None)
     r = p.parse()
     return r
 
+start_red = "\033[91m"
+start_green = "\033[92m"
+start_blue = "\033[94m"
+start_normal = "\033[39m"
+os.chdir(os.path.dirname(__file__))
+current_date = datetime.date.today().toordinal()
+# new_limit = 100
+new_limit = 8
+# total_limit = 100
+total_limit = 24
 if __name__ == '__main__':
+    print(f"current_date = {current_date}")
     r = handle_args(sys.argv)
     dbpath = 'decks/' + r.name[0] + '.db'
     mod = r.mod_id[0]
-    infinite_mod = r.is_infinite
-    infinite_ids = r.infinite_ids
-    start_red = "\033[91m"
-    start_green = "\033[92m"
-    start_blue = "\033[94m"
-    start_normal = "\033[39m"
-    # new_limit = 100
-    new_limit = 8
-    # total_limit = 100
-    total_limit = 24
-    current_date = datetime.date.today().toordinal()
-    # current_date = 739418
-    os.chdir(os.path.dirname(__file__))
-    print(f"current_date = {current_date}")
-    # print_mod()
-    if infinite_mod:
-        ifinite_id_list = get_id_list(infinite_ids)
-        dictionary = get_dict_infinite_mod(ifinite_id_list)
-        proc_infinite_mod(dictionary)
-    else:
-        init_list = get_list()
-        proc(init_list)
+    init_list = get_list()
+    proc(init_list)
     

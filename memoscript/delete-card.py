@@ -10,13 +10,15 @@ import vyhuhol
 
 def delete_deck_record(dbpath, card_id):
     with sqlite3.connect(dbpath) as c:
-        q = f"DELETE FROM deck WHERE id = {card_id}"
-        c.execute(q)
+        q = f"DELETE FROM deck WHERE id = ?"
+        db_form = [card_id]
+        c.execute(q, db_form)
 
 def delete_mod_record(dbpath, card_id, mod_id):
     with sqlite3.connect(dbpath) as c:
-        q = f"DELETE FROM mod_{mod_id} WHERE card_id = {card_id}"
-        c.execute(q)
+        q = f"DELETE FROM mod_{mod_id} WHERE card_id = ?"
+        db_form = [card_id]
+        c.execute(q, db_form)
 
 def get_qa(dbpath):
     with sqlite3.connect(dbpath) as c:

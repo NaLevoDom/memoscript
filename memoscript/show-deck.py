@@ -26,10 +26,11 @@ def print_mod(dbpath, mod_id):
         q = f"SELECT * FROM mod_{mod_id} ORDER BY date ASC"
         i = c.execute(q)
         for card_id, delta, old_delta, element_date in i:
-            qq = f"SELECT * FROM deck WHERE id = {card_id}"
-            ii = c.execute(qq)
+            qq = f"SELECT * FROM deck WHERE id = ?"
+            db_form = [card_id]
+            ii = c.execute(qq, db_form)
             fields = next(ii)
-            print(f"fields = {fields}, delta = {delta}, old_delta = {old_delta}, element_date = {element_date}")
+            print(f"{fields=}, {delta=}, {old_delta=}, {element_date=}")
 
 def get_qa(dbpath):
     with sqlite3.connect(dbpath) as c:
@@ -45,5 +46,5 @@ if __name__ == '__main__':
     qa = get_qa(dbpath)
     for mod_id, auto_eval, answer_index, question in qa:
         print()
-        print(f"mod_id = {mod_id}, auto_eval = {auto_eval}, answer_index = {answer_index}, question = '{question}'")
+        print(f"{mod_id=}, {auto_eval=}, {answer_index=}, {question=}")
         print_mod(dbpath, mod_id)

@@ -9,8 +9,9 @@ import vyhuhol
 
 def update_mod(dbpath, mod_id, answer_index, question, auto_eval):
     with sqlite3.connect(dbpath) as c:
-        q = f"UPDATE qa SET auto_eval = {auto_eval}, answer_index = {answer_index}, question = '{question}' WHERE mod_id = {mod_id}"
-        c.execute(q)
+        q = f"UPDATE qa SET auto_eval = ?, answer_index = ?, question = ? WHERE mod_id = ?"
+        db_form = [auto_eval, answer_index, question, mod_id]
+        c.execute(q, db_form)
         
 def handle_args(args):
     p = vyhuhol.Parser(args)

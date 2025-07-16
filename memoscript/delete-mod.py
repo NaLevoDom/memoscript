@@ -14,13 +14,15 @@ def drop_mod(dbpath, mod_id):
 
 def delete_qa_mod(dbpath, mod_id):
     with sqlite3.connect(dbpath) as c:
-        q = f"DELETE FROM qa WHERE mod_id = {mod_id}"
-        c.execute(q)
+        q = f"DELETE FROM qa WHERE mod_id = ?"
+        db_form = [mod_id]
+        c.execute(q, db_form)
 
 def delete_taskperday_mod(dbpath, mod_id):
     with sqlite3.connect(dbpath) as c:
-        q = f"DELETE FROM taskperday WHERE mod_id = {mod_id}"
-        c.execute(q)
+        q = f"DELETE FROM taskperday WHERE mod_id = ?"
+        db_form = [mod_id]
+        c.execute(q, db_form)
 
 def handle_args(args):
     p = vyhuhol.Parser(args)

@@ -10,8 +10,9 @@ import vyhuhol
 
 def taskperday_update(dbpath, mod_id):
     with sqlite3.connect(dbpath) as c:
-        q = f"UPDATE taskperday SET day = {current_date}, new = 0, total = 0 WHERE mod_id = {mod_id}"
-        c.execute(q)
+        q = f"UPDATE taskperday SET day = ?, new = 0, total = 0 WHERE mod_id = ?"
+        db_form = [current_date, mod_id]
+        c.execute(q, db_form)
 
 def drop_mod(dbpath, mod_id):
     with sqlite3.connect(dbpath) as c:
@@ -30,8 +31,9 @@ def create_mod(dbpath, mod_id):
 
 def add_taskperday_record(dbpath, mod_id):
     with sqlite3.connect(dbpath) as c:
-        q = f"INSERT INTO taskperday VALUES({mod_id}, {current_date}, 0, 0)"
-        c.execute(q)
+        q = f"INSERT INTO taskperday VALUES(?, ?, 0, 0)"
+        db_form = [mod_id, current_date]
+        c.execute(q, db_form)
 
 def add_qa_record(dbpath, mod_id, auto_eval, answer_index, question):
     with sqlite3.connect(dbpath) as c:
