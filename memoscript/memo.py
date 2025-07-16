@@ -281,14 +281,17 @@ def proc(init_list):
             init_list.append(previous)
         
         if counter >= limit:
-            print("let's do the procedure")
             new_delta = get_delta(delta, old_delta, counter, attempts)
-            print(f"{new_delta=}")
             next_date = current_date + new_delta
             write_db(mod, new_delta, delta, old_delta, next_date, card_id)
             previous = None
+            print("let's do the procedure")
+            print(f"{new_delta=}")
+        elif 1.5 * (20 - attempts) < limit - counter:
+            write_db(mod, 0, delta, old_delta, current_date + 1, card_id)
+            previous = None
+            print("Эта карточка не будет добита за 20 попыток, откладываем")
         else:
-            # init_list.append([next_time, card_id, fields, delta, old_delta, element_date, attempts, counter, limit])
             previous = [next_time, card_id, fields, delta, old_delta, element_date, attempts, counter, limit]
 
         print(f"{attempts=}, {counter=}, {limit=}")
