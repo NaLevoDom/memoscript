@@ -9,6 +9,7 @@ import sys
 import time
 import os
 import types
+import math
 
 import vyhuhol
 
@@ -47,11 +48,11 @@ def get_manual_s():
         print("Ещё раз. ", end = '')
 
 def get_delta(delta, old_delta, counter, attempts):
-    if delta == 0:
-        delta = 1
-    if old_delta == 0:
-        old_delta = 1
-    new_delta = int(counter * (5 * delta + old_delta) / (3 * attempts)) # mean required!
+    mean = (5 * delta + old_delta) / 6
+    if mean < 1:
+        mean = 1
+    factor = 2 * counter / attempts
+    new_delta = math.ceil(mean * factor + 0.1)
     part = new_delta // 12
     new_delta += random.randint(-part, part)
     if new_delta < 1:
@@ -200,7 +201,6 @@ def proc(init_list):
         i = c.execute(q, db_form)
         mod_id, auto_eval, answer_index, question = next(i)
     previous = None
-    # while init_list:
     while True:
         if not(init_list):
             print("инит пуст")
@@ -227,7 +227,6 @@ def proc(init_list):
                     print("Среди них есть привиус")
                 else:
                     print("Среди них нету привиуса")
-                
                 for next_time, card_id, fields, delta, old_delta, element_date, attempts, counter, limit in temp_list:
                     print(f'{fields} откладывается')
                     write_db(mod, 0, delta, old_delta, current_date + 1, card_id)
@@ -235,13 +234,10 @@ def proc(init_list):
         init_list.sort(key = lambda l: l[0])
         current_time = time.time()
         if init_list[0][0] <= current_time: # созрела карточка
-            # print("\nягодка созрела")
             next_time, card_id, fields, delta, old_delta, element_date, attempts, counter, limit = init_list.pop(0)
-        elif init_list[-1][0] == float('+inf'):
-            # print("\nберём репит в работу")
+        elif init_list[-1][0] == float('+inf'): # берём репит в работу
             next_time, card_id, fields, delta, old_delta, element_date, attempts, counter, limit = init_list.pop()
-        else:
-            # print('\nберём в работу ближайшую к зрелости')
+        else: # берём в работу ближайшую к зрелости
             next_time, card_id, fields, delta, old_delta, element_date, attempts, counter, limit = init_list.pop(0)
         string = question.format(*fields)
         answer = fields[answer_index]
@@ -276,10 +272,8 @@ def proc(init_list):
         elif s == 4:
             print("s = 4, счётчик + 1.5")
             counter += 1.5
-        
         if previous:
             init_list.append(previous)
-        
         if counter >= limit:
             new_delta = get_delta(delta, old_delta, counter, attempts)
             next_date = current_date + new_delta
