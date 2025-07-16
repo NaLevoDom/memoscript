@@ -48,9 +48,11 @@ def get_manual_s():
         print("Ещё раз. ", end = '')
 
 def get_delta(delta, old_delta, counter, attempts):
+    if delta == 0:
+        delta = 1
+    if old_delta == 0:
+        old_delta = 1
     mean = (5 * delta + old_delta) / 6
-    if mean < 1:
-        mean = 1
     factor = 2 * counter / attempts
     new_delta = math.ceil(mean * factor + 0.1)
     part = new_delta // 12
