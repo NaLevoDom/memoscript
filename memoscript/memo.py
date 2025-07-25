@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import readline
 import datetime
 import random
 import sqlite3
@@ -13,8 +12,10 @@ import math
 
 import vyhuhol
 
+
 def ctrl_l():
-    print('\n' * (os.get_terminal_size().lines - 1) + "\033[H\033[J", end = '')
+    print('\n' * (os.get_terminal_size().lines - 1) + "\033[H\033[J", end='')
+
 
 def get_input(text):
     try:
@@ -22,6 +23,7 @@ def get_input(text):
     except EOFError:
         print("\nПока!")
         sys.exit()
+
 
 def get_auto_s(delay, answer):
     l = len(answer)
@@ -36,6 +38,7 @@ def get_auto_s(delay, answer):
         return 2
     return 1
 
+
 def get_manual_s():
     while True:
         try:
@@ -45,7 +48,8 @@ def get_manual_s():
         else:
             if 1 <= s <= 4:
                 return s
-        print("Ещё раз. ", end = '')
+        print("Ещё раз. ", end='')
+
 
 def get_delta(delta, old_delta, counter, attempts):
     if delta == 0:
@@ -60,6 +64,7 @@ def get_delta(delta, old_delta, counter, attempts):
     if new_delta < 1:
         new_delta = 1
     return new_delta
+
 
 def write_db(mod, new_delta, delta, old_delta, next_date, card_id):
     with sqlite3.connect(dbpath) as c:
@@ -80,13 +85,14 @@ def write_db(mod, new_delta, delta, old_delta, next_date, card_id):
         db_form = [new_delta, delta, next_date, card_id]
         c.execute(q, db_form)
 
+
 def handle_new(n, c):
     print(f"В расписание мода можем докинуть {n} инитов")
     q = "SELECT * FROM deck"
     i = c.execute(q)
     counter = 0
     for container in i:
-        if counter >= n: # n ведь отрицательный может быть, поэтому >= а не просто ==
+        if counter >= n:  # n ведь отрицательный может быть, поэтому >= а не просто ==
             break
         idd = container[0]
         fields = container
@@ -104,11 +110,13 @@ def handle_new(n, c):
             counter += 1
     print(f"Докидываем {counter} инитов")
 
+
 def get_limit(delta, old_delta):
     summ = delta + old_delta
     if summ <= 3:
         return 5 - summ
     return 1
+
 
 def get_list():
     init_list = []
@@ -136,7 +144,7 @@ def get_list():
         q = f"SELECT * FROM mod_{mod} WHERE delta + old_delta = 0 ORDER BY date ASC"
         i = c.execute(q)
         for card_id, delta, old_delta, element_date in i:
-            if  total >= total_limit:
+            if total >= total_limit:
                 break
             if current_date < element_date:
                 break
@@ -150,7 +158,8 @@ def get_list():
         print("Насыпаем инитов из мода")
         i = c.execute(q)
         next_time = 0
-        for card_id, delta, old_delta, element_date in i: # накидываю новых что есть уже моде.
+        # накидываю новых что есть уже моде.
+        for card_id, delta, old_delta, element_date in i:
             if total >= total_limit:
                 print("Сработал первый брейк")
                 break
@@ -170,7 +179,8 @@ def get_list():
             limit = get_limit(delta, old_delta)
             total += 1
             new += 1
-            container = [next_time, card_id, fields, delta, old_delta, element_date, attempts, counter, limit]
+            container = [next_time, card_id, fields, delta,
+                         old_delta, element_date, attempts, counter, limit]
             init_list.append(container)
             print(container)
         print("Насыпаем репитов из мода")
@@ -188,13 +198,16 @@ def get_list():
             counter = 0
             limit = get_limit(delta, old_delta)
             total += 1
-            container = [next_time, card_id, fields, delta, old_delta, element_date, attempts, counter, limit]
+            container = [next_time, card_id, fields, delta,
+                         old_delta, element_date, attempts, counter, limit]
             init_list.append(container)
             print(container)
         # print(init_list)
-    print(f"Докидываем {new - old_new} новых, а в целом {total - old_total} карточек.")
+    print(
+        f"Докидываем {new - old_new} новых, а в целом {total - old_total} карточек.")
     random.shuffle(init_list)
     return init_list
+
 
 def proc(init_list):
     with sqlite3.connect(dbpath) as c:
@@ -204,7 +217,7 @@ def proc(init_list):
         mod_id, auto_eval, answer_index, question = next(i)
     previous = None
     while True:
-        if not(init_list):
+        if not (init_list):
             print("инит пуст")
             if previous:
                 next_time, card_id, fields, delta, old_delta, element_date, attempts, counter, limit = previous
@@ -215,7 +228,8 @@ def proc(init_list):
             break
         temp_list = init_list
         if previous:
-            temp_list = init_list + [previous] # нельзя менять на temp_list += [previous], ибо каким-то хером это добавит [previous] и в init_list
+            # нельзя менять на temp_list += [previous], ибо каким-то хером это добавит [previous] и в init_list
+            temp_list = init_list + [previous]
         if len(temp_list) <= 2:
             i = 0
             for next_time, card_id, fields, delta, old_delta, element_date, attempts, counter, limit in temp_list:
@@ -231,16 +245,19 @@ def proc(init_list):
                     print("Среди них нету привиуса")
                 for next_time, card_id, fields, delta, old_delta, element_date, attempts, counter, limit in temp_list:
                     print(f'{fields} откладывается')
-                    write_db(mod, 0, delta, old_delta, current_date + 1, card_id)
+                    write_db(mod, 0, delta, old_delta,
+                             current_date + 1, card_id)
                 break
-        init_list.sort(key = lambda l: l[0])
+        init_list.sort(key=lambda l: l[0])
         current_time = time.time()
-        if init_list[0][0] <= current_time: # созрела карточка
-            next_time, card_id, fields, delta, old_delta, element_date, attempts, counter, limit = init_list.pop(0)
-        elif init_list[-1][0] == float('+inf'): # берём репит в работу
+        if init_list[0][0] <= current_time:  # созрела карточка
+            next_time, card_id, fields, delta, old_delta, element_date, attempts, counter, limit = init_list.pop(
+                0)
+        elif init_list[-1][0] == float('+inf'):  # берём репит в работу
             next_time, card_id, fields, delta, old_delta, element_date, attempts, counter, limit = init_list.pop()
-        else: # берём в работу ближайшую к зрелости
-            next_time, card_id, fields, delta, old_delta, element_date, attempts, counter, limit = init_list.pop(0)
+        else:  # берём в работу ближайшую к зрелости
+            next_time, card_id, fields, delta, old_delta, element_date, attempts, counter, limit = init_list.pop(
+                0)
         string = question.format(*fields)
         answer = fields[answer_index]
         get_input('\nНажмите Enter чтобы продолжить...')
@@ -255,7 +272,8 @@ def proc(init_list):
                 print(f"{start_green}Ты молодец!{start_normal}")
                 s = get_auto_s(delay, answer)
             else:
-                print(f"{start_red}Неправильно!{start_normal} Правильный ответ {start_blue}{answer}{start_normal}")
+                print(
+                    f"{start_red}Неправильно!{start_normal} Правильный ответ {start_blue}{answer}{start_normal}")
                 s = 1
         else:
             print(f"Правильный ответ {answer}")
@@ -288,18 +306,23 @@ def proc(init_list):
             previous = None
             print("Эта карточка не будет добита за 20 попыток, откладываем")
         else:
-            previous = [next_time, card_id, fields, delta, old_delta, element_date, attempts, counter, limit]
+            previous = [next_time, card_id, fields, delta,
+                        old_delta, element_date, attempts, counter, limit]
 
         print(f"{attempts=}, {counter=}, {limit=}")
     print("Всё изучено!\nПока!")
 
+
 def handle_args(args):
     p = vyhuhol.Parser(args)
-    p.add_pattern(write_to = ['name'], keys = ['-n', '--name'], valency = 1, positional = True)
-    p.add_pattern(write_to = ['mod_id'], keys = ['-m', '--mod-id'], valency = 1, positional = True)
-    p.defaults = types.SimpleNamespace(name = None, mod_id = None)
+    p.add_pattern(write_to=['name'], keys=[
+                  '-n', '--name'], valency=1, positional=True)
+    p.add_pattern(write_to=['mod_id'], keys=[
+                  '-m', '--mod-id'], valency=1, positional=True)
+    p.defaults = types.SimpleNamespace(name=None, mod_id=None)
     r = p.parse()
     return r
+
 
 start_red = "\033[91m"
 start_green = "\033[92m"
@@ -318,4 +341,3 @@ if __name__ == '__main__':
     mod = r.mod_id[0]
     init_list = get_list()
     proc(init_list)
-    
