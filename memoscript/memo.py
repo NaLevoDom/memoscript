@@ -10,6 +10,10 @@ import os
 import types
 import math
 
+# Проверка операционной системы
+if os.name == 'posix':
+    import readline
+
 import vyhuhol
 
 
