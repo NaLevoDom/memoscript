@@ -7,18 +7,18 @@ import types
 
 import vyhuhol
 
-def update_deck_record(dbpath, i): # ### WARNING ### Это говно надо полностью переписать
+def update_deck_record(dbpath, fields):
     with sqlite3.connect(dbpath) as c:
-        idd = i.pop(0)
-        count = 1
-        s = ''
-        while i:
-            element = i.pop(0)
-            s += f"column_{count} = '{element}', "
-            count += 1
-        s = s[:-2]
-        q = f"UPDATE deck SET " + s + f" WHERE id = {idd}"
-        c.execute(q, i)
+        card_id = fields[0]
+        q = "DELETE FROM deck WHERE id = ?"
+        db_form = [card_id]
+        c.execute(q, db_form)
+        question_marks = '?, ' * len(fields)
+        question_marks = question_marks[:-2]
+        q = f'INSERT INTO deck VALUES({question_marks})'
+        print(q)
+        c.execute(q, fields)
+
 
 def handle_args(args):
     p = vyhuhol.Parser(args)
@@ -28,9 +28,10 @@ def handle_args(args):
     r = p.parse()
     return r
 
+
 if __name__ == '__main__':
     r = handle_args(sys.argv)
     dbpath = 'decks/' + r.name[0] + '.db'
-    i = r.fields
-    update_deck_record(dbpath, i)
+    fields = r.fields
+    update_deck_record(dbpath, fields)
     
