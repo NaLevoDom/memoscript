@@ -85,8 +85,8 @@ def write_db(mod, new_delta, delta, old_delta, next_date, card_id):
             db_form = [total + 1, mod]
             print("репит пошел под запись")
         c.execute(q, db_form)
-        q = f"UPDATE mod_{mod} SET delta = ?, old_delta = ?, date = ? WHERE card_id = ?"
-        db_form = [new_delta, delta, next_date, card_id]
+        q = f"UPDATE schedule SET delta = ?, old_delta = ?, date = ? WHERE card_id = ? and mod_id = ?"
+        db_form = [new_delta, delta, next_date, card_id, mod]
         c.execute(q, db_form)
 
 
@@ -100,16 +100,16 @@ def handle_new(n, c):
             break
         idd = container[0]
         fields = container
-        q = f"SELECT * FROM mod_{mod} WHERE card_id = ?"
-        db_form = [idd]
+        q = f"SELECT * FROM schedule WHERE card_id = ? and mod_id = ?"
+        db_form = [idd, mod]
         ii = c.execute(q, db_form)
         try:
-            idd, delta, old_delta, date = next(ii)
+            mod_id, idd, delta, old_delta, date = next(ii)
             # print(f"fields = {fields}, date = {date} Есть старая карточка.")
         except StopIteration:
             print(f"fields = {fields} Есть НОВАЯ карточка")
-            db_form = [idd, 0, 0, current_date]
-            q = f"INSERT INTO mod_{mod} VALUES(?, ?, ?, ?)"
+            db_form = [mod, idd, 0, 0, current_date]
+            q = f"INSERT INTO schedule VALUES(?, ?, ?, ?, ?)"
             c.execute(q, db_form)
             counter += 1
     print(f"Докидываем {counter} инитов")
@@ -145,9 +145,10 @@ def get_list():
             old_new = new
             old_total = total
             print(f"Так как дата устаревшая обнуляем счётчики.")
-        q = f"SELECT * FROM mod_{mod} WHERE delta + old_delta = 0 ORDER BY date ASC"
-        i = c.execute(q)
-        for card_id, delta, old_delta, element_date in i:
+        q = f"SELECT * FROM schedule WHERE delta + old_delta = 0 and mod_id = ? ORDER BY date ASC"
+        db_form = [mod]
+        i = c.execute(q, db_form)
+        for mod_id, card_id, delta, old_delta, element_date in i:
             if total >= total_limit:
                 break
             if current_date < element_date:
@@ -160,10 +161,10 @@ def get_list():
         total = old_total
         new = old_new
         print("Насыпаем инитов из мода")
-        i = c.execute(q)
+        i = c.execute(q, db_form)
         next_time = 0
         # накидываю новых что есть уже моде.
-        for card_id, delta, old_delta, element_date in i:
+        for mod_id, card_id, delta, old_delta, element_date in i:
             if total >= total_limit:
                 print("Сработал первый брейк")
                 break
@@ -188,10 +189,11 @@ def get_list():
             init_list.append(container)
             print(container)
         print("Насыпаем репитов из мода")
-        q = f"SELECT * FROM mod_{mod} WHERE delta + old_delta > 0 ORDER BY date ASC"
-        i = c.execute(q)
+        q = "SELECT * FROM schedule WHERE delta + old_delta > 0 and mod_id = ? ORDER BY date ASC"
+        db_form = [mod]
+        i = c.execute(q, db_form)
         next_time = float('+inf')
-        for card_id, delta, old_delta, element_date in i:
+        for mod_id, card_id, delta, old_delta, element_date in i:
             if current_date < element_date or total >= total_limit:
                 break
             qq = f"SELECT * FROM deck WHERE id = ?"

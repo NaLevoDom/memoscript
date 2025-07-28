@@ -9,8 +9,9 @@ import vyhuhol
 
 def drop_mod(dbpath, mod_id):
     with sqlite3.connect(dbpath) as c:
-        q = f"DROP TABLE IF EXISTS mod_{mod_id}"
-        c.execute(q)
+        q = "DELETE FROM schedule WHERE mod_id = ?"
+        db_form = [mod_id]
+        c.execute(q, db_form)
 
 def delete_qa_mod(dbpath, mod_id):
     with sqlite3.connect(dbpath) as c:

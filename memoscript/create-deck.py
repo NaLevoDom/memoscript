@@ -7,7 +7,7 @@ import types
 
 import vyhuhol
 
-def create_deck(dbpath, n):
+def create_deck_table(dbpath, n):
     with sqlite3.connect(dbpath) as c:
         s = ''
         count = 1
@@ -18,7 +18,7 @@ def create_deck(dbpath, n):
         q = f"CREATE TABLE deck(\nid INTEGER PRIMARY KEY,\n{s});"
         c.execute(q)
 
-def create_taskperday(dbpath):
+def create_taskperday_table(dbpath):
     with sqlite3.connect(dbpath) as c:
         q = """CREATE TABLE taskperday(
         mod_id TEXT PRIMARY KEY,
@@ -28,13 +28,24 @@ def create_taskperday(dbpath):
         """
         c.execute(q)
 
-def create_qa(dbpath):
+def create_qa_table(dbpath):
     with sqlite3.connect(dbpath) as c:
         q = """CREATE TABLE qa(
         mod_id TEXT PRIMARY KEY,
         auto_eval INT,
         answer_index INT,
         question TEXT);
+        """
+        c.execute(q)
+
+def create_schedule_table(dbpath):
+    with sqlite3.connect(dbpath) as c:
+        q = f"""CREATE TABLE schedule(
+        mod_id TEXT,
+        card_id INT,
+        delta INT,
+        old_delta INT,
+        date INT);
         """
         c.execute(q)
 
@@ -50,6 +61,7 @@ if __name__ == '__main__':
     r = handle_args(sys.argv)
     dbpath = 'decks/' + r.name[0] + '.db'
     n = r.count[0]
-    create_deck(dbpath, n)
-    create_taskperday(dbpath)
-    create_qa(dbpath)
+    create_deck_table(dbpath, n)
+    create_taskperday_table(dbpath)
+    create_qa_table(dbpath)
+    create_schedule_table(dbpath)

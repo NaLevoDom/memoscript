@@ -14,18 +14,11 @@ def delete_deck_record(dbpath, card_id):
         db_form = [card_id]
         c.execute(q, db_form)
 
-def delete_mod_record(dbpath, card_id, mod_id):
+def delete_schedule_records(dbpath, card_id):
     with sqlite3.connect(dbpath) as c:
-        q = f"DELETE FROM mod_{mod_id} WHERE card_id = ?"
+        q = f"DELETE FROM schedule WHERE card_id = ?"
         db_form = [card_id]
         c.execute(q, db_form)
-
-def get_qa(dbpath):
-    with sqlite3.connect(dbpath) as c:
-        q = f"SELECT * FROM qa"
-        i = c.execute(q)
-        l = list(i)
-    return l
 
 def ranger(s):
     l = []
@@ -60,9 +53,7 @@ if __name__ == '__main__':
     r = handle_args(sys.argv)
     dbpath = 'decks/' + r.name[0] + '.db'
     card_id_raw_list = r.card_id
-    id_list = get_id_list(card_id_raw_list)
-    for card_id in id_list:
+    card_id_list = get_id_list(card_id_raw_list)
+    for card_id in card_id_list:
         delete_deck_record(dbpath, card_id)
-        qa = get_qa(dbpath)
-        for mod_id, auto_eval, answer_index, question in qa:
-            delete_mod_record(dbpath, card_id, mod_id)
+        delete_schedule_records(dbpath, card_id)

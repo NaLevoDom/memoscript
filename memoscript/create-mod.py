@@ -14,21 +14,6 @@ def taskperday_update(dbpath, mod_id):
         db_form = [current_date, mod_id]
         c.execute(q, db_form)
 
-def drop_mod(dbpath, mod_id):
-    with sqlite3.connect(dbpath) as c:
-        q = f"DROP TABLE IF EXISTS mod_{mod_id}"
-        c.execute(q)
-
-def create_mod(dbpath, mod_id):
-    with sqlite3.connect(dbpath) as c:
-        q = f"""CREATE TABLE IF NOT EXISTS mod_{mod_id}(
-        card_id INT PRIMARY KEY,
-        delta INT,
-        old_delta INT,
-        date INT);
-        """
-        c.execute(q)
-
 def add_taskperday_record(dbpath, mod_id):
     with sqlite3.connect(dbpath) as c:
         q = f"INSERT INTO taskperday VALUES(?, ?, 0, 0)"
@@ -61,7 +46,5 @@ if __name__ == '__main__':
     auto_eval = r.auto_eval
     current_date = datetime.date.today().toordinal()
     taskperday_update(dbpath, mod_id)
-    drop_mod(dbpath, mod_id)
-    create_mod(dbpath, mod_id)
     add_taskperday_record(dbpath, mod_id)
     add_qa_record(dbpath, mod_id, auto_eval, answer_index, question)

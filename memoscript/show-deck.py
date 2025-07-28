@@ -23,9 +23,10 @@ def handle_args(args):
 
 def print_mod(dbpath, mod_id):
     with sqlite3.connect(dbpath) as c:
-        q = f"SELECT * FROM mod_{mod_id} ORDER BY date ASC"
-        i = c.execute(q)
-        for card_id, delta, old_delta, element_date in i:
+        q = f"SELECT * FROM schedule WHERE mod_id = ? ORDER BY date ASC"
+        db_form = [mod_id]
+        i = c.execute(q, db_form)
+        for mod_id, card_id, delta, old_delta, element_date in i:
             qq = f"SELECT * FROM deck WHERE id = ?"
             db_form = [card_id]
             ii = c.execute(qq, db_form)
