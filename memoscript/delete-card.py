@@ -10,13 +10,13 @@ import vyhuhol
 
 def delete_deck_record(dbpath, card_id):
     with sqlite3.connect(dbpath) as c:
-        q = f"DELETE FROM deck WHERE id = ?"
+        q = "DELETE FROM deck WHERE card_id = ?"
         db_form = [card_id]
         c.execute(q, db_form)
 
 def delete_schedule_records(dbpath, card_id):
     with sqlite3.connect(dbpath) as c:
-        q = f"DELETE FROM schedule WHERE card_id = ?"
+        q = "DELETE FROM schedule WHERE card_id = ?"
         db_form = [card_id]
         c.execute(q, db_form)
 
@@ -43,15 +43,15 @@ def get_id_list(card_id_raw_list):
 
 def handle_args(args):
     p = vyhuhol.Parser(args)
-    p.add_pattern(write_to = ['name'], keys = ['-n', '--name'], valency = 1, positional = True)
+    p.add_pattern(write_to = ['deck_id'], keys = ['-d', '--deck-id'], valency = 1, positional = True)
     p.add_pattern(write_to = ['card_id'], keys = ['-c', '--card-id'], valency = '+', positional = True)
-    p.defaults = types.SimpleNamespace(name = None, card_id = None)
+    p.defaults = types.SimpleNamespace(deck_id = None, card_id = None)
     r = p.parse()
     return r
 
 if __name__ == '__main__':
     r = handle_args(sys.argv)
-    dbpath = 'decks/' + r.name[0] + '.db'
+    dbpath = 'decks/' + r.deck_id[0] + '.db'
     card_id_raw_list = r.card_id
     card_id_list = get_id_list(card_id_raw_list)
     for card_id in card_id_list:

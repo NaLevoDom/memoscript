@@ -15,7 +15,7 @@ def create_deck_table(dbpath, n):
             s += f'column_{count} TEXT,\n'
             count += 1
         s = s[:-2]
-        q = f"CREATE TABLE deck(\nid INTEGER PRIMARY KEY,\n{s});"
+        q = f"CREATE TABLE deck(\ncard_id INTEGER PRIMARY KEY,\n{s});"
         c.execute(q)
 
 def create_taskperday_table(dbpath):
@@ -40,26 +40,26 @@ def create_qa_table(dbpath):
 
 def create_schedule_table(dbpath):
     with sqlite3.connect(dbpath) as c:
-        q = f"""CREATE TABLE schedule(
+        q = """CREATE TABLE schedule(
         mod_id TEXT,
         card_id INT,
         delta INT,
         old_delta INT,
-        date INT);
+        schedule_date INT);
         """
         c.execute(q)
 
 def handle_args(args):
     p = vyhuhol.Parser(args)
-    p.add_pattern(write_to = ['name'], keys = ['-n', '--name'], valency = 1, positional = True)
+    p.add_pattern(write_to = ['deck_id'], keys = ['-d', '--deck-id'], valency = 1, positional = True)
     p.add_pattern(write_to = ['count'], keys = ['-c', '--count'], valency = 1, positional = True, func = int)
-    p.defaults = types.SimpleNamespace(name = None, count = None)
+    p.defaults = types.SimpleNamespace(deck_id = None, count = None)
     r = p.parse()
     return r
 
 if __name__ == '__main__':
     r = handle_args(sys.argv)
-    dbpath = 'decks/' + r.name[0] + '.db'
+    dbpath = 'decks/' + r.deck_id[0] + '.db'
     n = r.count[0]
     create_deck_table(dbpath, n)
     create_taskperday_table(dbpath)
