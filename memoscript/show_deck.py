@@ -6,6 +6,7 @@ import sys
 import types
 
 import vyhuhol
+from memo import is_db_exist
 
 def print_deck(dbpath):
     with sqlite3.connect(dbpath) as c:
@@ -13,13 +14,6 @@ def print_deck(dbpath):
         i = c.execute(q)
         for fields in i:
             print(fields)
-
-def handle_args(args):
-    p = vyhuhol.Parser(args)
-    p.add_pattern(write_to = ['deck_id'], keys = ['-d', '--deck-id'], valency = 1, positional = True)
-    p.defaults = types.SimpleNamespace(deck_id = None)
-    r = p.parse()
-    return r
 
 def print_mod(dbpath, mod_id):
     with sqlite3.connect(dbpath) as c:
@@ -40,9 +34,16 @@ def get_qa(dbpath):
         l = list(i)
     return l
 
+def handle_args(args):
+    p = vyhuhol.Parser(args)
+    p.add_pattern(write_to = ['deck_id'], keys = ['-d', '--deck-id'], valency = 1, positional = True, func = is_db_exist)
+    p.defaults = types.SimpleNamespace(deck_id = None)
+    r = p.parse()
+    return r
+
 if __name__ == '__main__':
     r = handle_args(sys.argv)
-    dbpath = 'decks/' + r.deck_id[0] + '.db'
+    dbpath = r.deck_id[0]
     print_deck(dbpath)
     qa = get_qa(dbpath)
     for mod_id, auto_eval, answer_index, question in qa:

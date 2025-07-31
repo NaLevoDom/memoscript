@@ -16,6 +16,11 @@ if os.name == 'posix':
 
 import vyhuhol
 
+def is_db_exist(deck_id):
+    dbpath = 'decks/' + deck_id + '.db'
+    if os.path.isfile(dbpath):
+        return dbpath
+    raise ValueError('Нет колоды с таким именем')
 
 def ctrl_l():
     print('\n' * (os.get_terminal_size().lines - 1) + "\033[H\033[J", end='')
@@ -320,7 +325,7 @@ def proc(dbpath, task_list, mod_id):
 def handle_args(args):
     p = vyhuhol.Parser(args)
     p.add_pattern(write_to = ['deck_id'], keys = [
-        '-d', '--deck-id'], valency = 1, positional = True)
+        '-d', '--deck-id'], valency = 1, positional = True, func = is_db_exist)
     p.add_pattern(write_to=['mod_id'], keys=[
                   '-m', '--mod-id'], valency=1, positional=True)
     p.defaults = types.SimpleNamespace(deck_id=None, mod_id=None)
@@ -341,7 +346,7 @@ total_limit = 24
 if __name__ == '__main__':
     print(f"{current_date=}")
     r = handle_args(sys.argv)
-    dbpath = 'decks/' + r.deck_id[0] + '.db'
+    dbpath = r.deck_id[0]
     mod_id = r.mod_id[0]
     task_list = get_list(dbpath, mod_id)
     proc(dbpath, task_list, mod_id)

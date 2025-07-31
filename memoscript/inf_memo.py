@@ -11,7 +11,8 @@ import types
 import re
 
 import vyhuhol
-from memo import get_input, ctrl_l
+from memo import get_input, ctrl_l, is_db_exist
+
 
 def get_id_list(infinite_ids):
     l = []
@@ -85,7 +86,7 @@ def proc_infinite(dbpath, dictionary, mod_id):
 
 def handle_args(args):
     p = vyhuhol.Parser(args)
-    p.add_pattern(write_to = ['deck_id'], keys = ['-d', '--deck-id'], valency = 1, positional = True)
+    p.add_pattern(write_to = ['deck_id'], keys = ['-d', '--deck-id'], valency = 1, positional = True, func = is_db_exist)
     p.add_pattern(write_to = ['mod_id'], keys = ['-m', '--mod-id'], valency = 1, positional = True)
     p.add_pattern(write_to = ['infinite_ids'], keys = ['-i', '--infinite'], valency = '*', positional = True)
     p.defaults = types.SimpleNamespace(deck_id = None, mod_id = None)
@@ -99,7 +100,7 @@ start_normal = "\033[39m"
 os.chdir(os.path.dirname(__file__))
 if __name__ == '__main__':
     r = handle_args(sys.argv)
-    dbpath = 'decks/' + r.deck_id[0] + '.db'
+    dbpath = r.deck_id[0]
     mod_id = r.mod_id[0]
     infinite_ids = r.infinite_ids
     ifinite_id_list = get_id_list(infinite_ids)

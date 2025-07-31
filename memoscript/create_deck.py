@@ -11,7 +11,7 @@ import vyhuhol
 def validate_new_name(name):
     if re.fullmatch(r'[a-zA-Z0-9_]+', name):
         return name
-    raise ValueError
+    raise ValueError('Имя может содержать только латинские буквы, цифры и знак _.')
 
 def create_deck_table(dbpath, n):
     with sqlite3.connect(dbpath) as c:

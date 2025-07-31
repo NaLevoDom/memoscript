@@ -6,6 +6,7 @@ import sys
 import types
 
 import vyhuhol
+from memo import is_db_exist
 
 def update_mod(dbpath, mod_id, answer_index, question, auto_eval):
     with sqlite3.connect(dbpath) as c:
@@ -15,7 +16,7 @@ def update_mod(dbpath, mod_id, answer_index, question, auto_eval):
         
 def handle_args(args):
     p = vyhuhol.Parser(args)
-    p.add_pattern(write_to = ['deck_id'], keys = ['-d', '--deck-id'], valency = 1, positional = True)
+    p.add_pattern(write_to = ['deck_id'], keys = ['-d', '--deck-id'], valency = 1, positional = True, func = is_db_exist)
     p.add_pattern(write_to = ['mod_id'], keys = ['-m', '--mod-id'], valency = 1, positional = True)
     p.add_pattern(write_to = ['answer_index'], keys = ['-i', '--answer-index'], valency = 1, positional = True, func = int)
     p.add_pattern(write_to = ['question'], keys = ['-q', '--question'], valency = 1, positional = True)
@@ -26,7 +27,7 @@ def handle_args(args):
 
 if __name__ == '__main__':
     r = handle_args(sys.argv)
-    dbpath = 'decks/' + r.deck_id[0] + '.db'
+    dbpath = r.deck_id[0]
     mod_id = r.mod_id[0]
     answer_index = r.answer_index[0]
     question = r.question[0]
