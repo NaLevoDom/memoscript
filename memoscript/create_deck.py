@@ -4,8 +4,14 @@
 import sqlite3
 import sys
 import types
+import re
 
 import vyhuhol
+
+def validate_new_name(name):
+    if re.fullmatch(r'[a-zA-Z0-9_]+', name):
+        return name
+    raise ValueError
 
 def create_deck_table(dbpath, n):
     with sqlite3.connect(dbpath) as c:
@@ -51,7 +57,7 @@ def create_schedule_table(dbpath):
 
 def handle_args(args):
     p = vyhuhol.Parser(args)
-    p.add_pattern(write_to = ['deck_id'], keys = ['-d', '--deck-id'], valency = 1, positional = True)
+    p.add_pattern(write_to = ['deck_id'], keys = ['-d', '--deck-id'], valency = 1, positional = True, func = validate_new_name)
     p.add_pattern(write_to = ['count'], keys = ['-c', '--count'], valency = 1, positional = True, func = int)
     p.defaults = types.SimpleNamespace(deck_id = None, count = None)
     r = p.parse()

@@ -7,6 +7,8 @@ import sys
 import types
 
 import vyhuhol
+from create_deck import validate_new_name
+
 
 def taskperday_update(dbpath, mod_id):
     with sqlite3.connect(dbpath) as c:
@@ -29,7 +31,7 @@ def add_qa_record(dbpath, mod_id, auto_eval, answer_index, question):
 def handle_args(args):
     p = vyhuhol.Parser(args)
     p.add_pattern(write_to = ['deck_id'], keys = ['-d', '--deck-id'], valency = 1, positional = True)
-    p.add_pattern(write_to = ['mod_id'], keys = ['-m', '--mod-id'], valency = 1, positional = True)
+    p.add_pattern(write_to = ['mod_id'], keys = ['-m', '--mod-id'], valency = 1, positional = True, func = validate_new_name)
     p.add_pattern(write_to = ['answer_index'], keys = ['-i', '--answer-index'], valency = 1, positional = True, func = int)
     p.add_pattern(write_to = ['question'], keys = ['-q', '--question'], valency = 1, positional = True)
     p.add_pattern(set_to = {"auto_eval" : 0}, keys = ['-e', '--manual-evaluation'], valency = 0)
