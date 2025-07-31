@@ -11,7 +11,7 @@ import types
 import re
 
 import vyhuhol
-from memo import get_input, ctrl_l, is_db_exist
+from memo import get_input, ctrl_l, is_db_exist, is_mod_exist
 
 
 def get_id_list(infinite_ids):
@@ -102,6 +102,7 @@ if __name__ == '__main__':
     r = handle_args(sys.argv)
     dbpath = r.deck_id[0]
     mod_id = r.mod_id[0]
+    is_mod_exist(dbpath, mod_id)
     infinite_ids = r.infinite_ids
     ifinite_id_list = get_id_list(infinite_ids)
     dictionary = get_dict_infinite(dbpath, ifinite_id_list)

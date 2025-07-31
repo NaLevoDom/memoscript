@@ -6,7 +6,7 @@ import sys
 import types
 
 import vyhuhol
-from memo import is_db_exist
+from memo import is_db_exist, is_mod_exist
 
 def update_mod(dbpath, mod_id, answer_index, question, auto_eval):
     with sqlite3.connect(dbpath) as c:
@@ -32,4 +32,5 @@ if __name__ == '__main__':
     answer_index = r.answer_index[0]
     question = r.question[0]
     auto_eval = r.auto_eval
+    is_mod_exist(dbpath, mod_id)
     update_mod(dbpath, mod_id, answer_index, question, auto_eval)

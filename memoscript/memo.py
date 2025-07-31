@@ -124,9 +124,7 @@ def get_limit(delta, old_delta):
         return 5 - summ
     return 1
 
-
-def get_list(dbpath, mod_id):
-    task_list = []
+def is_mod_exist(dbpath, mod_id):
     with sqlite3.connect(dbpath) as c:
         q = "SELECT * FROM taskperday WHERE mod_id = ?"
         db_form = [mod_id]
@@ -136,6 +134,14 @@ def get_list(dbpath, mod_id):
         except StopIteration:
             print(f"There's no '{mod_id}' mod in this deck")
             sys.exit(1)
+
+def get_list(dbpath, mod_id):
+    task_list = []
+    with sqlite3.connect(dbpath) as c:
+        q = "SELECT * FROM taskperday WHERE mod_id = ?"
+        db_form = [mod_id]
+        i = c.execute(q, db_form)
+        mod_id, day, new, total = next(i)
         old_new = new
         old_total = total
         print(f"В таскпердее было {mod_id=}, {day=}, {new=}, {total=}")
@@ -348,5 +354,6 @@ if __name__ == '__main__':
     r = handle_args(sys.argv)
     dbpath = r.deck_id[0]
     mod_id = r.mod_id[0]
+    is_mod_exist(dbpath, mod_id)
     task_list = get_list(dbpath, mod_id)
     proc(dbpath, task_list, mod_id)

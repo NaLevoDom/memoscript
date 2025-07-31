@@ -7,7 +7,7 @@ import sys
 import types
 
 import vyhuhol
-from memo import is_db_exist
+from memo import is_db_exist, is_mod_exist
 
 def taskperday_update(dbpath, mod_id):
     with sqlite3.connect(dbpath) as c:
@@ -28,4 +28,5 @@ if __name__ == '__main__':
     r = handle_args(sys.argv)
     dbpath = r.deck_id[0]
     mod_id = r.mod_id[0]
+    is_mod_exist(dbpath, mod_id)
     taskperday_update(dbpath, mod_id)
