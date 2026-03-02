@@ -10,7 +10,7 @@ from memo import is_db_exist
 
 def print_deck(dbpath):
     with sqlite3.connect(dbpath) as c:
-        q = "SELECT * FROM deck ORDER BY id ASC"
+        q = "SELECT * FROM deck ORDER BY card_id ASC"
         i = c.execute(q)
         for fields in i:
             print(fields)
