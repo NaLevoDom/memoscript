@@ -126,38 +126,19 @@ class Task:
 def handle_newest(mod_id):
     with sqlite3.connect(dbpath) as c:
         print("Докидываем инитов в schedule")
-        q = "SELECT * FROM deck"
-        i = c.execute(q)
-        counter = 0
-        for row in i:
-            card_id = row[0]
-            fields = row
-            q = "SELECT * FROM schedule WHERE card_id = ? and mod_id = ?"
-            db_form = [card_id, mod_id]
-            ii = c.execute(q, db_form)
-            try:
-                mod_id, card_id, delta, old_delta, schedule_date = next(ii) # если успешно, то карточка старая
-            except StopIteration:
-                print(f"{fields=} Есть НОВАЯ карточка")
-                db_form = [mod_id, card_id, 0, 0, current_date]
-                q = "INSERT INTO schedule VALUES(?, ?, ?, ?, ?)"
-                c.execute(q, db_form)
-                counter += 1
-        print(f"Докинуто {counter} инитов в schedule")
-
-
-def handle_newest(mod_id):
-    with sqlite3.connect(dbpath) as с:
-        print("Докидываем инитов в schedule")
+        select_cursor = c.cursor()
+        insert_cursor = c.cursor()
         q_select = """
             SELECT d.card_id FROM deck d
             LEFT JOIN schedule s ON d.card_id = s.card_id AND s.mod_id = ?
             WHERE s.card_id IS NULL
         """
-        i = c.execute(q_select, (mod_id,))
-        to_insert_gen = ((mod_id, row[0], 0, 0, current_date) for row in i)
-        c.executemany("INSERT INTO schedule VALUES(?, ?, ?, ?, ?)", to_insert_gen)
-        print(f"Докинуто {c.rowcount} инитов в schedule")
+        rows_iter = select_cursor.execute(q_select, (mod_id,))
+        to_insert = ((mod_id, row[0], 0, 0, current_date) for row in rows_iter)
+        before_changes = c.total_changes
+        insert_cursor.executemany("INSERT INTO schedule VALUES(?, ?, ?, ?, ?)", to_insert)
+        inserted = c.total_changes - before_changes
+        print(f"Докинуто {inserted} инитов в schedule")
 
 
 def update_taskperday(dbpath, mod_id):
