@@ -1,0 +1,48 @@
+Я делаю аналог программы anki. Анки хорош, но мне не нравится его перегруженность, на мой взгляд это bloatware. Я делаю простой аналог, с некоторыми фичами которые мне по душе. Это простой скрипт который работает прямо в терминале. Есть несколько отдельных модулей для управления базой. Вот код создания ключевых таблиц базы данных (их может быть несколько, под каждую тему отдельно). 
+def create_deck_table(dbpath, n): # бардель какой-то
+    with sqlite3.connect(dbpath) as c:
+        s = ''
+        count = 1
+        for i in range(n):
+            s += f'column_{count} TEXT,\n'
+            count += 1
+        s = s[:-2]
+        q = f"CREATE TABLE deck(\ncard_id INTEGER PRIMARY KEY,\n{s});"
+        c.execute(q)
+
+def create_taskperday_table(dbpath):
+    with sqlite3.connect(dbpath) as c:
+        q = """CREATE TABLE taskperday(
+        mod_id TEXT PRIMARY KEY,
+        day INT,
+        new INT,
+        total INT);
+        """
+        c.execute(q)
+
+def create_qa_table(dbpath):
+    with sqlite3.connect(dbpath) as c:
+        q = """CREATE TABLE qa(
+        mod_id TEXT PRIMARY KEY,
+        auto_eval INT,
+        answer_index INT,
+        question TEXT);
+        """
+        c.execute(q)
+
+def create_schedule_table(dbpath):
+    with sqlite3.connect(dbpath) as c:
+        q = """CREATE TABLE schedule(
+        mod_id TEXT,
+        card_id INT,
+        delta INT,
+        old_delta INT,
+        schedule_date INT);
+        """
+        c.execute(q)
+Таблица deck это собственно колода. Например, пусть это будет колода химических элементов, количество полей помимо card_id будет 4. Пример элемента: al 13 аллюминий металл. Я могу задавать разные режимы занятий, например отгадывать обозначение элемента (al), по его порядковому номеру (13), могу наооборот. Могу угадывать металл ли элемент по названию и так далее. Есть таблица qa, там лежат идентификатор режима, индекс ответа в колоде (что нужно угадывать),
+строка вопроса в которой есть ссылки на индексы, которая даёт информацию по которой я угадываю ответ. Что такое auto_eval сейчас не важно. taskperday хранит информацию о том сколько карточек сегодня успешно отгадано (new - те которые я отгадывал впервые, total - все). schedule это расписание, которое нужно для интервальных повторений. delta это количество дней задержки перед очередным повторением (показатель того насколько хорошо я освоил карточку). Остальное думаю понятно из контекста.
+
+
+
+

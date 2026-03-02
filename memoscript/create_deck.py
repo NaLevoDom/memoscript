@@ -5,6 +5,8 @@ import sqlite3
 import sys
 import types
 import re
+import pathlib
+import os
 
 import vyhuhol
 
@@ -13,7 +15,7 @@ def validate_new_name(name):
         return name
     raise ValueError('Имя может содержать только латинские буквы, цифры и знак _.')
 
-def create_deck_table(dbpath, n):
+def create_deck_table(dbpath, n): # бардель какой-то
     with sqlite3.connect(dbpath) as c:
         s = ''
         count = 1
@@ -65,6 +67,8 @@ def handle_args(args):
 
 if __name__ == '__main__':
     r = handle_args(sys.argv)
+    if not os.path.exists('decks'):
+        os.makedirs('decks')
     dbpath = 'decks/' + r.deck_id[0] + '.db'
     n = r.count[0]
     create_deck_table(dbpath, n)

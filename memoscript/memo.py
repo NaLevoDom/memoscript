@@ -9,18 +9,10 @@ import time
 import os
 import types
 import math
-
-# Проверка операционной системы
 if os.name == 'posix':
     import readline
-
 import vyhuhol
 
-def is_db_exist(deck_id):
-    dbpath = 'decks/' + deck_id + '.db'
-    if os.path.isfile(dbpath):
-        return dbpath
-    raise ValueError('Нет колоды с таким именем')
 
 def ctrl_l():
     print('\n' * (os.get_terminal_size().lines - 1) + "\033[H\033[J", end='')
@@ -34,9 +26,15 @@ def get_input(text):
         sys.exit()
 
 
+def is_db_exist(deck_id):
+    dbpath = 'decks/' + deck_id + '.db'
+    if os.path.isfile(dbpath):
+        return dbpath
+    raise ValueError('Нет колоды с таким именем')
+
+
 def get_auto_s(delay, answer):
     l = len(answer)
-    # t = delay - 0.8 - 0.16 * l
     t = delay - 1 - l / 4
     print(f"{t=:0.2f}")
     if t < 3:
@@ -60,26 +58,13 @@ def get_manual_s():
         print("Ещё раз. ", end='')
 
 
-def get_delta(delta, old_delta, counter, attempts):
-    if delta == 0:
-        delta = 1
-    if old_delta == 0:
-        old_delta = 1
-    mean = (5 * delta + old_delta) / 6
-    factor = 2 * counter / attempts
-    new_delta = math.ceil(mean * factor + 0.1)
-    part = new_delta // 12
-    new_delta += random.randint(-part, part)
-    return new_delta
-
-
-def write_db(mod_id, new_delta, delta, old_delta, next_date, card_id):
+def write_db(mod_id, new_delta, next_date, task):
     with sqlite3.connect(dbpath) as c:
         q = "SELECT * FROM taskperday WHERE mod_id = ?"
         db_form = [mod_id]
         i = c.execute(q, db_form)
         mod_id, day, new, total = next(i)
-        if delta + old_delta == 0:
+        if task.delta + task.old_delta == 0:
             q = "UPDATE taskperday SET new = ?, total = ? WHERE mod_id = ?"
             db_form = [new + 1, total + 1, mod_id]
             print("инит пошел под запись")
@@ -89,40 +74,9 @@ def write_db(mod_id, new_delta, delta, old_delta, next_date, card_id):
             print("репит пошел под запись")
         c.execute(q, db_form)
         q = "UPDATE schedule SET delta = ?, old_delta = ?, schedule_date = ? WHERE card_id = ? and mod_id = ?"
-        db_form = [new_delta, delta, next_date, card_id, mod_id]
+        db_form = [new_delta, task.delta, next_date, task.card_id, mod_id]
         c.execute(q, db_form)
 
-
-def handle_new(mod_id, n, c):
-    print(f"В расписание мода можем докинуть {n} инитов")
-    q = "SELECT * FROM deck"
-    i = c.execute(q)
-    counter = 0
-    for container in i:
-        if counter >= n:  # n ведь отрицательный может быть, поэтому >= а не просто ==
-            break
-        card_id = container[0]
-        fields = container
-        q = "SELECT * FROM schedule WHERE card_id = ? and mod_id = ?"
-        db_form = [card_id, mod_id]
-        ii = c.execute(q, db_form)
-        try:
-            mod_id, card_id, delta, old_delta, schedule_date = next(ii)
-            # print(f"{fields=}, {schedule_date=} Есть старая карточка.")
-        except StopIteration:
-            print(f"{fields=} Есть НОВАЯ карточка")
-            db_form = [mod_id, card_id, 0, 0, current_date]
-            q = "INSERT INTO schedule VALUES(?, ?, ?, ?, ?)"
-            c.execute(q, db_form)
-            counter += 1
-    print(f"Докидываем {counter} инитов")
-
-
-def get_limit(delta, old_delta):
-    summ = delta + old_delta
-    if summ <= 3:
-        return 5 - summ
-    return 1
 
 def is_mod_exist(dbpath, mod_id):
     with sqlite3.connect(dbpath) as c:
@@ -135,15 +89,83 @@ def is_mod_exist(dbpath, mod_id):
             print(f"There's no '{mod_id}' mod in this deck")
             sys.exit(1)
 
-def get_list(dbpath, mod_id):
-    task_list = []
+
+class Task:
+    def __init__(self, next_time, card_id, fields, delta, old_delta):
+        self.next_time = next_time
+        self.card_id = card_id
+        self.fields = fields
+        self.delta = delta
+        self.old_delta = old_delta
+        self.attempts = 0
+        self.counter = 0
+        self.limit = self._get_limit()
+
+    def _get_limit(self):
+        summ = self.delta + self.old_delta
+        if summ <= 3:
+            return 5 - summ
+        return 1
+
+    def get_new_delta(self):
+        delta = self.delta
+        old_delta = self.old_delta
+        if delta == 0:
+            delta = 1
+        if old_delta == 0:
+            old_delta = 1
+        mean = (13 * delta + 3 * old_delta) / 16
+        factor = 2 * self.counter / self.attempts
+        new_delta = math.ceil(mean * factor + 1 / 8)
+        part = new_delta // 8
+        if part:
+            new_delta += int(random.triangular(-part, part, 0))
+        return new_delta
+
+
+def handle_newest(mod_id):
+    with sqlite3.connect(dbpath) as c:
+        print("Докидываем инитов в schedule")
+        q = "SELECT * FROM deck"
+        i = c.execute(q)
+        counter = 0
+        for row in i:
+            card_id = row[0]
+            fields = row
+            q = "SELECT * FROM schedule WHERE card_id = ? and mod_id = ?"
+            db_form = [card_id, mod_id]
+            ii = c.execute(q, db_form)
+            try:
+                mod_id, card_id, delta, old_delta, schedule_date = next(ii) # если успешно, то карточка старая
+            except StopIteration:
+                print(f"{fields=} Есть НОВАЯ карточка")
+                db_form = [mod_id, card_id, 0, 0, current_date]
+                q = "INSERT INTO schedule VALUES(?, ?, ?, ?, ?)"
+                c.execute(q, db_form)
+                counter += 1
+        print(f"Докинуто {counter} инитов в schedule")
+
+
+def handle_newest(mod_id):
+    with sqlite3.connect(dbpath) as с:
+        print("Докидываем инитов в schedule")
+        q_select = """
+            SELECT d.card_id FROM deck d
+            LEFT JOIN schedule s ON d.card_id = s.card_id AND s.mod_id = ?
+            WHERE s.card_id IS NULL
+        """
+        i = c.execute(q_select, (mod_id,))
+        to_insert_gen = ((mod_id, row[0], 0, 0, current_date) for row in i)
+        c.executemany("INSERT INTO schedule VALUES(?, ?, ?, ?, ?)", to_insert_gen)
+        print(f"Докинуто {c.rowcount} инитов в schedule")
+
+
+def update_taskperday(dbpath, mod_id):
     with sqlite3.connect(dbpath) as c:
         q = "SELECT * FROM taskperday WHERE mod_id = ?"
         db_form = [mod_id]
         i = c.execute(q, db_form)
         mod_id, day, new, total = next(i)
-        old_new = new
-        old_total = total
         print(f"В таскпердее было {mod_id=}, {day=}, {new=}, {total=}")
         if current_date != day:
             q = "UPDATE taskperday SET day = ?, new = 0, total = 0 WHERE mod_id = ?"
@@ -151,75 +173,49 @@ def get_list(dbpath, mod_id):
             c.execute(q, db_form)
             new = 0
             total = 0
-            old_new = new
-            old_total = total
             print(f"Так как дата устаревшая обнуляем счётчики.")
-        q = "SELECT * FROM schedule WHERE delta + old_delta = 0 and mod_id = ? ORDER BY schedule_date ASC"
-        db_form = [mod_id]
-        i = c.execute(q, db_form)
-        for mod_id, card_id, delta, old_delta, schedule_date in i:
-            if total >= total_limit:
-                break
-            if current_date < schedule_date:
-                break
-            if new == new_limit:
-                break
-            total += 1
-            new += 1
-        handle_new(mod_id, new_limit - new, c)
-        total = old_total
-        new = old_new
-        print("Насыпаем инитов из мода")
-        i = c.execute(q, db_form)
-        next_time = 0
-        # накидываю новых что есть уже моде.
-        for mod_id, card_id, delta, old_delta, schedule_date in i:
-            if total >= total_limit:
-                print("Сработал первый брейк")
-                break
-            if current_date < schedule_date:
-                print("Сработал второй брейк")
-                print(f"{current_date=}, {schedule_date=}")
-                break
-            if new == new_limit:
-                print("Сработал третий брейк")
-                break
-            qq = "SELECT * FROM deck WHERE card_id = ?"
-            db_form = [card_id]
-            ii = c.execute(qq, db_form)
-            fields = next(ii)
-            attempts = 0
-            counter = 0
-            limit = get_limit(delta, old_delta)
-            total += 1
-            new += 1
-            container = [next_time, card_id, fields, delta,
-                         old_delta, schedule_date, attempts, counter, limit]
-            task_list.append(container)
-            print(container)
-        print("Насыпаем репитов из мода")
-        q = "SELECT * FROM schedule WHERE delta + old_delta > 0 and mod_id = ? ORDER BY schedule_date ASC"
-        db_form = [mod_id]
-        i = c.execute(q, db_form)
-        next_time = float('+inf')
-        for mod_id, card_id, delta, old_delta, schedule_date in i:
-            if current_date < schedule_date or total >= total_limit:
-                break
-            qq = "SELECT * FROM deck WHERE card_id = ?"
-            db_form = [card_id]
-            ii = c.execute(qq, db_form)
-            fields = next(ii)
-            attempts = 0
-            counter = 0
-            limit = get_limit(delta, old_delta)
-            total += 1
-            container = [next_time, card_id, fields, delta,
-                         old_delta, schedule_date, attempts, counter, limit]
-            task_list.append(container)
-            print(container)
-        # print(task_list)
-    print(
-        f"Докидываем {new - old_new} новых, а в целом {total - old_total} карточек.")
+        return new, total
+
+
+def get_sub_list(dbpath, mod_id, size, char, next_time):
+    with sqlite3.connect(dbpath) as c:
+        q = f"""
+            SELECT s.card_id, s.delta, s.old_delta, d.*
+            FROM schedule s
+            JOIN deck d ON s.card_id = d.card_id
+            WHERE s.delta + s.old_delta {char} 0
+              AND s.mod_id = ?
+              AND s.schedule_date <= ?
+            ORDER BY s.schedule_date ASC
+            LIMIT ?
+        """
+        i = c.execute(q, (mod_id, current_date, size))
+        sub_list = []
+        counter = 0
+        for row in i:
+            card_id, delta, old_delta = row[0:3]
+            fields = row[3:]
+            task = Task(next_time, card_id, fields, delta, old_delta)
+            sub_list.append(task)
+            counter += 1
+        return sub_list, counter
+
+
+def get_task_list(dbpath, mod_id):
+    new, total = update_taskperday(dbpath, mod_id)
+    print(f"update_taskperday: {new=}, {total=}")
+    size = max(total_limit - total, 0)
+    print("Насыпаем репитов из schedule")
+    repeat_list, counter = get_sub_list(dbpath, mod_id, size, '>', float('+inf'))
+    total += counter
+    print(f"get_repeat_list: {new=}, {total=}")
+    print("Насыпаем новых из schedule")
+    size = max(min(new_limit - new, total_limit - total), 0)
+    new_list, counter = get_sub_list(dbpath, mod_id, size, '=', 0)
+    total += counter
+    new += counter
+    print(f"get_new_list: {new=}, {total=}")
+    task_list = new_list + repeat_list
     random.shuffle(task_list)
     return task_list
 
@@ -235,11 +231,11 @@ def proc(dbpath, task_list, mod_id):
         if not (task_list):
             print("инит пуст")
             if previous:
-                next_time, card_id, fields, delta, old_delta, schedule_date, attempts, counter, limit = previous
-                write_db(mod_id, 0, delta, old_delta, current_date + 1, card_id)
+                task = previous
+                write_db(mod_id, 0, current_date + 1, task)
                 print("code 1")
                 print("Откладывается 1 карточек (привиус)")
-                print(f'{fields} откладывается')
+                print(f'{task.fields} откладывается')
             break
         temp_list = task_list
         if previous:
@@ -247,9 +243,9 @@ def proc(dbpath, task_list, mod_id):
             temp_list = task_list + [previous]
         if len(temp_list) <= 2:
             i = 0
-            for next_time, card_id, fields, delta, old_delta, schedule_date, attempts, counter, limit in temp_list:
+            for task in temp_list:
                 i += 1
-                if limit - counter <= 1.5 and (limit != 1 or attempts <= 2):
+                if task.limit - task.counter <= 1.5 and (task.limit != 1 or task.attempts <= 2):
                     break
             else:
                 print("code 2")
@@ -258,23 +254,20 @@ def proc(dbpath, task_list, mod_id):
                     print("Среди них есть привиус")
                 else:
                     print("Среди них нету привиуса")
-                for next_time, card_id, fields, delta, old_delta, schedule_date, attempts, counter, limit in temp_list:
-                    print(f'{fields} откладывается')
-                    write_db(mod_id, 0, delta, old_delta,
-                             current_date + 1, card_id)
+                for task in temp_list:
+                    print(f'{task.fields} откладывается')
+                    write_db(mod_id, 0, current_date + 1, task)
                 break
-        task_list.sort(key=lambda l: l[0])
+        task_list.sort(key=lambda t: t.next_time)
         current_time = time.time()
-        if task_list[0][0] <= current_time:  # созрела карточка
-            next_time, card_id, fields, delta, old_delta, schedule_date, attempts, counter, limit = task_list.pop(
-                0)
-        elif task_list[-1][0] == float('+inf'):  # берём репит в работу
-            next_time, card_id, fields, delta, old_delta, schedule_date, attempts, counter, limit = task_list.pop()
+        if task_list[0].next_time <= current_time:  # созрела карточка
+            task = task_list.pop(0)
+        elif task_list[-1].next_time == float('+inf'):  # берём репит в работу
+            task = task_list.pop()
         else:  # берём в работу ближайшую к зрелости
-            next_time, card_id, fields, delta, old_delta, schedule_date, attempts, counter, limit = task_list.pop(
-                0)
-        string = question.format(*fields)
-        answer = fields[answer_index]
+            task = task_list.pop(0)
+        string = question.format(*task.fields)
+        answer = task.fields[answer_index]
         get_input('\nНажмите Enter чтобы продолжить...')
         ctrl_l()
         start_time = time.time()
@@ -294,37 +287,36 @@ def proc(dbpath, task_list, mod_id):
             print(f"Правильный ответ {answer}")
             s = get_manual_s()
         current_time = time.time()
-        attempts += 1
-        next_time = current_time + s * 30
+        task.attempts += 1
+        task.next_time = current_time + s * 30
         if s == 1:
             print("s = 1, обнуляем счётчик")
-            counter = 0
+            task.counter = 0
         elif s == 2:
             print("s = 2, do nothing")
         elif s == 3:
             print("s = 3, счётчик + 1")
-            counter += 1
+            task.counter += 1
         elif s == 4:
             print("s = 4, счётчик + 1.5")
-            counter += 1.5
+            task.counter += 1.5
         if previous:
             task_list.append(previous)
-        if counter >= limit:
-            new_delta = get_delta(delta, old_delta, counter, attempts)
+        if task.counter >= task.limit:
+            new_delta = task.get_new_delta()
             next_date = current_date + new_delta
-            write_db(mod_id, new_delta, delta, old_delta, next_date, card_id)
+            write_db(mod_id, new_delta, next_date, task)
             previous = None
             print("let's do the procedure")
             print(f"{new_delta=}")
-        elif 1.5 * (20 - attempts) < limit - counter:
-            write_db(mod_id, 0, delta, old_delta, current_date + 1, card_id)
+        elif 1.5 * (20 - task.attempts) < task.limit - task.counter:
+            write_db(mod_id, 0, current_date + 1, task)
             previous = None
             print("Эта карточка не будет добита за 20 попыток, откладываем")
         else:
-            previous = [next_time, card_id, fields, delta,
-                        old_delta, schedule_date, attempts, counter, limit]
+            previous = task
 
-        print(f"{attempts=}, {counter=}, {limit=}")
+        print(f"{task.attempts=}, {task.counter=}, {task.limit=}")
     print("Всё изучено!\nПока!")
 
 
@@ -345,6 +337,7 @@ start_blue = "\033[94m"
 start_normal = "\033[39m"
 os.chdir(os.path.dirname(__file__))
 current_date = datetime.date.today().toordinal()
+# current_date = 739676
 # new_limit = 100
 new_limit = 8
 # total_limit = 100
@@ -355,5 +348,7 @@ if __name__ == '__main__':
     dbpath = r.deck_id[0]
     mod_id = r.mod_id[0]
     is_mod_exist(dbpath, mod_id)
-    task_list = get_list(dbpath, mod_id)
+    handle_newest(mod_id)
+    task_list = get_task_list(dbpath, mod_id)
     proc(dbpath, task_list, mod_id)
+    
