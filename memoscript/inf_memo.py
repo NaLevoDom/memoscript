@@ -8,7 +8,7 @@ import sys
 import time
 import os
 import types
-import re
+
 
 import vyhuhol
 from memo import get_input, ctrl_l, is_db_exist, is_mod_exist
@@ -98,6 +98,7 @@ start_green = "\033[92m"
 start_blue = "\033[94m"
 start_normal = "\033[39m"
 os.chdir(os.path.dirname(__file__))
+current_date = datetime.date.today().toordinal()
 if __name__ == '__main__':
     r = handle_args(sys.argv)
     dbpath = r.deck_id[0]
