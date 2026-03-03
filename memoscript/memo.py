@@ -92,10 +92,11 @@ def is_mod_exist(dbpath, mod_id):
 
 
 class Task:
-    def __init__(self, next_time, card_id, fields, delta, old_delta):
+    def __init__(self, next_time, card_id, answer, question, delta, old_delta):
         self.next_time = next_time
         self.card_id = card_id
-        self.fields = fields
+        self.answer = answer
+        self.question = question
         self.delta = delta
         self.old_delta = old_delta
         self.attempts = 0
@@ -159,7 +160,7 @@ def update_taskperday(dbpath, mod_id):
         return new, total
 
 
-def get_sub_list(dbpath, mod_id, size, char, next_time):
+def get_sub_list(dbpath, mod_id, answer_index, question_form, size, char, next_time):
     with sqlite3.connect(dbpath) as c:
         q = f"""
             SELECT s.card_id, s.delta, s.old_delta, d.*
@@ -177,23 +178,31 @@ def get_sub_list(dbpath, mod_id, size, char, next_time):
         for row in i:
             card_id, delta, old_delta = row[0:3]
             fields = row[3:]
-            task = Task(next_time, card_id, fields, delta, old_delta)
+            answer = fields[answer_index]
+            question = question_form.format(*fields)
+            task = Task(next_time, card_id, answer, question, delta, old_delta)
             sub_list.append(task)
             counter += 1
         return sub_list, counter
 
+def get_qa(dbpath, mod_id):
+    with sqlite3.connect(dbpath) as c:
+        q = "SELECT auto_eval, answer_index, question FROM qa WHERE mod_id = ?"
+        db_form = [mod_id]
+        i = c.execute(q, db_form)
+        return next(i)
 
-def get_task_list(dbpath, mod_id):
+def get_task_list(dbpath, mod_id, answer_index, question_form):
     new, total = update_taskperday(dbpath, mod_id)
     print(f"update_taskperday: {new=}, {total=}")
     size = max(total_limit - total, 0)
     print("Насыпаем репитов из schedule")
-    repeat_list, counter = get_sub_list(dbpath, mod_id, size, '>', float('+inf'))
+    repeat_list, counter = get_sub_list(dbpath, mod_id, answer_index, question_form, size, '>', float('+inf'))
     total += counter
     print(f"get_repeat_list: {new=}, {total=}")
     print("Насыпаем новых из schedule")
     size = max(min(new_limit - new, total_limit - total), 0)
-    new_list, counter = get_sub_list(dbpath, mod_id, size, '=', 0)
+    new_list, counter = get_sub_list(dbpath, mod_id, answer_index, question_form, size, '=', 0)
     total += counter
     new += counter
     print(f"get_new_list: {new=}, {total=}")
@@ -202,12 +211,7 @@ def get_task_list(dbpath, mod_id):
     return task_list
 
 
-def proc(dbpath, task_list, mod_id):
-    with sqlite3.connect(dbpath) as c:
-        q = "SELECT * FROM qa WHERE mod_id = ?"
-        db_form = [mod_id]
-        i = c.execute(q, db_form)
-        mod_id, auto_eval, answer_index, question = next(i)
+def proc(dbpath, task_list, mod_id, auto_eval):
     previous = None
     while True:
         if not (task_list):
@@ -248,25 +252,23 @@ def proc(dbpath, task_list, mod_id):
             task = task_list.pop()
         else:  # берём в работу ближайшую к зрелости
             task = task_list.pop(0)
-        string = question.format(*task.fields)
-        answer = task.fields[answer_index]
         get_input('\nНажмите Enter чтобы продолжить...')
         ctrl_l()
         start_time = time.time()
-        guess = get_input(string)
+        guess = get_input(task.question)
         end_time = time.time()
         delay = end_time - start_time
         if auto_eval:
             print(f"delay = {delay:0.2f}")
-            if guess.lower() == answer.lower():
+            if guess.lower() == task.answer.lower():
                 print(f"{start_green}Ты молодец!{start_normal}")
-                s = get_auto_s(delay, answer)
+                s = get_auto_s(delay, task.answer)
             else:
                 print(
-                    f"{start_red}Неправильно!{start_normal} Правильный ответ {start_blue}{answer}{start_normal}")
+                    f"{start_red}Неправильно!{start_normal} Правильный ответ {start_blue}{task.answer}{start_normal}")
                 s = 1
         else:
-            print(f"Правильный ответ {answer}")
+            print(f"Правильный ответ {task.answer}")
             s = get_manual_s()
         current_time = time.time()
         task.attempts += 1
@@ -343,7 +345,7 @@ def get_dict_infinite(dbpath, ifinite_id_list):
                 dictionary[card_id] = fields
     return dictionary
 
-def proc_infinite(dbpath, dictionary, mod_id):
+def proc_inf(dbpath, dictionary, mod_id):
     with sqlite3.connect(dbpath) as c:
         q = "SELECT * FROM qa WHERE mod_id = ?"
         db_form = [mod_id]
@@ -421,9 +423,10 @@ if __name__ == '__main__':
     if r.inf_flag:
         ifinite_id_list = get_id_list(r.infinite_ids)
         dictionary = get_dict_infinite(dbpath, ifinite_id_list)
-        proc_infinite(dbpath, dictionary, mod_id)
+        proc_inf(dbpath, dictionary, mod_id)
     else:
         handle_newest(mod_id)
-        task_list = get_task_list(dbpath, mod_id)
-        proc(dbpath, task_list, mod_id)
+        auto_eval, answer_index, question_form = get_qa(dbpath, mod_id)
+        task_list = get_task_list(dbpath, mod_id, answer_index, question_form)
+        proc(dbpath, task_list, mod_id, auto_eval)
     
