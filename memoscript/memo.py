@@ -210,28 +210,16 @@ def get_task_list(dbpath, mod_id, answer_index, question_form):
     random.shuffle(task_list)
     return task_list
 
-def postpone(task_list, mod_id, auto_eval, previous):
-    if not (task_list):
-        print("инит пуст")
-        if previous:
-            task = previous
-            write_db(mod_id, 0, current_date + 1, task)
-            print("code 1")
-            print("Откладывается 1 карточек (привиус)")
-            print(f'{task.question}{task.answer} откладывается')
-        sys.exit()
-        print("Всё изучено!\nПока!")
+def postpone(task_list, mod_id, previous):
     temp_list = task_list
     if previous:
-        # нельзя менять на temp_list += [previous], ибо каким-то хером это добавит [previous] и в task_list
-        temp_list = task_list + [previous]
+        temp_list = task_list + [previous] # you can't do temp_list += [previous] here
     if len(temp_list) <= 2:
         i = 0
-        for task in temp_list:
+        for temp_task in temp_list:
             i += 1
-            if task.limit - task.counter <= 1.5 and (task.limit != 1 or task.attempts <= 2):
-                sys.exit()
-                print("Всё изучено!\nПока!")
+            if temp_task.limit - temp_task.counter <= 1.5 and (temp_task.limit != 1 or temp_task.attempts <= 2):
+                break
         else:
             print("code 2")
             print(f"Откладывается {i} карточек")
@@ -239,12 +227,46 @@ def postpone(task_list, mod_id, auto_eval, previous):
                 print("Среди них есть привиус")
             else:
                 print("Среди них нету привиуса")
-            for task in temp_list:
-                print(f'{task.question}{task.answer} откладывается')
-                write_db(mod_id, 0, current_date + 1, task)
-            sys.exit()
+            for temp_task in temp_list:
+                print(f'{temp_task.question}{temp_task.answer} откладывается')
+                write_db(mod_id, 0, current_date + 1, temp_task)
             print("Всё изучено!\nПока!")
-    return task_list, mod_id, auto_eval, previous
+            sys.exit()
+    return task_list, mod_id, previous
+
+def postpone(task_list, mod_id, previous): # ### если это заработает, всё это можно очень эффективно свернуть через темп лист
+    length = len(task_list)
+    if length == 0 and not previous:
+        print("Всё изучено!\nПока!")
+        sys.exit()
+    elif length == 1 and not previous:
+        temp = task_list[0]
+        if temp.limit - temp.counter > 1.5:
+            write_db(mod_id, 0, current_date + 1, temp)
+            print(f'{temp.question}{temp.answer} откладывается\nПока!')
+            sys.exit()
+    elif length == 2 and not previous:
+        temp_1 = task_list[0]
+        temp_2 = task_list[1]
+        if temp_1.limit - temp_1.counter > 1.5 and temp_2.limit - temp_2.counter > 1.5:
+            write_db(mod_id, 0, current_date + 1, temp_1)
+            write_db(mod_id, 0, current_date + 1, temp_2)
+            print(f'{temp_1.question}{temp_1.answer} откладывается')
+            print(f'{temp_2.question}{temp_2.answer} откладывается\nПока!')
+            sys.exit()
+    elif length == 0 and previous: # I'm not quite sure that this is even possible, but still
+        if previous.limit - previous.counter > 1.5:
+            write_db(mod_id, 0, current_date + 1, previous)
+            print(f'{previous.question}{previous.answer} откладывается\nПока!')
+            sys.exit()
+    elif length == 1 and previous:
+        temp = task_list[0]
+        if temp.limit - temp.counter > 1.5 and previous.limit - previous.counter > 1.5:
+            write_db(mod_id, 0, current_date + 1, temp)
+            write_db(mod_id, 0, current_date + 1, previous)
+            print(f'{temp.question}{temp.answer} откладывается\nПока!')
+            print(f'{previous.question}{previous.answer} откладывается\nПока!')
+            sys.exit()
 
 def get_task(task_list):
     task_list.sort(key=lambda t: t.next_time)
@@ -313,7 +335,7 @@ def update_task_list(task, previous, task_list):
 def proc(task_list, mod_id, auto_eval):
     previous = None
     while True:
-        task_list, mod_id, auto_eval, previous = postpone(task_list, mod_id, auto_eval, previous)
+        postpone(task_list, mod_id, previous)
         task = get_task(task_list)
         guess, delay = get_guess_and_delay(task)
         s = get_s(auto_eval, task, guess, delay)
