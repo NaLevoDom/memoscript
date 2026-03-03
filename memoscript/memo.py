@@ -221,7 +221,7 @@ def proc(dbpath, task_list, mod_id, auto_eval):
                 write_db(mod_id, 0, current_date + 1, task)
                 print("code 1")
                 print("Откладывается 1 карточек (привиус)")
-                print(f'{task.fields} откладывается')
+                print(f'{task.question}{task.answer} откладывается')
             break
         temp_list = task_list
         if previous:
@@ -241,7 +241,7 @@ def proc(dbpath, task_list, mod_id, auto_eval):
                 else:
                     print("Среди них нету привиуса")
                 for task in temp_list:
-                    print(f'{task.fields} откладывается')
+                    print(f'{task.question}{task.answer} откладывается')
                     write_db(mod_id, 0, current_date + 1, task)
                 break
         task_list.sort(key=lambda t: t.next_time)
@@ -412,6 +412,7 @@ start_blue = "\033[94m"
 start_normal = "\033[39m"
 os.chdir(os.path.dirname(__file__))
 current_date = datetime.date.today().toordinal()
+# current_date = 739682
 new_limit = 8
 total_limit = 24
 if __name__ == '__main__':
