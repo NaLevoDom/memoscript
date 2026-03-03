@@ -210,66 +210,76 @@ def get_task_list(dbpath, mod_id, answer_index, question_form):
     random.shuffle(task_list)
     return task_list
 
-
-def proc(dbpath, task_list, mod_id, auto_eval):
-    previous = None
-    while True:
-        if not (task_list):
-            print("инит пуст")
-            if previous:
-                task = previous
-                write_db(mod_id, 0, current_date + 1, task)
-                print("code 1")
-                print("Откладывается 1 карточек (привиус)")
-                print(f'{task.question}{task.answer} откладывается')
-            break
-        temp_list = task_list
+def postpone(task_list, mod_id, auto_eval, previous):
+    if not (task_list):
+        print("инит пуст")
         if previous:
-            # нельзя менять на temp_list += [previous], ибо каким-то хером это добавит [previous] и в task_list
-            temp_list = task_list + [previous]
-        if len(temp_list) <= 2:
-            i = 0
-            for task in temp_list:
-                i += 1
-                if task.limit - task.counter <= 1.5 and (task.limit != 1 or task.attempts <= 2):
-                    break
-            else:
-                print("code 2")
-                print(f"Откладывается {i} карточек")
-                if previous:
-                    print("Среди них есть привиус")
-                else:
-                    print("Среди них нету привиуса")
-                for task in temp_list:
-                    print(f'{task.question}{task.answer} откладывается')
-                    write_db(mod_id, 0, current_date + 1, task)
-                break
-        task_list.sort(key=lambda t: t.next_time)
-        current_time = time.time()
-        if task_list[0].next_time <= current_time:  # созрела карточка
-            task = task_list.pop(0)
-        elif task_list[-1].next_time == float('+inf'):  # берём репит в работу
-            task = task_list.pop()
-        else:  # берём в работу ближайшую к зрелости
-            task = task_list.pop(0)
-        get_input('\nНажмите Enter чтобы продолжить...')
-        ctrl_l()
-        start_time = time.time()
-        guess = get_input(task.question)
-        end_time = time.time()
-        delay = end_time - start_time
-        if auto_eval:
-            print(f"delay = {delay:0.2f}")
-            if guess.lower() == task.answer.lower():
-                print(f"{start_green}Ты молодец!{start_normal}")
-                s = get_auto_s(delay, task.answer)
-            else:
-                print(
-                    f"{start_red}Неправильно!{start_normal} Правильный ответ {start_blue}{task.answer}{start_normal}")
-                s = 1
+            task = previous
+            write_db(mod_id, 0, current_date + 1, task)
+            print("code 1")
+            print("Откладывается 1 карточек (привиус)")
+            print(f'{task.question}{task.answer} откладывается')
+        sys.exit()
+        print("Всё изучено!\nПока!")
+    temp_list = task_list
+    if previous:
+        # нельзя менять на temp_list += [previous], ибо каким-то хером это добавит [previous] и в task_list
+        temp_list = task_list + [previous]
+    if len(temp_list) <= 2:
+        i = 0
+        for task in temp_list:
+            i += 1
+            if task.limit - task.counter <= 1.5 and (task.limit != 1 or task.attempts <= 2):
+                sys.exit()
+                print("Всё изучено!\nПока!")
         else:
-            print(f"Правильный ответ {task.answer}")
-            s = get_manual_s()
+            print("code 2")
+            print(f"Откладывается {i} карточек")
+            if previous:
+                print("Среди них есть привиус")
+            else:
+                print("Среди них нету привиуса")
+            for task in temp_list:
+                print(f'{task.question}{task.answer} откладывается')
+                write_db(mod_id, 0, current_date + 1, task)
+            sys.exit()
+            print("Всё изучено!\nПока!")
+    return task_list, mod_id, auto_eval, previous
+
+def get_task(task_list):
+    task_list.sort(key=lambda t: t.next_time)
+    current_time = time.time()
+    if task_list[0].next_time <= current_time:
+        return task_list.pop(0) # созрела карточка
+    elif task_list[-1].next_time == float('+inf'):
+        return task_list.pop() # берём репит в работу
+    return task_list.pop(0) # берём ближайшую к зрелости
+
+def get_guess_and_delay(task):
+    get_input('\nНажмите Enter чтобы продолжить...')
+    ctrl_l()
+    start_time = time.time()
+    guess = get_input(task.question)
+    end_time = time.time()
+    delay = end_time - start_time
+    return guess, delay
+
+def get_s(auto_eval, task, guess, delay):
+    if auto_eval:
+        print(f"delay = {delay:0.2f}")
+        if guess.lower() == task.answer.lower():
+            print(f"{start_green}Ты молодец!{start_normal}")
+            s = get_auto_s(delay, task.answer)
+        else:
+            print(
+                f"{start_red}Неправильно!{start_normal} Правильный ответ {start_blue}{task.answer}{start_normal}")
+            s = 1
+    else:
+        print(f"Правильный ответ {task.answer}")
+        s = get_manual_s()
+    return s
+
+def update_counter(task, s):
         current_time = time.time()
         task.attempts += 1
         task.next_time = current_time + s * 30
@@ -284,25 +294,31 @@ def proc(dbpath, task_list, mod_id, auto_eval):
         elif s == 4:
             print("s = 4, счётчик + 1.5")
             task.counter += 1.5
-        if previous:
-            task_list.append(previous)
-        if task.counter >= task.limit:
-            new_delta = task.get_new_delta()
-            next_date = current_date + new_delta
-            write_db(mod_id, new_delta, next_date, task)
-            previous = None
-            print("let's do the procedure")
-            print(f"{new_delta=}")
-        elif 1.5 * (20 - task.attempts) < task.limit - task.counter:
-            write_db(mod_id, 0, current_date + 1, task)
-            previous = None
-            print("Эта карточка не будет добита за 20 попыток, откладываем")
-        else:
-            previous = task
-
         print(f"{task.attempts=}, {task.counter=}, {task.limit=}")
-    print("Всё изучено!\nПока!")
 
+def update_task_list(task, previous, task_list):
+    if previous:
+        task_list.append(previous)
+    if task.counter >= task.limit:
+        new_delta = task.get_new_delta()
+        next_date = current_date + new_delta
+        write_db(mod_id, new_delta, next_date, task)
+        previous = None
+        print("let's do the procedure")
+        print(f"{new_delta=}")
+    else:
+        previous = task
+    return previous, task_list
+
+def proc(task_list, mod_id, auto_eval):
+    previous = None
+    while True:
+        task_list, mod_id, auto_eval, previous = postpone(task_list, mod_id, auto_eval, previous)
+        task = get_task(task_list)
+        guess, delay = get_guess_and_delay(task)
+        s = get_s(auto_eval, task, guess, delay)
+        update_counter(task, s)
+        previous, task_list = update_task_list(task, previous, task_list)
 
 def get_id_list(infinite_ids):
     l = []
@@ -321,7 +337,7 @@ def ranger(s):
         l = list(range(n1, n2 + 1))
     if not(l):
         print(f"'{s}' is not correct option")
-        sys.exit(0)
+        sys.exit(1)
     return l
 
 def get_dict_infinite(dbpath, ifinite_id_list):
@@ -429,5 +445,5 @@ if __name__ == '__main__':
         handle_newest(mod_id)
         auto_eval, answer_index, question_form = get_qa(dbpath, mod_id)
         task_list = get_task_list(dbpath, mod_id, answer_index, question_form)
-        proc(dbpath, task_list, mod_id, auto_eval)
+        proc(task_list, mod_id, auto_eval)
     

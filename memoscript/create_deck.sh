@@ -47,11 +47,8 @@
 ./add_card.py capitals Словакия Братислава
 ./add_card.py capitals Австрия Вена
 ./add_card.py capitals Венгрия Будапешт
-./add_card.py capitals Англия Лондон
-./add_card.py capitals Уэльс Кардифф
-./add_card.py capitals Шотландия Эдинбург
-./add_card.py capitals 'Северная Ирландия' Белфаст
-./add_card.py capitals 'Республика Ирландия' Дублин
+./add_card.py capitals Великобритания Лондон
+./add_card.py capitals Ирландия Дублин
 ./add_card.py capitals Бельгия Брюссель
 ./add_card.py capitals Германия Берлин
 ./add_card.py capitals Лихтенштейн Вадуц
