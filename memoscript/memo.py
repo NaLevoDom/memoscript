@@ -34,7 +34,7 @@ def is_db_exist(deck_id):
     raise ValueError('Нет колоды с таким именем')
 
 
-def get_auto_s(delay, answer):
+def get_auto_grade(delay, answer):
     l = len(answer)
     t = delay - 1 - l / 4
     print(f"{t=:0.2f}")
@@ -47,7 +47,7 @@ def get_auto_s(delay, answer):
     return 1
 
 
-def get_manual_s():
+def get_manual_grade():
     while True:
         try:
             s = int(get_input('Оцени (1-4)?: '))
@@ -210,62 +210,20 @@ def get_task_list(dbpath, mod_id, answer_index, question_form):
     random.shuffle(task_list)
     return task_list
 
-def postpone(task_list, mod_id, previous):
-    temp_list = task_list
+def check_exit_conditions(task_list, mod_id, previous):
     if previous:
-        temp_list = task_list + [previous] # you can't do temp_list += [previous] here
+        temp_list = task_list + [previous]
+    else:
+        temp_list = task_list
     if len(temp_list) <= 2:
-        i = 0
-        for temp_task in temp_list:
-            i += 1
-            if temp_task.limit - temp_task.counter <= 1.5 and (temp_task.limit != 1 or temp_task.attempts <= 2):
+        for temp in temp_list:
+            if temp.limit - temp.counter <= 1.5:
                 break
         else:
-            print("code 2")
-            print(f"Откладывается {i} карточек")
-            if previous:
-                print("Среди них есть привиус")
-            else:
-                print("Среди них нету привиуса")
-            for temp_task in temp_list:
-                print(f'{temp_task.question}{temp_task.answer} откладывается')
-                write_db(mod_id, 0, current_date + 1, temp_task)
-            print("Всё изучено!\nПока!")
-            sys.exit()
-    return task_list, mod_id, previous
-
-def postpone(task_list, mod_id, previous): # ### если это заработает, всё это можно очень эффективно свернуть через темп лист
-    length = len(task_list)
-    if length == 0 and not previous:
-        print("Всё изучено!\nПока!")
-        sys.exit()
-    elif length == 1 and not previous:
-        temp = task_list[0]
-        if temp.limit - temp.counter > 1.5:
-            write_db(mod_id, 0, current_date + 1, temp)
-            print(f'{temp.question}{temp.answer} откладывается\nПока!')
-            sys.exit()
-    elif length == 2 and not previous:
-        temp_1 = task_list[0]
-        temp_2 = task_list[1]
-        if temp_1.limit - temp_1.counter > 1.5 and temp_2.limit - temp_2.counter > 1.5:
-            write_db(mod_id, 0, current_date + 1, temp_1)
-            write_db(mod_id, 0, current_date + 1, temp_2)
-            print(f'{temp_1.question}{temp_1.answer} откладывается')
-            print(f'{temp_2.question}{temp_2.answer} откладывается\nПока!')
-            sys.exit()
-    elif length == 0 and previous: # I'm not quite sure that this is even possible, but still
-        if previous.limit - previous.counter > 1.5:
-            write_db(mod_id, 0, current_date + 1, previous)
-            print(f'{previous.question}{previous.answer} откладывается\nПока!')
-            sys.exit()
-    elif length == 1 and previous:
-        temp = task_list[0]
-        if temp.limit - temp.counter > 1.5 and previous.limit - previous.counter > 1.5:
-            write_db(mod_id, 0, current_date + 1, temp)
-            write_db(mod_id, 0, current_date + 1, previous)
-            print(f'{temp.question}{temp.answer} откладывается\nПока!')
-            print(f'{previous.question}{previous.answer} откладывается\nПока!')
+            for temp in temp_list:
+                write_db(mod_id, 0, current_date + 1, temp)
+                print(f'{temp.question}{temp.answer} откладывается')
+            print("Пока!")
             sys.exit()
 
 def get_task(task_list):
@@ -286,20 +244,20 @@ def get_guess_and_delay(task):
     delay = end_time - start_time
     return guess, delay
 
-def get_s(auto_eval, task, guess, delay):
+def get_grade(auto_eval, task, guess, delay):
     if auto_eval:
         print(f"delay = {delay:0.2f}")
         if guess.lower() == task.answer.lower():
             print(f"{start_green}Ты молодец!{start_normal}")
-            s = get_auto_s(delay, task.answer)
+            grade = get_auto_grade(delay, task.answer)
         else:
             print(
                 f"{start_red}Неправильно!{start_normal} Правильный ответ {start_blue}{task.answer}{start_normal}")
-            s = 1
+            grade = 1
     else:
         print(f"Правильный ответ {task.answer}")
-        s = get_manual_s()
-    return s
+        grade = get_manual_grade()
+    return grade
 
 def update_counter(task, s):
         current_time = time.time()
@@ -335,11 +293,11 @@ def update_task_list(task, previous, task_list):
 def proc(task_list, mod_id, auto_eval):
     previous = None
     while True:
-        postpone(task_list, mod_id, previous)
+        check_exit_conditions(task_list, mod_id, previous)
         task = get_task(task_list)
         guess, delay = get_guess_and_delay(task)
-        s = get_s(auto_eval, task, guess, delay)
-        update_counter(task, s)
+        grade = get_grade(auto_eval, task, guess, delay)
+        update_counter(task, grade)
         previous, task_list = update_task_list(task, previous, task_list)
 
 def get_id_list(infinite_ids):
@@ -442,7 +400,6 @@ def handle_args(args):
         )
     r = p.parse()
     return r
-
 
 start_red = "\033[91m"
 start_green = "\033[92m"
