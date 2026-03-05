@@ -215,23 +215,6 @@ def get_task_list(dbpath, mod_id, answer_index, question_form):
     return task_list
 
 
-def check_exit_conditions(task_list, mod_id, previous):
-    if previous:
-        temp_list = task_list + [previous]
-    else:
-        temp_list = task_list
-    if len(temp_list) <= 2:
-        for temp in temp_list:
-            if temp.limit - temp.counter <= 1.5:
-                break
-        else:
-            for temp in temp_list:
-                write_db(mod_id, 0, current_date + 1, temp)
-                print(f'{temp.question}{temp.answer} откладывается')
-            print("Пока!")
-            sys.exit()
-
-
 def get_task(task_list):
     task_list.sort(key=lambda t: t.next_time)
     current_time = time.time()
@@ -286,16 +269,35 @@ def update_counter(task, s):
         print(f"{task.attempts=}, {task.counter=}, {task.limit=}")
 
 
+def check_exit_conditions(task_list, mod_id, previous):
+    if previous:
+        temp_list = task_list + [previous]
+    else:
+        temp_list = task_list
+    if len(temp_list) <= 2:
+        for temp in temp_list:
+            if temp.limit - temp.counter <= 1.5:
+                break
+        else:
+            for temp in temp_list:
+                if temp.delta != -1:
+                    write_db(mod_id, 0, current_date + 1, temp)
+                print(f'{temp.question}{temp.answer} откладывается')
+            print("Пока!")
+            sys.exit()
+
+
 def update_task_list(task, previous, task_list):
     if previous:
         task_list.append(previous)
     if task.counter >= task.limit:
-        new_delta = task.get_new_delta()
-        next_date = current_date + new_delta
-        write_db(mod_id, new_delta, next_date, task)
+        if task.delta != -1:
+            new_delta = task.get_new_delta()
+            next_date = current_date + new_delta
+            write_db(mod_id, new_delta, next_date, task)
+            print(f"{new_delta=}")
         previous = None
-        print("let's do the procedure")
-        print(f"{new_delta=}")
+        print('Карточка добита')
     else:
         previous = task
     return previous, task_list
@@ -334,37 +336,7 @@ def ranger(s):
     return l
 
 
-def proc_inf(dbpath, dictionary, mod_id):
-    with sqlite3.connect(dbpath) as c:
-        q = "SELECT * FROM qa WHERE mod_id = ?"
-        db_form = [mod_id]
-        i = c.execute(q, db_form)
-        mod_id, auto_eval, answer_index, question = next(i)
-    print(f"{mod_id=}, {auto_eval=}, {answer_index=}, {question=}")
-    if dictionary:
-        while True:
-            card_id = random.choice(list(dictionary))
-            fields = dictionary[card_id]
-            string = question.format(*fields)
-            answer = fields[answer_index]
-            get_input('\nНажмите Enter чтобы продолжить...') # \n отсюда надо переставить в другое место? в инфините некрасиво смотрится
-            ctrl_l()
-            start_time = time.time()
-            guess = get_input(string)
-            end_time = time.time()
-            delay = end_time - start_time
-            if auto_eval:
-                print(f"{delay=:0.2f}")
-                if guess.lower() == answer.lower():
-                    print(f"{start_green}Ты молодец!{start_normal}")
-                else:
-                    print(f"{start_red}Неправильно!{start_normal} Правильный ответ {start_blue}{answer}{start_normal}")
-            else:
-                print(f"Правильный ответ {answer}")
-    print("колода пуста")
-
-
-def get_inf_list(dbpath, mod_id, answer_index, question_form, ifinite_id_list):
+def get_inf_list(dbpath, mod_id, answer_index, question_form, ifinite_id_list, limit):
     with sqlite3.connect(dbpath) as c:
         task_list = []
         if ifinite_id_list:
@@ -374,7 +346,7 @@ def get_inf_list(dbpath, mod_id, answer_index, question_form, ifinite_id_list):
                 fields = next(i)
                 answer = fields[answer_index]
                 question = question_form.format(*fields)
-                task = Task(float('+inf'), card_id, answer, question, -1, -1, float('+inf'))
+                task = Task(float('+inf'), card_id, answer, question, -1, -1, limit)
                 task_list.append(task)
         else:
             q = "SELECT * FROM deck"
@@ -383,21 +355,14 @@ def get_inf_list(dbpath, mod_id, answer_index, question_form, ifinite_id_list):
                 card_id = fields[0]
                 answer = fields[answer_index]
                 question = question_form.format(*fields)
-                task = Task(float('+inf'), card_id, answer, question, -1, -1, float('+inf'))
+                task = Task(float('+inf'), card_id, answer, question, -1, -1, limit) # ### ставить card_id -1?
                 task_list.append(task)
         return task_list
 
-
-def proc_inf(task_list, mod_id, auto_eval):
-    previous = None
-    while True:
-        # check_exit_conditions(task_list, mod_id, previous) # потом пригодится
-        task = get_task(task_list)
-        guess, delay = get_guess(task)
-        grade = get_grade(auto_eval, task, guess, delay)
-        update_counter(task, grade)
-        previous, task_list = update_task_list(task, previous, task_list)
-
+def get_limit(limit):
+    if limit == 'inf':
+        return float('+inf')
+    return float(limit)
 
 def handle_args(args):
     p = vyhuhol.Parser(args)
@@ -415,16 +380,30 @@ def handle_args(args):
         positional = True
         )
     p.add_pattern(
-        write_to = ['infinite_ids'], # а если принимать не id, а sql запрос? или псевдо-sql запрос...
-        set_to = {"inf_flag" : True},
-        keys = ['-i', '--infinite'],
-        valency = '*',
+        write_to = ['ids'], # а если принимать не id, а sql запрос? или псевдо-sql запрос...
+        set_to = {"ad_hoc" : True},
+        keys = ['-i', '--ad-hoc-ids'],
+        valency = '+',
+        positional = False
+        )
+    p.add_pattern(
+        write_to = ['limit'],
+        set_to = {"ad_hoc" : True},
+        keys = ['-l', '--ad-hoc-limits'],
+        valency = 1,
+        positional = False,
+        func = get_limit
+        )
+    p.add_pattern(
+        set_to = {"ad_hoc" : True},
+        keys = ['-a', '--ad-hoc'],
+        valency = 0,
         positional = False
         )
     p.defaults = types.SimpleNamespace(
         deck_id=None,
         mod_id=None,
-        inf_flag=False
+        ad_hoc=False
         )
     r = p.parse()
     return r
@@ -444,16 +423,14 @@ if __name__ == '__main__':
     dbpath = r.deck_id[0]
     mod_id = r.mod_id[0]
     is_mod_exist(dbpath, mod_id) # ### его надо поставить как функцию в парсере
-    if r.inf_flag:
-        ifinite_id_list = get_id_list(r.infinite_ids)
-        auto_eval, answer_index, question_form = get_qa(dbpath, mod_id)
-        task_list = get_inf_list(dbpath, mod_id, answer_index, question_form, ifinite_id_list)
+    auto_eval, answer_index, question_form = get_qa(dbpath, mod_id)
+    if r.ad_hoc:
+        ifinite_id_list = get_id_list(r.ids)
+        task_list = get_inf_list(dbpath, mod_id, answer_index, question_form, ifinite_id_list, r.limit[0])
         random.shuffle(task_list)
-        proc_inf(task_list, mod_id, auto_eval)
     else:
         print(f"{current_date=}")
         handle_newest(mod_id)
-        auto_eval, answer_index, question_form = get_qa(dbpath, mod_id)
         task_list = get_task_list(dbpath, mod_id, answer_index, question_form)
-        proc(task_list, mod_id, auto_eval)
+    proc(task_list, mod_id, auto_eval)
     
