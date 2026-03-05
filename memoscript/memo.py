@@ -92,7 +92,7 @@ def is_mod_exist(dbpath, mod_id):
 
 
 class Task:
-    def __init__(self, next_time, card_id, answer, question, delta, old_delta):
+    def __init__(self, next_time, card_id, answer, question, delta, old_delta, limit = None): # ### card_id можно сделать необязательным аргументом (по дефолту будет -1)
         self.next_time = next_time
         self.card_id = card_id
         self.answer = answer
@@ -101,13 +101,15 @@ class Task:
         self.old_delta = old_delta
         self.attempts = 0
         self.counter = 0
-        self.limit = self._get_limit()
+        self.limit = self._get_limit(limit)
 
-    def _get_limit(self):
-        summ = self.delta + self.old_delta
-        if summ <= 3:
-            return 5 - summ
-        return 1
+    def _get_limit(self, limit):
+        if not limit:
+            summ = self.delta + self.old_delta
+            if summ <= 3:
+                return 5 - summ
+            return 1
+        return limit
 
     def get_new_delta(self):
         delta = self.delta
@@ -185,12 +187,14 @@ def get_sub_list(dbpath, mod_id, answer_index, question_form, size, char, next_t
             counter += 1
         return sub_list, counter
 
+
 def get_qa(dbpath, mod_id):
     with sqlite3.connect(dbpath) as c:
         q = "SELECT auto_eval, answer_index, question FROM qa WHERE mod_id = ?"
         db_form = [mod_id]
         i = c.execute(q, db_form)
         return next(i)
+
 
 def get_task_list(dbpath, mod_id, answer_index, question_form):
     new, total = update_taskperday(dbpath, mod_id)
@@ -210,6 +214,7 @@ def get_task_list(dbpath, mod_id, answer_index, question_form):
     random.shuffle(task_list)
     return task_list
 
+
 def check_exit_conditions(task_list, mod_id, previous):
     if previous:
         temp_list = task_list + [previous]
@@ -226,6 +231,7 @@ def check_exit_conditions(task_list, mod_id, previous):
             print("Пока!")
             sys.exit()
 
+
 def get_task(task_list):
     task_list.sort(key=lambda t: t.next_time)
     current_time = time.time()
@@ -235,7 +241,8 @@ def get_task(task_list):
         return task_list.pop() # берём репит в работу
     return task_list.pop(0) # берём ближайшую к зрелости
 
-def get_guess_and_delay(task):
+
+def get_guess(task):
     get_input('\nНажмите Enter чтобы продолжить...')
     ctrl_l()
     start_time = time.time()
@@ -243,6 +250,7 @@ def get_guess_and_delay(task):
     end_time = time.time()
     delay = end_time - start_time
     return guess, delay
+
 
 def get_grade(auto_eval, task, guess, delay):
     if auto_eval:
@@ -258,6 +266,7 @@ def get_grade(auto_eval, task, guess, delay):
         print(f"Правильный ответ {task.answer}")
         grade = get_manual_grade()
     return grade
+
 
 def update_counter(task, s):
         current_time = time.time()
@@ -276,6 +285,7 @@ def update_counter(task, s):
             task.counter += 1.5
         print(f"{task.attempts=}, {task.counter=}, {task.limit=}")
 
+
 def update_task_list(task, previous, task_list):
     if previous:
         task_list.append(previous)
@@ -290,21 +300,24 @@ def update_task_list(task, previous, task_list):
         previous = task
     return previous, task_list
 
+
 def proc(task_list, mod_id, auto_eval):
     previous = None
     while True:
         check_exit_conditions(task_list, mod_id, previous)
         task = get_task(task_list)
-        guess, delay = get_guess_and_delay(task)
+        guess, delay = get_guess(task)
         grade = get_grade(auto_eval, task, guess, delay)
         update_counter(task, grade)
         previous, task_list = update_task_list(task, previous, task_list)
+
 
 def get_id_list(infinite_ids):
     l = []
     for card_id in infinite_ids:
         l += ranger(card_id)
     return l
+
 
 def ranger(s):
     l = []
@@ -320,26 +333,6 @@ def ranger(s):
         sys.exit(1)
     return l
 
-def get_dict_infinite(dbpath, ifinite_id_list):
-    with sqlite3.connect(dbpath) as c:
-        dictionary = dict()
-        if ifinite_id_list:
-            for card_id in ifinite_id_list:
-                q = "SELECT * FROM deck WHERE card_id = ?"
-                db_form = [card_id]
-                i = c.execute(q, db_form)
-                container = next(i)
-                card_id = container[0]
-                fields = container
-                dictionary[card_id] = fields
-        else:
-            q = "SELECT * FROM deck"
-            i = c.execute(q)
-            for container in i:
-                card_id = container[0]
-                fields = container
-                dictionary[card_id] = fields
-    return dictionary
 
 def proc_inf(dbpath, dictionary, mod_id):
     with sqlite3.connect(dbpath) as c:
@@ -354,7 +347,7 @@ def proc_inf(dbpath, dictionary, mod_id):
             fields = dictionary[card_id]
             string = question.format(*fields)
             answer = fields[answer_index]
-            get_input('\nНажмите Enter чтобы продолжить...')
+            get_input('\nНажмите Enter чтобы продолжить...') # \n отсюда надо переставить в другое место? в инфините некрасиво смотрится
             ctrl_l()
             start_time = time.time()
             guess = get_input(string)
@@ -369,6 +362,41 @@ def proc_inf(dbpath, dictionary, mod_id):
             else:
                 print(f"Правильный ответ {answer}")
     print("колода пуста")
+
+
+def get_inf_list(dbpath, mod_id, answer_index, question_form, ifinite_id_list):
+    with sqlite3.connect(dbpath) as c:
+        task_list = []
+        if ifinite_id_list:
+            for card_id in ifinite_id_list:
+                q = "SELECT * FROM deck WHERE card_id = ?"
+                i = c.execute(q, (card_id,))
+                fields = next(i)
+                answer = fields[answer_index]
+                question = question_form.format(*fields)
+                task = Task(float('+inf'), card_id, answer, question, -1, -1, float('+inf'))
+                task_list.append(task)
+        else:
+            q = "SELECT * FROM deck"
+            i = c.execute(q)
+            for fields in i:
+                card_id = fields[0]
+                answer = fields[answer_index]
+                question = question_form.format(*fields)
+                task = Task(float('+inf'), card_id, answer, question, -1, -1, float('+inf'))
+                task_list.append(task)
+        return task_list
+
+
+def proc_inf(task_list, mod_id, auto_eval):
+    previous = None
+    while True:
+        # check_exit_conditions(task_list, mod_id, previous) # потом пригодится
+        task = get_task(task_list)
+        guess, delay = get_guess(task)
+        grade = get_grade(auto_eval, task, guess, delay)
+        update_counter(task, grade)
+        previous, task_list = update_task_list(task, previous, task_list)
 
 
 def handle_args(args):
@@ -387,7 +415,7 @@ def handle_args(args):
         positional = True
         )
     p.add_pattern(
-        write_to = ['infinite_ids'],
+        write_to = ['infinite_ids'], # а если принимать не id, а sql запрос? или псевдо-sql запрос...
         set_to = {"inf_flag" : True},
         keys = ['-i', '--infinite'],
         valency = '*',
@@ -401,6 +429,7 @@ def handle_args(args):
     r = p.parse()
     return r
 
+
 start_red = "\033[91m"
 start_green = "\033[92m"
 start_blue = "\033[94m"
@@ -411,16 +440,18 @@ current_date = datetime.date.today().toordinal()
 new_limit = 8
 total_limit = 24
 if __name__ == '__main__':
-    print(f"{current_date=}")
     r = handle_args(sys.argv)
     dbpath = r.deck_id[0]
     mod_id = r.mod_id[0]
-    is_mod_exist(dbpath, mod_id)
+    is_mod_exist(dbpath, mod_id) # ### его надо поставить как функцию в парсере
     if r.inf_flag:
         ifinite_id_list = get_id_list(r.infinite_ids)
-        dictionary = get_dict_infinite(dbpath, ifinite_id_list)
-        proc_inf(dbpath, dictionary, mod_id)
+        auto_eval, answer_index, question_form = get_qa(dbpath, mod_id)
+        task_list = get_inf_list(dbpath, mod_id, answer_index, question_form, ifinite_id_list)
+        random.shuffle(task_list)
+        proc_inf(task_list, mod_id, auto_eval)
     else:
+        print(f"{current_date=}")
         handle_newest(mod_id)
         auto_eval, answer_index, question_form = get_qa(dbpath, mod_id)
         task_list = get_task_list(dbpath, mod_id, answer_index, question_form)
