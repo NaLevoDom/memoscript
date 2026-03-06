@@ -26,20 +26,20 @@ def create_deck_table(dbpath, n): # бардель какой-то
         q = f"CREATE TABLE deck(\ncard_id INTEGER PRIMARY KEY,\n{s});"
         c.execute(q)
 
-def create_taskperday_table(dbpath):
+def create_daily_stats_table(dbpath):
     with sqlite3.connect(dbpath) as c:
-        q = """CREATE TABLE taskperday(
-        mode_id TEXT PRIMARY KEY,
-        day INT,
-        new INT,
-        total INT);
+        q = """CREATE TABLE daily_stats(
+        template_id TEXT PRIMARY KEY,
+        stats_date INT,
+        new_count INT,
+        reviewed_count INT);
         """
         c.execute(q)
 
-def create_qa_table(dbpath):
+def create_templates_table(dbpath):
     with sqlite3.connect(dbpath) as c:
-        q = """CREATE TABLE qa(
-        mode_id TEXT PRIMARY KEY,
+        q = """CREATE TABLE templates(
+        template_id TEXT PRIMARY KEY,
         auto_grade INT,
         answer_index INT,
         question_form TEXT);
@@ -49,11 +49,11 @@ def create_qa_table(dbpath):
 def create_schedule_table(dbpath):
     with sqlite3.connect(dbpath) as c:
         q = """CREATE TABLE schedule(
-        mode_id TEXT,
+        template_id TEXT,
         card_id INT,
         delta INT,
-        old_delta INT,
-        schedule_date INT);
+        prev_delta INT,
+        due_date INT);
         """
         c.execute(q)
 
@@ -72,6 +72,6 @@ if __name__ == '__main__':
     dbpath = 'decks/' + r.deck_id[0] + '.db'
     n = r.count[0]
     create_deck_table(dbpath, n)
-    create_taskperday_table(dbpath)
-    create_qa_table(dbpath)
+    create_daily_stats_table(dbpath)
+    create_templates_table(dbpath)
     create_schedule_table(dbpath)

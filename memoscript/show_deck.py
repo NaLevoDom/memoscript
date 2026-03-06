@@ -15,21 +15,21 @@ def print_deck(dbpath):
         for fields in i:
             print(fields)
 
-def print_mode(dbpath, mode_id):
+def print_template(dbpath, template_id):
     with sqlite3.connect(dbpath) as c:
-        q = "SELECT * FROM schedule WHERE mode_id = ? ORDER BY schedule_date ASC"
-        db_form = [mode_id]
+        q = "SELECT * FROM schedule WHERE template_id = ? ORDER BY due_date ASC"
+        db_form = [template_id]
         i = c.execute(q, db_form)
-        for mode_id, card_id, delta, old_delta, schedule_date in i:
+        for template_id, card_id, delta, prev_delta, due_date in i:
             qq = "SELECT * FROM deck WHERE card_id = ?"
             db_form = [card_id]
             ii = c.execute(qq, db_form)
             fields = next(ii)
-            print(f"{fields=}, {delta=}, {old_delta=}, {schedule_date=}")
+            print(f"{fields=}, {delta=}, {prev_delta=}, {due_date=}")
 
-def get_qa(dbpath):
+def get_templates(dbpath):
     with sqlite3.connect(dbpath) as c:
-        q = "SELECT * FROM qa"
+        q = "SELECT * FROM templates"
         i = c.execute(q)
         l = list(i)
     return l
@@ -45,8 +45,8 @@ if __name__ == '__main__':
     r = handle_args(sys.argv)
     dbpath = r.deck_id[0]
     print_deck(dbpath)
-    qa = get_qa(dbpath)
-    for mode_id, auto_grade, answer_index, question_form in qa:
+    templates = get_templates(dbpath)
+    for template_id, auto_grade, answer_index, question_form in templates:
         print()
-        print(f"{mode_id=}, {auto_grade=}, {answer_index=}, {question_form=}")
-        print_mode(dbpath, mode_id)
+        print(f"{template_id=}, {auto_grade=}, {answer_index=}, {question_form=}")
+        print_template(dbpath, template_id)

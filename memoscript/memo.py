@@ -45,33 +45,33 @@ def get_manual_grade():
         print("Ещё раз. ", end='')
 
 
-def write_db(mode_id, new_delta, next_date, task):
+def write_db(template_id, new_delta, next_date, task):
     with sqlite3.connect(dbpath) as c:
-        q = "SELECT * FROM taskperday WHERE mode_id = ?"
-        db_form = [mode_id]
+        q = "SELECT * FROM daily_stats WHERE template_id = ?"
+        db_form = [template_id]
         i = c.execute(q, db_form)
-        mode_id, day, new, total = next(i)
-        if task.delta + task.old_delta == 0:
-            q = "UPDATE taskperday SET new = ?, total = ? WHERE mode_id = ?"
-            db_form = [new + 1, total + 1, mode_id]
+        template_id, stats_date, new_count, reviewed_count = next(i)
+        if task.delta + task.prev_delta == 0:
+            q = "UPDATE daily_stats SET new_count = ?, reviewed_count = ? WHERE template_id = ?"
+            db_form = [new_count + 1, reviewed_count + 1, template_id]
         else:
-            q = "UPDATE taskperday SET total = ? WHERE mode_id = ?"
-            db_form = [total + 1, mode_id]
+            q = "UPDATE daily_stats SET reviewed_count = ? WHERE template_id = ?"
+            db_form = [reviewed_count + 1, template_id]
         c.execute(q, db_form)
-        q = "UPDATE schedule SET delta = ?, old_delta = ?, schedule_date = ? WHERE card_id = ? and mode_id = ?"
-        db_form = [new_delta, task.delta, next_date, task.card_id, mode_id]
+        q = "UPDATE schedule SET delta = ?, prev_delta = ?, due_date = ? WHERE card_id = ? and template_id = ?"
+        db_form = [new_delta, task.delta, next_date, task.card_id, template_id]
         c.execute(q, db_form)
 
 
-def is_mode_exist(dbpath, mode_id):
+def is_template_exist(dbpath, template_id):
     with sqlite3.connect(dbpath) as c:
-        i = c.execute("SELECT * FROM taskperday WHERE mode_id = ?", (mode_id,))
+        i = c.execute("SELECT * FROM daily_stats WHERE template_id = ?", (template_id,))
         try:
             next(i)
         except StopIteration:
-            print(f"There's no '{mode_id}' mode in this deck")
+            print(f"There's no '{template_id}' template in this deck")
             sys.exit(1)
-    return mode_id
+    return template_id
 
 
 class Task:
@@ -81,7 +81,7 @@ class Task:
         answer,
         question,
         delta = None,
-        old_delta = None,
+        prev_delta = None,
         card_id = None,
         limit = None,
     ):
@@ -90,14 +90,14 @@ class Task:
         self.answer = answer
         self.question = question
         self.delta = delta
-        self.old_delta = old_delta
+        self.prev_delta = prev_delta
         self.attempts = 0
         self.counter = 0
         self.limit = self._get_limit(limit)
 
     def _get_limit(self, limit):
         if not limit:
-            summ = self.delta + self.old_delta
+            summ = self.delta + self.prev_delta
             if summ <= 3:
                 return 5 - summ
             return 1
@@ -105,12 +105,12 @@ class Task:
 
     def get_new_delta(self):
         delta = self.delta
-        old_delta = self.old_delta
+        prev_delta = self.prev_delta
         if delta == 0:
             delta = 1
-        if old_delta == 0:
-            old_delta = 1
-        mean = (13 * delta + 3 * old_delta) / 16
+        if prev_delta == 0:
+            prev_delta = 1
+        mean = (13 * delta + 3 * prev_delta) / 16
         factor = 2 * self.counter / self.attempts
         new_delta = math.ceil(mean * factor + 1 / 8)
         part = new_delta // 8
@@ -119,64 +119,64 @@ class Task:
         return new_delta
 
 
-def handle_newest(mode_id):
+def handle_newest(template_id):
     with sqlite3.connect(dbpath) as c:
         select_cursor = c.cursor()
         insert_cursor = c.cursor()
         q_select = """
             SELECT d.card_id FROM deck d
-            LEFT JOIN schedule s ON d.card_id = s.card_id AND s.mode_id = ?
-            WHERE s.card_id IS NULL
+            LEFT JOIN schedule rs ON d.card_id = rs.card_id AND rs.template_id = ?
+            WHERE rs.card_id IS NULL
         """
-        rows_iter = select_cursor.execute(q_select, (mode_id,))
-        to_insert = ((mode_id, row[0], 0, 0, current_date) for row in rows_iter)
+        rows_iter = select_cursor.execute(q_select, (template_id,))
+        to_insert = ((template_id, row[0], 0, 0, current_date) for row in rows_iter)
         before_changes = c.total_changes
         insert_cursor.executemany("INSERT INTO schedule VALUES(?, ?, ?, ?, ?)", to_insert)
         inserted = c.total_changes - before_changes
         print(f"Докинуто {inserted} новейших задач в расписание")
 
 
-def get_taskperday_stats(dbpath, mode_id):
+def get_daily_stats(dbpath, template_id):
     with sqlite3.connect(dbpath) as c:
-        q = "SELECT * FROM taskperday WHERE mode_id = ?"
-        db_form = [mode_id]
+        q = "SELECT * FROM daily_stats WHERE template_id = ?"
+        db_form = [template_id]
         i = c.execute(q, db_form)
-        mode_id, day, new, total = next(i)
-        if current_date != day:
-            q = "UPDATE taskperday SET day = ?, new = 0, total = 0 WHERE mode_id = ?"
-            db_form = [current_date, mode_id]
+        template_id, stats_date, new_count, reviewed_count = next(i)
+        if current_date != stats_date:
+            q = "UPDATE daily_stats SET stats_date = ?, new_count = 0, reviewed_count = 0 WHERE template_id = ?"
+            db_form = [current_date, template_id]
             c.execute(q, db_form)
-            new = 0
-            total = 0
-        print(f"Сегодня было выполнено задач всего: {total}, новых: {new}, репитов: {total - new}")
-        return new, total
+            new_count = 0
+            reviewed_count = 0
+        print(f"Сегодня было выполнено задач всего: {reviewed_count}, новых: {new_count}, репитов: {reviewed_count - new_count}")
+        return new_count, reviewed_count
 
 
-def get_sub_list(dbpath, mode_id, answer_index, question_form, size, char, next_time):
+def get_sub_list(dbpath, template_id, answer_index, question_form, size, char, next_time):
     with sqlite3.connect(dbpath) as c:
         q = f"""
-            SELECT s.card_id, s.delta, s.old_delta, d.*
-            FROM schedule s
-            JOIN deck d ON s.card_id = d.card_id
-            WHERE s.delta + s.old_delta {char} 0
-              AND s.mode_id = ?
-              AND s.schedule_date <= ?
-            ORDER BY s.schedule_date ASC
+            SELECT rs.card_id, rs.delta, rs.prev_delta, d.*
+            FROM schedule rs
+            JOIN deck d ON rs.card_id = d.card_id
+            WHERE rs.delta + rs.prev_delta {char} 0
+              AND rs.template_id = ?
+              AND rs.due_date <= ?
+            ORDER BY rs.due_date ASC
             LIMIT ?
         """
-        i = c.execute(q, (mode_id, current_date, size))
+        i = c.execute(q, (template_id, current_date, size))
         sub_list = []
         for row in i:
-            card_id, delta, old_delta = row[0:3]
+            card_id, delta, prev_delta = row[0:3]
             fields = row[3:]
             answer = fields[answer_index]
             question = question_form.format(*fields)
-            task = Task(next_time, answer, question, delta, old_delta, card_id)
+            task = Task(next_time, answer, question, delta, prev_delta, card_id)
             sub_list.append(task)
         return sub_list
 
 
-def get_adhoc_list(dbpath, mode_id, answer_index, question_form, id_list, limit):
+def get_adhoc_list(dbpath, answer_index, question_form, id_list, limit):
     with sqlite3.connect(dbpath) as c:
         if id_list:
             placeholders = ', '.join(['?'] * len(id_list))
@@ -195,28 +195,28 @@ def get_adhoc_list(dbpath, mode_id, answer_index, question_form, id_list, limit)
 
 
 
-def get_qa(dbpath, mode_id):
+def get_template(dbpath, template_id):
     with sqlite3.connect(dbpath) as c:
-        q = "SELECT auto_grade, answer_index, question_form FROM qa WHERE mode_id = ?"
-        db_form = [mode_id]
+        q = "SELECT auto_grade, answer_index, question_form FROM templates WHERE template_id = ?"
+        db_form = [template_id]
         i = c.execute(q, db_form)
         return next(i)
 
 
-def get_scheduled_list(dbpath, mode_id, answer_index, question_form):
-    old_new, old_total = get_taskperday_stats(dbpath, mode_id)
-    new, total = old_new, old_total
-    size = max(total_limit - total, 0)
-    repeat_list = get_sub_list(dbpath, mode_id, answer_index, question_form, size, '>', float('+inf'))
-    total += len(repeat_list)
-    size = max(min(new_limit - new, total_limit - total), 0)
-    new_list = get_sub_list(dbpath, mode_id, answer_index, question_form, size, '=', 0)
-    total += len(new_list)
-    new += len(new_list)
+def get_scheduled_list(dbpath, template_id, answer_index, question_form):
+    old_new_count, old_reviewed_count = get_daily_stats(dbpath, template_id)
+    new_count, reviewed_count = old_new_count, old_reviewed_count
+    size = max(total_limit - reviewed_count, 0)
+    repeat_list = get_sub_list(dbpath, template_id, answer_index, question_form, size, '>', float('+inf'))
+    reviewed_count += len(repeat_list)
+    size = max(min(new_limit - new_count, total_limit - reviewed_count), 0)
+    new_list = get_sub_list(dbpath, template_id, answer_index, question_form, size, '=', 0)
+    reviewed_count += len(new_list)
+    new_count += len(new_list)
     task_list = new_list + repeat_list
     random.shuffle(task_list)
-    added_total = total - old_total
-    added_new = new - old_new
+    added_total = reviewed_count - old_reviewed_count
+    added_new = new_count - old_new_count
     print(f"В текущей сессии всего задач: {added_total}, новых: {added_new}, репитов: {added_total - added_new}\n")
     return task_list
 
@@ -288,7 +288,7 @@ def update_counter(task, grade):
         print(f"Попыток: {task.attempts}, счётчик: {task.counter}, лимит: {task.limit}")
 
 
-def check_exit_conditions(task_list, mode_id, previous):
+def check_exit_conditions(task_list, template_id, previous):
     if previous:
         temp_list = task_list + [previous]
     else:
@@ -300,20 +300,20 @@ def check_exit_conditions(task_list, mode_id, previous):
         else:
             for temp in temp_list:
                 if temp.card_id is not None:
-                    write_db(mode_id, 0, current_date + 1, temp)
+                    write_db(template_id, 0, current_date + 1, temp)
                 print(f'{temp.question}{temp.answer} откладывается')
             print("Пока!")
             sys.exit()
 
 
-def update_task_list(task, mode_id, previous, task_list):
+def update_task_list(task, template_id, previous, task_list):
     if previous:
         task_list.append(previous)
     if task.counter >= task.limit:
         if task.card_id is not None:
             new_delta = task.get_new_delta()
             next_date = current_date + new_delta
-            write_db(mode_id, new_delta, next_date, task)
+            write_db(template_id, new_delta, next_date, task)
             print(f"{new_delta=}")
         previous = None
         print('Задача добита')
@@ -322,15 +322,15 @@ def update_task_list(task, mode_id, previous, task_list):
     return previous, task_list
 
 
-def proc(task_list, mode_id, auto_grade):
+def proc(task_list, template_id, auto_grade):
     previous = None
     while True:
-        check_exit_conditions(task_list, mode_id, previous)
+        check_exit_conditions(task_list, template_id, previous)
         task = get_task(task_list)
         guess, delay = get_guess(task)
         grade = get_grade(auto_grade, task, guess, delay)
         update_counter(task, grade)
-        previous, task_list = update_task_list(task, mode_id, previous, task_list)
+        previous, task_list = update_task_list(task, template_id, previous, task_list)
 
 
 def get_id_list(id_ranges):
@@ -371,8 +371,8 @@ def handle_args(args):
         func = is_db_exist
         )
     p.add_pattern(
-        write_to=['mode_id'],
-        keys=['-m', '--mode-id'],
+        write_to=['template_id'],
+        keys=['-t', '--template-id'],
         valency = 1, 
         positional = True
         )
@@ -399,7 +399,7 @@ def handle_args(args):
         )
     p.defaults = types.SimpleNamespace(
         deck_id=None,
-        mode_id=None,
+        template_id=None,
         ad_hoc=False,
         limit=[float('+inf')]
         )
@@ -418,16 +418,15 @@ total_limit = 24
 if __name__ == '__main__':
     r = handle_args(sys.argv)
     dbpath = r.deck_id[0]
-    mode_id = r.mode_id[0]
-    is_mode_exist(dbpath, mode_id)
-    auto_grade, answer_index, question_form = get_qa(dbpath, mode_id)
+    template_id = r.template_id[0]
+    is_template_exist(dbpath, template_id)
+    auto_grade, answer_index, question_form = get_template(dbpath, template_id)
     if r.ad_hoc:
         print("Режим ad-hoc")
-        id_list = get_id_list(r.ids)
-        task_list = get_adhoc_list(dbpath, mode_id, answer_index, question_form, id_list, r.limit[0])
+        id_list = get_id_list(r.ids) if r.ids else []
+        task_list = get_adhoc_list(dbpath, answer_index, question_form, id_list, r.limit[0])
     else:
         print("Режим scheduled")
-        handle_newest(mode_id)
-        task_list = get_scheduled_list(dbpath, mode_id, answer_index, question_form)
-    proc(task_list, mode_id, auto_grade)
-    
+        handle_newest(template_id)
+        task_list = get_scheduled_list(dbpath, template_id, answer_index, question_form)
+    proc(task_list, template_id, auto_grade)

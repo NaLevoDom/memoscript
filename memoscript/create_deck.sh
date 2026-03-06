@@ -66,9 +66,9 @@
 ./add_card.py elements 64 Gd Гадолиний
 ./add_card.py elements 65 Tb Тербий
 ./add_card.py elements 66 Dy Диспрозий
-./create_mod.py elements 1 1 "Напиши номер элемента <{2}>: "
-./create_mod.py elements 2 2 "Напиши обозначение элемента №{1}: "
-./create_mod.py elements 3 3 "Напиши название элемента <{2}>: "
+./create_template.py elements 1 1 "Напиши номер элемента <{2}>: "
+./create_template.py elements 2 2 "Напиши обозначение элемента №{1}: "
+./create_template.py elements 3 3 "Напиши название элемента <{2}>: "
 
 ./create_deck.py capitals 2
 ./add_card.py capitals Россия Москва
@@ -195,8 +195,8 @@
 ./add_card.py capitals Уругвай Монтевидео
 ./add_card.py capitals Аргентина Буэнос‑Айрес
 
-./create_mod.py capitals 1 1 'Какой страны столица {2}?: '
-./create_mod.py capitals 2 2 'Какой страны столица {1}?: '
+./create_template.py capitals 1 1 'Какой страны столица {2}?: '
+./create_template.py capitals 2 2 'Какой страны столица {1}?: '
 
 ./create_deck.py months 3
 ./add_card.py months 1 Январь 31
@@ -212,9 +212,9 @@
 ./add_card.py months 11 Ноябрь 30
 ./add_card.py months 12 Декабрь 31
 
-./create_mod.py months 1 1 'Напиши порядковый номер месяца <{2}>: '
-./create_mod.py months 2 2 'Напиши месяц №{1}: '
-./create_mod.py months 3 3 'Сколько дней в {2}: '
+./create_template.py months 1 1 'Напиши порядковый номер месяца <{2}>: '
+./create_template.py months 2 2 'Напиши месяц №{1}: '
+./create_template.py months 3 3 'Сколько дней в {2}: '
 
 
 
