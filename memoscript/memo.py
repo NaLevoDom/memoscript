@@ -10,6 +10,7 @@ import os
 import types
 import math
 import re
+import json
 if os.name == 'posix':
     import readline
 import vyhuhol
@@ -119,6 +120,20 @@ class Task:
         return new_delta
 
 
+def get_deck_field_names(dbpath):
+    with sqlite3.connect(dbpath) as c:
+        q = "SELECT field_name FROM deck_fields ORDER BY field_position ASC"
+        i = c.execute(q)
+        return [row[0] for row in i]
+
+
+def decode_deck_fields_map(card_id, fields_json, field_names):
+    fields = json.loads(fields_json)
+    fields_map = dict(zip(field_names, fields))
+    fields_map["card_id"] = card_id
+    return fields_map
+
+
 def handle_newest(template_id):
     with sqlite3.connect(dbpath) as c:
         select_cursor = c.cursor()
@@ -152,10 +167,10 @@ def get_daily_stats(dbpath, template_id):
         return new_count, reviewed_count
 
 
-def get_sub_list(dbpath, template_id, answer_index, question_form, size, char, next_time):
+def get_sub_list(dbpath, template_id, answer_field, question_form, size, char, next_time, field_names):
     with sqlite3.connect(dbpath) as c:
         q = f"""
-            SELECT rs.card_id, rs.delta, rs.prev_delta, d.*
+            SELECT rs.card_id, rs.delta, rs.prev_delta, d.fields_json
             FROM schedule rs
             JOIN deck d ON rs.card_id = d.card_id
             WHERE rs.delta + rs.prev_delta {char} 0
@@ -168,26 +183,27 @@ def get_sub_list(dbpath, template_id, answer_index, question_form, size, char, n
         sub_list = []
         for row in i:
             card_id, delta, prev_delta = row[0:3]
-            fields = row[3:]
-            answer = fields[answer_index]
-            question = question_form.format(*fields)
+            fields_map = decode_deck_fields_map(card_id, row[3], field_names)
+            answer = fields_map[answer_field]
+            question = question_form.format(**fields_map)
             task = Task(next_time, answer, question, delta, prev_delta, card_id)
             sub_list.append(task)
         return sub_list
 
 
-def get_adhoc_list(dbpath, answer_index, question_form, id_list, limit):
+def get_adhoc_list(dbpath, answer_field, question_form, id_list, limit, field_names):
     with sqlite3.connect(dbpath) as c:
         if id_list:
             placeholders = ', '.join(['?'] * len(id_list))
-            q = f"SELECT * FROM deck WHERE card_id IN ({placeholders})"
+            q = f"SELECT card_id, fields_json FROM deck WHERE card_id IN ({placeholders})"
             rows = c.execute(q, id_list)
         else:
-            rows = c.execute("SELECT * FROM deck")
+            rows = c.execute("SELECT card_id, fields_json FROM deck")
         task_list = []
-        for fields in rows:
-            answer = fields[answer_index]
-            question = question_form.format(*fields)
+        for card_id, fields_json in rows:
+            fields_map = decode_deck_fields_map(card_id, fields_json, field_names)
+            answer = fields_map[answer_field]
+            question = question_form.format(**fields_map)
             task = Task(float('+inf'), answer, question, limit=limit)
             task_list.append(task)
         random.shuffle(task_list)
@@ -197,20 +213,20 @@ def get_adhoc_list(dbpath, answer_index, question_form, id_list, limit):
 
 def get_template(dbpath, template_id):
     with sqlite3.connect(dbpath) as c:
-        q = "SELECT auto_grade, answer_index, question_form FROM templates WHERE template_id = ?"
+        q = "SELECT auto_grade, answer_field, question_form FROM templates WHERE template_id = ?"
         db_form = [template_id]
         i = c.execute(q, db_form)
         return next(i)
 
 
-def get_scheduled_list(dbpath, template_id, answer_index, question_form):
+def get_scheduled_list(dbpath, template_id, answer_field, question_form, field_names):
     old_new_count, old_reviewed_count = get_daily_stats(dbpath, template_id)
     new_count, reviewed_count = old_new_count, old_reviewed_count
     size = max(total_limit - reviewed_count, 0)
-    repeat_list = get_sub_list(dbpath, template_id, answer_index, question_form, size, '>', float('+inf'))
+    repeat_list = get_sub_list(dbpath, template_id, answer_field, question_form, size, '>', float('+inf'), field_names)
     reviewed_count += len(repeat_list)
     size = max(min(new_limit - new_count, total_limit - reviewed_count), 0)
-    new_list = get_sub_list(dbpath, template_id, answer_index, question_form, size, '=', 0)
+    new_list = get_sub_list(dbpath, template_id, answer_field, question_form, size, '=', 0, field_names)
     reviewed_count += len(new_list)
     new_count += len(new_list)
     task_list = new_list + repeat_list
@@ -420,13 +436,14 @@ if __name__ == '__main__':
     dbpath = r.deck_id[0]
     template_id = r.template_id[0]
     is_template_exist(dbpath, template_id)
-    auto_grade, answer_index, question_form = get_template(dbpath, template_id)
+    auto_grade, answer_field, question_form = get_template(dbpath, template_id)
+    field_names = get_deck_field_names(dbpath)
     if r.ad_hoc:
         print("Режим ad-hoc")
         id_list = get_id_list(r.ids) if r.ids else []
-        task_list = get_adhoc_list(dbpath, answer_index, question_form, id_list, r.limit[0])
+        task_list = get_adhoc_list(dbpath, answer_field, question_form, id_list, r.limit[0], field_names)
     else:
         print("Режим scheduled")
         handle_newest(template_id)
-        task_list = get_scheduled_list(dbpath, template_id, answer_index, question_form)
+        task_list = get_scheduled_list(dbpath, template_id, answer_field, question_form, field_names)
     proc(task_list, template_id, auto_grade)

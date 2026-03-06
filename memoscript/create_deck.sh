@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-./create_deck.py elements 3
+./create_deck.py elements number symbol name
 ./add_card.py elements 1 H Водород
 ./add_card.py elements 2 He Гелий
 ./add_card.py elements 3 Li Литий
@@ -66,11 +66,11 @@
 ./add_card.py elements 64 Gd Гадолиний
 ./add_card.py elements 65 Tb Тербий
 ./add_card.py elements 66 Dy Диспрозий
-./create_template.py elements 1 1 "Напиши номер элемента <{2}>: "
-./create_template.py elements 2 2 "Напиши обозначение элемента №{1}: "
-./create_template.py elements 3 3 "Напиши название элемента <{2}>: "
+./create_template.py elements 1 number "Напиши номер элемента <{name}>: "
+./create_template.py elements 2 symbol "Напиши обозначение элемента №{number}: "
+./create_template.py elements 3 name "Напиши название элемента <{symbol}>: "
 
-./create_deck.py capitals 2
+./create_deck.py capitals country capital
 ./add_card.py capitals Россия Москва
 ./add_card.py capitals Украина Киев
 ./add_card.py capitals Чехия Прага
@@ -195,10 +195,10 @@
 ./add_card.py capitals Уругвай Монтевидео
 ./add_card.py capitals Аргентина Буэнос‑Айрес
 
-./create_template.py capitals 1 1 'Какой страны столица {2}?: '
-./create_template.py capitals 2 2 'Какой страны столица {1}?: '
+./create_template.py capitals 1 country 'Какой страны столица {capital}?: '
+./create_template.py capitals 2 capital 'Столица какой страны {country}?: '
 
-./create_deck.py months 3
+./create_deck.py months number name days
 ./add_card.py months 1 Январь 31
 ./add_card.py months 2 Февраль 28
 ./add_card.py months 3 Март 31
@@ -212,9 +212,9 @@
 ./add_card.py months 11 Ноябрь 30
 ./add_card.py months 12 Декабрь 31
 
-./create_template.py months 1 1 'Напиши порядковый номер месяца <{2}>: '
-./create_template.py months 2 2 'Напиши месяц №{1}: '
-./create_template.py months 3 3 'Сколько дней в {2}: '
+./create_template.py months 1 number 'Напиши порядковый номер месяца <{name}>: '
+./create_template.py months 2 name 'Напиши месяц №{number}: '
+./create_template.py months 3 days 'Сколько дней в {name}: '
 
 
 
