@@ -29,7 +29,7 @@ def create_deck_table(dbpath, n): # бардель какой-то
 def create_taskperday_table(dbpath):
     with sqlite3.connect(dbpath) as c:
         q = """CREATE TABLE taskperday(
-        mod_id TEXT PRIMARY KEY,
+        mode_id TEXT PRIMARY KEY,
         day INT,
         new INT,
         total INT);
@@ -39,17 +39,17 @@ def create_taskperday_table(dbpath):
 def create_qa_table(dbpath):
     with sqlite3.connect(dbpath) as c:
         q = """CREATE TABLE qa(
-        mod_id TEXT PRIMARY KEY,
-        auto_eval INT,
+        mode_id TEXT PRIMARY KEY,
+        auto_grade INT,
         answer_index INT,
-        question TEXT);
+        question_form TEXT);
         """
         c.execute(q)
 
 def create_schedule_table(dbpath):
     with sqlite3.connect(dbpath) as c:
         q = """CREATE TABLE schedule(
-        mod_id TEXT,
+        mode_id TEXT,
         card_id INT,
         delta INT,
         old_delta INT,

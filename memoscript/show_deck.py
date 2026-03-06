@@ -15,12 +15,12 @@ def print_deck(dbpath):
         for fields in i:
             print(fields)
 
-def print_mod(dbpath, mod_id):
+def print_mode(dbpath, mode_id):
     with sqlite3.connect(dbpath) as c:
-        q = "SELECT * FROM schedule WHERE mod_id = ? ORDER BY schedule_date ASC"
-        db_form = [mod_id]
+        q = "SELECT * FROM schedule WHERE mode_id = ? ORDER BY schedule_date ASC"
+        db_form = [mode_id]
         i = c.execute(q, db_form)
-        for mod_id, card_id, delta, old_delta, schedule_date in i:
+        for mode_id, card_id, delta, old_delta, schedule_date in i:
             qq = "SELECT * FROM deck WHERE card_id = ?"
             db_form = [card_id]
             ii = c.execute(qq, db_form)
@@ -46,7 +46,7 @@ if __name__ == '__main__':
     dbpath = r.deck_id[0]
     print_deck(dbpath)
     qa = get_qa(dbpath)
-    for mod_id, auto_eval, answer_index, question in qa:
+    for mode_id, auto_grade, answer_index, question_form in qa:
         print()
-        print(f"{mod_id=}, {auto_eval=}, {answer_index=}, {question=}")
-        print_mod(dbpath, mod_id)
+        print(f"{mode_id=}, {auto_grade=}, {answer_index=}, {question_form=}")
+        print_mode(dbpath, mode_id)
