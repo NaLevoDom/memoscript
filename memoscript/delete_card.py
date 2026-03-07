@@ -7,7 +7,7 @@ import types
 import re
 
 import vyhuhol
-from memo import is_db_exist
+from memo import is_db_exist, get_id_list, ranger
 
 def delete_deck_record(dbpath, card_id):
     with sqlite3.connect(dbpath) as c:
@@ -20,27 +20,6 @@ def delete_schedule_records(dbpath, card_id):
         q = "DELETE FROM schedule WHERE card_id = ?"
         db_form = [card_id]
         c.execute(q, db_form)
-
-def ranger(s):
-    l = []
-    if re.fullmatch(r"\d+", s) is not None:
-        l = [int(s)]
-    if re.fullmatch(r"\d+-\d+", s) is not None:
-        ss = s.split('-')
-        n1 = int(ss[0])
-        n2 = int(ss[1])
-        l = list(range(n1, n2 + 1))
-    if not(l):
-        print(f"'{s}' is not correct option")
-        sys.exit(0)
-    return l
-
-def get_id_list(card_id_raw_list):
-    l = []
-    for el in card_id_raw_list:
-        l += ranger(el)
-    return l
-    # надо на дубликаты ещё проверять по идее ### 
 
 def handle_args(args):
     p = vyhuhol.Parser(args)

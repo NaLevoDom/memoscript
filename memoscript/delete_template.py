@@ -36,8 +36,8 @@ def handle_args(args):
 
 if __name__ == '__main__':
     r = handle_args(sys.argv)
-    dbpath = r.deck_id[0]
-    template_id = r.template_id[0]
+    dbpath, = r.deck_id
+    template_id, = r.template_id
     drop_template(dbpath, template_id)
     delete_template(dbpath, template_id)
     delete_daily_stats(dbpath, template_id)

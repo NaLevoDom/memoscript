@@ -51,13 +51,13 @@ def write_db(template_id, new_delta, next_date, task):
         q = "SELECT * FROM daily_stats WHERE template_id = ?"
         db_form = [template_id]
         i = c.execute(q, db_form)
-        template_id, stats_date, new_count, reviewed_count = next(i)
+        template_id, stats_date, new_count, total_count = next(i)
         if task.delta + task.prev_delta == 0:
-            q = "UPDATE daily_stats SET new_count = ?, reviewed_count = ? WHERE template_id = ?"
-            db_form = [new_count + 1, reviewed_count + 1, template_id]
+            q = "UPDATE daily_stats SET new_count = ?, total_count = ? WHERE template_id = ?"
+            db_form = [new_count + 1, total_count + 1, template_id]
         else:
-            q = "UPDATE daily_stats SET reviewed_count = ? WHERE template_id = ?"
-            db_form = [reviewed_count + 1, template_id]
+            q = "UPDATE daily_stats SET total_count = ? WHERE template_id = ?"
+            db_form = [total_count + 1, template_id]
         c.execute(q, db_form)
         q = "UPDATE schedule SET delta = ?, prev_delta = ?, due_date = ? WHERE card_id = ? and template_id = ?"
         db_form = [new_delta, task.delta, next_date, task.card_id, template_id]
@@ -156,15 +156,15 @@ def get_daily_stats(dbpath, template_id):
         q = "SELECT * FROM daily_stats WHERE template_id = ?"
         db_form = [template_id]
         i = c.execute(q, db_form)
-        template_id, stats_date, new_count, reviewed_count = next(i)
+        template_id, stats_date, new_count, total_count = next(i)
         if current_date != stats_date:
-            q = "UPDATE daily_stats SET stats_date = ?, new_count = 0, reviewed_count = 0 WHERE template_id = ?"
+            q = "UPDATE daily_stats SET stats_date = ?, new_count = 0, total_count = 0 WHERE template_id = ?"
             db_form = [current_date, template_id]
             c.execute(q, db_form)
             new_count = 0
-            reviewed_count = 0
-        print(f"Сегодня было выполнено задач всего: {reviewed_count}, новых: {new_count}, репитов: {reviewed_count - new_count}")
-        return new_count, reviewed_count
+            total_count = 0
+        print(f"Сегодня было выполнено задач всего: {total_count}, новых: {new_count}, репитов: {total_count - new_count}")
+        return new_count, total_count
 
 
 def get_sub_list(dbpath, template_id, answer_field, question_form, size, char, next_time, field_names):
@@ -220,18 +220,18 @@ def get_template(dbpath, template_id):
 
 
 def get_scheduled_list(dbpath, template_id, answer_field, question_form, field_names):
-    old_new_count, old_reviewed_count = get_daily_stats(dbpath, template_id)
-    new_count, reviewed_count = old_new_count, old_reviewed_count
-    size = max(total_limit - reviewed_count, 0)
+    old_new_count, old_total_count = get_daily_stats(dbpath, template_id)
+    new_count, total_count = old_new_count, old_total_count
+    size = max(total_limit - total_count, 0)
     repeat_list = get_sub_list(dbpath, template_id, answer_field, question_form, size, '>', float('+inf'), field_names)
-    reviewed_count += len(repeat_list)
-    size = max(min(new_limit - new_count, total_limit - reviewed_count), 0)
+    total_count += len(repeat_list)
+    size = max(min(new_limit - new_count, total_limit - total_count), 0)
     new_list = get_sub_list(dbpath, template_id, answer_field, question_form, size, '=', 0, field_names)
-    reviewed_count += len(new_list)
+    total_count += len(new_list)
     new_count += len(new_list)
     task_list = new_list + repeat_list
     random.shuffle(task_list)
-    added_total = reviewed_count - old_reviewed_count
+    added_total = total_count - old_total_count
     added_new = new_count - old_new_count
     print(f"В текущей сессии всего задач: {added_total}, новых: {added_new}, репитов: {added_total - added_new}\n")
     return task_list
@@ -272,7 +272,7 @@ def get_auto_grade(delay, answer):
 
 def get_grade(auto_grade, task, guess, delay):
     if auto_grade:
-        if guess.lower() == task.answer.lower():
+        if guess.replace(' ', '').replace('-', '').lower() == task.replace(' ', '').replace('-', '').lower():
             print(f"{start_green}Ты молодец!{start_normal}")
             print(f"Время ответа: {delay:0.2f}")
             grade = get_auto_grade(delay, task.answer)
@@ -356,19 +356,19 @@ def get_id_list(id_ranges):
     return id_list
 
 
-def ranger(s):
-    l = []
-    if re.fullmatch(r"\d+", s) is not None:
-        l = [int(s)]
-    if re.fullmatch(r"\d+-\d+", s) is not None:
-        ss = s.split('-')
+def ranger(id_range):
+    id_list = []
+    if re.fullmatch(r"\d+", id_range) is not None:
+        id_list = [int(id_range)]
+    if re.fullmatch(r"\d+-\d+", id_range) is not None:
+        ss = id_range.split('-')
         n1 = int(ss[0])
         n2 = int(ss[1])
-        l = list(range(n1, n2 + 1))
-    if not(l):
-        print(f"'{s}' is not correct option")
+        id_list = list(range(n1, n2 + 1))
+    if not(id_list):
+        print(f"'{id_range}' is not correct option")
         sys.exit(1)
-    return l
+    return id_list
 
 
 def get_limit(limit):
@@ -393,7 +393,7 @@ def handle_args(args):
         positional = True
         )
     p.add_pattern(
-        write_to = ['ids'], # а если принимать не id, а sql запрос? или псевдо-sql запрос...
+        write_to = ['card_id'], # а если принимать не id, а sql запрос? или псевдо-sql запрос...
         set_to = {"ad_hoc" : True},
         keys = ['-i', '--ad-hoc-ids'],
         valency = '+',
@@ -433,15 +433,16 @@ new_limit = 8
 total_limit = 24
 if __name__ == '__main__':
     r = handle_args(sys.argv)
-    dbpath = r.deck_id[0]
-    template_id = r.template_id[0]
+    dbpath, = r.deck_id
+    template_id, = r.template_id
+    limit, = r.limit
     is_template_exist(dbpath, template_id)
     auto_grade, answer_field, question_form = get_template(dbpath, template_id)
     field_names = get_deck_field_names(dbpath)
     if r.ad_hoc:
         print("Режим ad-hoc")
-        id_list = get_id_list(r.ids) if r.ids else []
-        task_list = get_adhoc_list(dbpath, answer_field, question_form, id_list, r.limit[0], field_names)
+        id_list = get_id_list(r.ids)
+        task_list = get_adhoc_list(dbpath, answer_field, question_form, id_list, limit, field_names)
     else:
         print("Режим scheduled")
         handle_newest(template_id)

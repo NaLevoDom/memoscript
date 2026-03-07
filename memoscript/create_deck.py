@@ -11,7 +11,7 @@ import vyhuhol
 
 def validate_new_name(name):
     if re.fullmatch(r'[a-zA-Z0-9_]+', name):
-        return name
+        return 'decks/' + name + '.db'
     raise ValueError('Имя может содержать только латинские буквы, цифры и знак _.')
 
 def create_deck_table(dbpath):
@@ -35,7 +35,7 @@ def create_daily_stats_table(dbpath):
         template_id TEXT PRIMARY KEY,
         stats_date INT,
         new_count INT,
-        reviewed_count INT);
+        total_count INT);
         """
         c.execute(q)
 
@@ -72,7 +72,7 @@ if __name__ == '__main__':
     r = handle_args(sys.argv)
     if not os.path.exists('decks'):
         os.makedirs('decks')
-    dbpath = 'decks/' + r.deck_id[0] + '.db'
+    dbpath, = r.deck_id
     create_deck_table(dbpath)
     create_deck_fields_table(dbpath, r.field_names)
     create_daily_stats_table(dbpath)

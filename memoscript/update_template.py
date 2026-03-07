@@ -36,10 +36,10 @@ def handle_args(args):
 
 if __name__ == '__main__':
     r = handle_args(sys.argv)
-    dbpath = r.deck_id[0]
-    template_id = r.template_id[0]
-    answer_field = r.answer_field[0]
-    question_form = r.question_form[0]
+    dbpath, = r.deck_id
+    template_id, = r.template_id
+    answer_field, = r.answer_field
+    question_form, = r.question_form
     auto_grade = r.auto_grade
     is_field_exist(dbpath, answer_field)
     is_template_exist(dbpath, template_id)

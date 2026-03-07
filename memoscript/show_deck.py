@@ -52,7 +52,7 @@ def handle_args(args):
 
 if __name__ == '__main__':
     r = handle_args(sys.argv)
-    dbpath = r.deck_id[0]
+    dbpath, = r.deck_id
     field_names = get_field_names(dbpath)
     print(f"field_names={field_names}")
     print_deck(dbpath)
