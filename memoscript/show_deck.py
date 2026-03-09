@@ -55,7 +55,7 @@ if __name__ == '__main__':
     r = handle_args(sys.argv)
     dbpath, = r.deck_id
     field_names = get_field_names(dbpath)
-    print(f"field_names={field_names}")
+    print(f"{field_names=}")
     print_deck(dbpath)
     templates = get_templates(dbpath)
     for template_id, auto_grade, answer_field, question_form in templates:

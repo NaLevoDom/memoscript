@@ -182,7 +182,7 @@ def get_sub_list(dbpath, template_id, answer_field, question_form, size, char, n
         i = c.execute(q, (template_id, current_date, size))
         sub_list = []
         for row in i:
-            card_id, delta, prev_delta = row[0:3]
+            card_id, delta, prev_delta = row[:3]
             fields_map = decode_deck_fields_map(card_id, row[3], field_names)
             answer = fields_map[answer_field]
             question = question_form.format(**fields_map)
