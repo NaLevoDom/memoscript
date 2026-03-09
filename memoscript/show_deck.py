@@ -25,14 +25,15 @@ def print_deck(dbpath):
 
 def print_template(dbpath, template_id):
     with sqlite3.connect(dbpath) as c:
-        q = "SELECT * FROM schedule WHERE template_id = ? ORDER BY due_date ASC"
-        db_form = [template_id]
-        i = c.execute(q, db_form)
-        for template_id, card_id, delta, prev_delta, due_date in i:
-            qq = "SELECT card_id, fields_json FROM deck WHERE card_id = ?"
-            db_form = [card_id]
-            ii = c.execute(qq, db_form)
-            card_id, fields_json = next(ii)
+        q = """
+            SELECT s.card_id, s.delta, s.prev_delta, s.due_date, d.fields_json
+            FROM schedule s
+            JOIN deck d ON s.card_id = d.card_id
+            WHERE s.template_id = ?
+            ORDER BY s.due_date ASC
+        """
+        i = c.execute(q, [template_id])
+        for card_id, delta, prev_delta, due_date, fields_json in i:
             fields = (card_id, *json.loads(fields_json))
             print(f"{fields=}, {delta=}, {prev_delta=}, {due_date=}")
 
