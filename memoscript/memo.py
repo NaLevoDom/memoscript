@@ -272,7 +272,7 @@ def get_auto_grade(delay, answer):
 
 def get_grade(auto_grade, task, guess, delay):
     if auto_grade:
-        if guess.replace(' ', '').replace('-', '').lower() == task.replace(' ', '').replace('-', '').lower():
+        if guess.replace(' ', '').replace('-', '').lower() == task.answer.replace(' ', '').replace('-', '').lower():
             print(f"{start_green}Ты молодец!{start_normal}")
             print(f"Время ответа: {delay:0.2f}")
             grade = get_auto_grade(delay, task.answer)
@@ -393,9 +393,9 @@ def handle_args(args):
         positional = True
         )
     p.add_pattern(
-        write_to = ['card_id'], # а если принимать не id, а sql запрос? или псевдо-sql запрос...
+        write_to = ['card_ids'], # а если принимать не id, а sql запрос? или псевдо-sql запрос...
         set_to = {"ad_hoc" : True},
-        keys = ['-i', '--ad-hoc-ids'],
+        keys = ['-i', '--ad-hoc-card-ids'],
         valency = '+',
         positional = False
         )
@@ -441,7 +441,7 @@ if __name__ == '__main__':
     field_names = get_deck_field_names(dbpath)
     if r.ad_hoc:
         print("Режим ad-hoc")
-        id_list = get_id_list(r.ids)
+        id_list = get_id_list(r.card_ids)
         task_list = get_adhoc_list(dbpath, answer_field, question_form, id_list, limit, field_names)
     else:
         print("Режим scheduled")

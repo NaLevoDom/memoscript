@@ -11,6 +11,11 @@ import vyhuhol
 
 def validate_new_name(name):
     if re.fullmatch(r'[a-zA-Z0-9_]+', name):
+        return name
+    raise ValueError('Имя может содержать только латинские буквы, цифры и знак _.')
+
+def get_db_path(name): # по хорошему путь к каталогу с колодами не должен быть захардкожен, потом изменю
+    if re.fullmatch(r'[a-zA-Z0-9_]+', name):
         return 'decks/' + name + '.db'
     raise ValueError('Имя может содержать только латинские буквы, цифры и знак _.')
 
@@ -62,7 +67,7 @@ def create_schedule_table(dbpath):
 
 def handle_args(args):
     p = vyhuhol.Parser(args)
-    p.add_pattern(write_to = ['deck_id'], keys = ['-d', '--deck-id'], valency = 1, positional = True, func = validate_new_name)
+    p.add_pattern(write_to = ['deck_id'], keys = ['-d', '--deck-id'], valency = 1, positional = True, func = get_db_path)
     p.add_pattern(write_to = ['field_names'], keys = ['-f', '--field-names'], valency = '+', positional = True, func = validate_new_name)
     p.defaults = types.SimpleNamespace(deck_id = None, field_names = None)
     r = p.parse()

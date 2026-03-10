@@ -50,7 +50,7 @@ def handle_args(args):
 
 if __name__ == '__main__':
     r = handle_args(sys.argv)
-    dbpath = r.deck_id
+    dbpath, = r.deck_id
     template_id, = r.template_id
     answer_field, = r.answer_field
     question_form, = r.question_form

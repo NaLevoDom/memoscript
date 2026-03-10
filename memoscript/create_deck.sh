@@ -194,9 +194,9 @@
 ./add_card.py capitals Чили Сантьяго
 ./add_card.py capitals Уругвай Монтевидео
 ./add_card.py capitals Аргентина Буэнос‑Айрес
-
 ./create_template.py capitals 1 country 'Какой страны столица {capital}?: '
 ./create_template.py capitals 2 capital 'Столица какой страны {country}?: '
+# ### всё это надо переделать, нужна обработка особых случаев, к тому же тут не хватает многих стран
 
 ./create_deck.py months number name days
 ./add_card.py months 1 Январь 31
@@ -211,11 +211,12 @@
 ./add_card.py months 10 Октябрь 31
 ./add_card.py months 11 Ноябрь 30
 ./add_card.py months 12 Декабрь 31
-
 ./create_template.py months 1 number 'Напиши порядковый номер месяца <{name}>: '
 ./create_template.py months 2 name 'Напиши месяц №{number}: '
 ./create_template.py months 3 days 'Сколько дней в {name}: '
-
-
+# ### февраль, по хорошему, тоже нужно обрабатывать как особый случай
+# ### каждый тип особого случая будет отдельным шаблоном
+# ### поэтому сессии будут проходить не по шаблонам, а по группам шаблонов
+# ### но hardness будет привязан к шаблону а не группе?
 
 
