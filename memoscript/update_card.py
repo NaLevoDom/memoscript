@@ -5,8 +5,8 @@ import sqlite3
 import sys
 import types
 import json
+import argparse
 
-import vyhuhol
 from memo import is_db_exist
 
 def get_field_count(dbpath):
@@ -27,18 +27,16 @@ def update_deck_record(dbpath, fields):
         c.execute(q, db_form)
 
 
-def handle_args(args):
-    p = vyhuhol.Parser(args)
-    p.add_pattern(write_to = ['deck_id'], keys = ['-d', '--deck-id'], valency = 1, positional = True, func = is_db_exist)
-    p.add_pattern(write_to = ['fields'], keys = ['-f', '--fields-with-id'], valency = '+', positional = True)
-    p.defaults = types.SimpleNamespace(deck_id = None, fields = None)
-    r = p.parse()
-    return r
+def handle_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument(dest = "deck_id", type = is_db_exist)
+    parser.add_argument(dest = 'fields', nargs = '+')
+    return parser.parse_args()
 
 
 if __name__ == '__main__':
-    r = handle_args(sys.argv)
-    dbpath, = r.deck_id
-    fields = r.fields
+    args = handle_args()
+    dbpath = args.deck_id
+    fields = args.fields
     update_deck_record(dbpath, fields)
     

@@ -13,7 +13,7 @@ import re
 import json
 if os.name == 'posix':
     import readline
-import vyhuhol
+import argparse
 
 
 def ctrl_l():
@@ -351,8 +351,9 @@ def proc(task_list, template_id, auto_grade):
 
 def get_id_list(id_ranges):
     id_list = []
-    for id_range in id_ranges:
-        id_list += ranger(id_range)
+    if id_ranges:
+        for id_range in id_ranges:
+            id_list += ranger(id_range)
     return id_list
 
 
@@ -374,54 +375,21 @@ def ranger(id_range):
 def get_limit(limit):
     if limit == 'inf':
         return float('+inf')
-    return float(limit)
+    limit = float(limit)
+    if limit == 0:
+        raise ValueError()
+    return limit
 
 
-def handle_args(args):
-    p = vyhuhol.Parser(args)
-    p.add_pattern(
-        write_to = ['deck_id'],
-        keys = ['-d', '--deck-id'], 
-        valency = 1,
-        positional = True, 
-        func = is_db_exist
-        )
-    p.add_pattern(
-        write_to=['template_id'],
-        keys=['-t', '--template-id'],
-        valency = 1, 
-        positional = True
-        )
-    p.add_pattern(
-        write_to = ['card_ids'], # а если принимать не id, а sql запрос? или псевдо-sql запрос...
-        set_to = {"ad_hoc" : True},
-        keys = ['-i', '--ad-hoc-card-ids'],
-        valency = '+',
-        positional = False
-        )
-    p.add_pattern(
-        write_to = ['limit'],
-        set_to = {"ad_hoc" : True},
-        keys = ['-l', '--ad-hoc-limits'],
-        valency = 1,
-        positional = False,
-        func = get_limit
-        )
-    p.add_pattern(
-        set_to = {"ad_hoc" : True},
-        keys = ['-a', '--ad-hoc'],
-        valency = 0,
-        positional = False
-        )
-    p.defaults = types.SimpleNamespace(
-        deck_id=None,
-        template_id=None,
-        ad_hoc=False,
-        limit=[float('+inf')]
-        )
-    r = p.parse()
-    return r
-
+def handle_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument(dest = "deck_id", type = is_db_exist)
+    parser.add_argument(dest ='template_id')
+    parser.add_argument('-c', '--card-ids', nargs = '+')
+    parser.add_argument('-l', '--limit', type = get_limit)
+    parser.add_argument('-a', '--ad-hoc', action = 'store_true')
+    return parser.parse_args()
+    # а если принимать не id, а sql запрос?
 
 start_red = "\033[91m"
 start_green = "\033[92m"
@@ -432,16 +400,21 @@ current_date = datetime.date.today().toordinal()
 new_limit = 8
 total_limit = 24
 if __name__ == '__main__':
-    r = handle_args(sys.argv)
-    dbpath, = r.deck_id
-    template_id, = r.template_id
-    limit, = r.limit
+    args = handle_args()
+    ad_hoc = False
+    if args.ad_hoc or args.limit or args.card_ids:
+        ad_hoc = True
+        limit = args.limit
+        if not limit:
+            limit = float('+inf')
+    dbpath = args.deck_id
+    template_id = args.template_id
     is_template_exist(dbpath, template_id)
     auto_grade, answer_field, question_form = get_template(dbpath, template_id)
     field_names = get_deck_field_names(dbpath)
-    if r.ad_hoc:
+    if ad_hoc:
         print("Режим ad-hoc")
-        id_list = get_id_list(r.card_ids)
+        id_list = get_id_list(args.card_ids)
         task_list = get_adhoc_list(dbpath, answer_field, question_form, id_list, limit, field_names)
     else:
         print("Режим scheduled")

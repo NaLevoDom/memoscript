@@ -4,8 +4,8 @@
 import sqlite3
 import sys
 import types
+import argparse
 
-import vyhuhol
 from memo import is_db_exist
 
 def drop_template(dbpath, template_id):
@@ -26,18 +26,16 @@ def delete_daily_stats(dbpath, template_id):
         db_form = [template_id]
         c.execute(q, db_form)
 
-def handle_args(args):
-    p = vyhuhol.Parser(args)
-    p.add_pattern(write_to = ['deck_id'], keys = ['-d', '--deck-id'], valency = 1, positional = True, func = is_db_exist)
-    p.add_pattern(write_to = ['template_id'], keys = ['-t', '--template-id'], valency = 1, positional = True)
-    p.defaults = types.SimpleNamespace(deck_id = None, template_id = None)
-    r = p.parse()
-    return r
+def handle_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument(dest = "deck_id", type = is_db_exist)
+    parser.add_argument(dest ='template_id')
+    return parser.parse_args()
 
 if __name__ == '__main__':
-    r = handle_args(sys.argv)
-    dbpath, = r.deck_id
-    template_id, = r.template_id
+    args = handle_args()
+    dbpath = args.deck_id
+    template_id = args.template_id
     drop_template(dbpath, template_id)
     delete_template(dbpath, template_id)
     delete_daily_stats(dbpath, template_id)

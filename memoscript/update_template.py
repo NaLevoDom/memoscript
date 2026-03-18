@@ -4,8 +4,8 @@
 import sqlite3
 import sys
 import types
+import argparse
 
-import vyhuhol
 from memo import is_db_exist, is_template_exist
 
 def is_field_exist(dbpath, field_name):
@@ -23,24 +23,24 @@ def update_template(dbpath, template_id, answer_field, question_form, auto_grade
         db_form = [auto_grade, answer_field, question_form, template_id]
         c.execute(q, db_form)
         
-def handle_args(args):
-    p = vyhuhol.Parser(args)
-    p.add_pattern(write_to = ['deck_id'], keys = ['-d', '--deck-id'], valency = 1, positional = True, func = is_db_exist)
-    p.add_pattern(write_to = ['template_id'], keys = ['-t', '--template-id'], valency = 1, positional = True)
-    p.add_pattern(write_to = ['answer_field'], keys = ['-a', '--answer-field'], valency = 1, positional = True)
-    p.add_pattern(write_to = ['question_form'], keys = ['-q', '--question'], valency = 1, positional = True)
-    p.add_pattern(set_to = {"auto_grade" : 0}, keys = ['-e', '--manual-evaluation'], valency = 0)
-    p.defaults = types.SimpleNamespace(deck_id = None, template_id = None, answer_field = None, question_form = None, auto_grade = 1)
-    r = p.parse()
-    return r
+def handle_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument(dest = "deck_id", type = is_db_exist)
+    parser.add_argument(dest ='template_id')
+    parser.add_argument(dest = 'answer_field')
+    parser.add_argument(dest = 'question_form')
+    parser.add_argument('-e', '--manual-evaluation', action = 'store_true')
+    return parser.parse_args()
 
 if __name__ == '__main__':
-    r = handle_args(sys.argv)
-    dbpath, = r.deck_id
-    template_id, = r.template_id
-    answer_field, = r.answer_field
-    question_form, = r.question_form
-    auto_grade = r.auto_grade
+    args = handle_args()
+    auto_grade = 1
+    if args.manual_evaluation == True:
+        auto_grade = 0
+    dbpath = args.deck_id
+    template_id = args.template_id
+    answer_field = args.answer_field
+    question_form = args.question_form
     is_field_exist(dbpath, answer_field)
     is_template_exist(dbpath, template_id)
     update_template(dbpath, template_id, answer_field, question_form, auto_grade)

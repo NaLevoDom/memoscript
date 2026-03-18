@@ -6,8 +6,7 @@ import sys
 import types
 import re
 import os
-
-import vyhuhol
+import argparse
 
 def validate_new_name(name):
     if re.fullmatch(r'[a-zA-Z0-9_]+', name):
@@ -65,21 +64,19 @@ def create_schedule_table(dbpath):
         """
         c.execute(q)
 
-def handle_args(args):
-    p = vyhuhol.Parser(args)
-    p.add_pattern(write_to = ['deck_id'], keys = ['-d', '--deck-id'], valency = 1, positional = True, func = get_db_path)
-    p.add_pattern(write_to = ['field_names'], keys = ['-f', '--field-names'], valency = '+', positional = True, func = validate_new_name)
-    p.defaults = types.SimpleNamespace(deck_id = None, field_names = None)
-    r = p.parse()
-    return r
+def handle_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument(dest = "deck_id", type = get_db_path)
+    parser.add_argument(dest = 'field_names', nargs = '+', type = validate_new_name)
+    return parser.parse_args()
 
 if __name__ == '__main__':
-    r = handle_args(sys.argv)
+    args = handle_args()
     if not os.path.exists('decks'):
         os.makedirs('decks')
-    dbpath, = r.deck_id
+    dbpath = args.deck_id
     create_deck_table(dbpath)
-    create_deck_fields_table(dbpath, r.field_names)
+    create_deck_fields_table(dbpath, args.field_names)
     create_daily_stats_table(dbpath)
     create_templates_table(dbpath)
     create_schedule_table(dbpath)

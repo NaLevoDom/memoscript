@@ -5,8 +5,8 @@ import sqlite3
 import sys
 import types
 import json
+import argparse
 
-import vyhuhol
 from memo import is_db_exist
 
 def get_field_names(dbpath):
@@ -44,16 +44,14 @@ def get_templates(dbpath):
         l = list(i)
     return l
 
-def handle_args(args):
-    p = vyhuhol.Parser(args)
-    p.add_pattern(write_to = ['deck_id'], keys = ['-d', '--deck-id'], valency = 1, positional = True, func = is_db_exist)
-    p.defaults = types.SimpleNamespace(deck_id = None)
-    r = p.parse()
-    return r
+def handle_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument(dest = "deck_id", type = is_db_exist)
+    return parser.parse_args()
 
 if __name__ == '__main__':
-    r = handle_args(sys.argv)
-    dbpath, = r.deck_id
+    args = handle_args()
+    dbpath = args.deck_id
     field_names = get_field_names(dbpath)
     print(f"{field_names=}")
     print_deck(dbpath)
