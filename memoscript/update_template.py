@@ -6,16 +6,7 @@ import sys
 import types
 import argparse
 
-from memo import is_db_exist, is_template_exist
-
-def is_field_exist(dbpath, field_name):
-    with sqlite3.connect(dbpath) as c:
-        i = c.execute("SELECT field_name FROM deck_fields WHERE field_name = ?", (field_name,))
-        try:
-            next(i)
-        except StopIteration:
-            raise ValueError(f"Unknown field name: {field_name}")
-    return field_name
+from common import is_db_exist, is_field_exist, is_template_exist
 
 def update_template(dbpath, template_id, answer_field, question_form, auto_grade):
     with sqlite3.connect(dbpath) as c:

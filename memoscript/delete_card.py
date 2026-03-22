@@ -7,7 +7,7 @@ import types
 import re
 import argparse
 
-from memo import is_db_exist, get_id_list, ranger
+from common import is_db_exist, get_id_list, ranger
 
 def delete_deck_record(dbpath, card_id):
     with sqlite3.connect(dbpath) as c:

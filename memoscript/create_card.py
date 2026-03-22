@@ -7,13 +7,8 @@ import types
 import json
 import argparse
 
-from memo import is_db_exist
+from common import get_field_count, is_db_exist
 
-def get_field_count(dbpath):
-    with sqlite3.connect(dbpath) as c:
-        i = c.execute("SELECT COUNT(*) FROM deck_fields")
-        count, = next(i)
-        return count
 
 def add_deck_record(dbpath, fields):
     expected_count = get_field_count(dbpath)

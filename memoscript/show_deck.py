@@ -7,13 +7,7 @@ import types
 import json
 import argparse
 
-from memo import is_db_exist
-
-def get_field_names(dbpath):
-    with sqlite3.connect(dbpath) as c:
-        q = "SELECT field_name FROM deck_fields ORDER BY field_position ASC"
-        i = c.execute(q)
-        return [row[0] for row in i]
+from common import get_field_names, is_db_exist
 
 def print_deck(dbpath):
     with sqlite3.connect(dbpath) as c:

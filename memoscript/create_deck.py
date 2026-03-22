@@ -4,19 +4,11 @@
 import sqlite3
 import sys
 import types
-import re
 import os
 import argparse
 
-def validate_new_name(name):
-    if re.fullmatch(r'[a-zA-Z0-9_]+', name):
-        return name
-    raise ValueError('Имя может содержать только латинские буквы, цифры и знак _.')
+from common import get_db_path, validate_new_name
 
-def get_db_path(name): # по хорошему путь к каталогу с колодами не должен быть захардкожен, потом изменю
-    if re.fullmatch(r'[a-zA-Z0-9_]+', name):
-        return 'decks/' + name + '.db'
-    raise ValueError('Имя может содержать только латинские буквы, цифры и знак _.')
 
 def create_deck_table(dbpath):
     with sqlite3.connect(dbpath) as c:

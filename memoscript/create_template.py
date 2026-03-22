@@ -7,17 +7,7 @@ import sys
 import types
 import argparse
 
-from create_deck import validate_new_name
-from memo import is_db_exist
-
-def is_field_exist(dbpath, field_name):
-    with sqlite3.connect(dbpath) as c:
-        i = c.execute("SELECT field_name FROM deck_fields WHERE field_name = ?", (field_name,))
-        try:
-            next(i)
-        except StopIteration:
-            raise ValueError(f"Unknown field name: {field_name}")
-    return field_name
+from common import is_db_exist, is_field_exist, validate_new_name
 
 def daily_stats_update(dbpath, template_id):
     with sqlite3.connect(dbpath) as c:

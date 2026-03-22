@@ -6,7 +6,7 @@ import sys
 import types
 import argparse
 
-from memo import is_db_exist
+from common import is_db_exist
 
 def drop_template(dbpath, template_id):
     with sqlite3.connect(dbpath) as c:
