@@ -70,61 +70,61 @@
 ./memo.py create template elements 2 symbol "Напиши обозначение элемента №{number}: "
 ./memo.py create template elements 3 name "Напиши название элемента <{symbol}>: "
 
-./memo.py create deck capitals country capital
-./memo.py create card capitals Россия Москва
-./memo.py create card capitals Украина Киев
-./memo.py create card capitals Чехия Прага
-./memo.py create card capitals Словакия Братислава
-./memo.py create card capitals Австрия Вена
-./memo.py create card capitals Венгрия Будапешт
-./memo.py create card capitals Великобритания Лондон
-./memo.py create card capitals Ирландия Дублин
-./memo.py create card capitals Бельгия Брюссель
-./memo.py create card capitals Германия Берлин
-./memo.py create card capitals Лихтенштейн Вадуц
-./memo.py create card capitals Люксембург Люксембург
-./memo.py create card capitals Монако Монако
-./memo.py create card capitals Нидерланды Амстердам
-./memo.py create card capitals Франция Париж
-./memo.py create card capitals Швейцария Берн
-./memo.py create card capitals Беларусь Минск
-./memo.py create card capitals Болгария София
-./memo.py create card capitals Молдова Кишинёв
-./memo.py create card capitals Румыния Бухарест
-./memo.py create card capitals Дания Копенгаген
-./memo.py create card capitals Исландия Рейкьявик
-./memo.py create card capitals Латвия Рига
-./memo.py create card capitals Литва Вильнюс
-./memo.py create card capitals Эстония Таллин
-./memo.py create card capitals Норвегия Осло
-./memo.py create card capitals Финляндия Хельсинки
-./memo.py create card capitals Швеция Стокгольм
-./memo.py create card capitals Албания Тирана
-./memo.py create card capitals Андора Андора-ла-Велья
-./memo.py create card capitals 'Босния и Герцеговина' Сараево
-./memo.py create card capitals Греция Афины
-./memo.py create card capitals Испания Мадрид
-./memo.py create card capitals Италия Рим
-./memo.py create card capitals 'Северная Македония' Скопье
-./memo.py create card capitals Мальта Валлетта
-./memo.py create card capitals Португалия Лиссабон
-./memo.py create card capitals Сан-Марино Сан-Марино
-./memo.py create card capitals Косово Приштина
-./memo.py create card capitals Сербия Белград
-./memo.py create card capitals Словения Любляна
-./memo.py create card capitals Хорватия Загреб
-./memo.py create card capitals Канада Оттава
-./memo.py create card capitals Австралия Камберра
-./memo.py create card capitals Азербайджан Баку
-./memo.py create card capitals Армения Ереван
-./memo.py create card capitals Грузия Тбилиси
-./memo.py create card capitals Казахстан Астана
-./memo.py create card capitals Кыргызстан Бишкек
-./memo.py create card capitals Таджикистан Душанбе
-./memo.py create card capitals Туркменистан Ашхабад
-./memo.py create card capitals Узбекистан Ташкент
-./memo.py create template capitals 1 country 'Какой страны столица {capital}?: '
-./memo.py create template capitals 2 capital 'Столица какой страны {country}?: '
+./memo.py create deck countries country capital
+./memo.py create card countries "Россия|Российская Федерация|РФ" Москва
+./memo.py create card countries Украина Киев
+./memo.py create card countries Чехия Прага
+./memo.py create card countries Словакия Братислава
+./memo.py create card countries Австрия Вена
+./memo.py create card countries Венгрия Будапешт
+./memo.py create card countries Великобритания Лондон
+./memo.py create card countries Ирландия Дублин
+./memo.py create card countries Бельгия Брюссель
+./memo.py create card countries Германия Берлин
+./memo.py create card countries Лихтенштейн Вадуц
+./memo.py create card countries Люксембург Люксембург
+./memo.py create card countries Монако Монако
+./memo.py create card countries "Нидерланды|Голландия|Королевство Нидерландов" Амстердам
+./memo.py create card countries Франция Париж
+./memo.py create card countries Швейцария Берн
+./memo.py create card countries Беларусь Минск
+./memo.py create card countries Болгария София
+./memo.py create card countries "Молдова|Республика Молдова|Молдавия" Кишинёв
+./memo.py create card countries Румыния Бухарест
+./memo.py create card countries Дания Копенгаген
+./memo.py create card countries Исландия Рейкьявик
+./memo.py create card countries Латвия Рига
+./memo.py create card countries Литва Вильнюс
+./memo.py create card countries Эстония Таллин
+./memo.py create card countries Норвегия Осло
+./memo.py create card countries Финляндия Хельсинки
+./memo.py create card countries Швеция Стокгольм
+./memo.py create card countries Албания Тирана
+./memo.py create card countries Андора Андора-ла-Велья
+./memo.py create card countries 'Босния и Герцеговина' Сараево
+./memo.py create card countries Греция Афины
+./memo.py create card countries Испания Мадрид
+./memo.py create card countries Италия Рим
+./memo.py create card countries 'Северная Македония' Скопье
+./memo.py create card countries Мальта Валлетта
+./memo.py create card countries Португалия Лиссабон
+./memo.py create card countries Сан-Марино Сан-Марино
+./memo.py create card countries Косово Приштина
+./memo.py create card countries Сербия Белград
+./memo.py create card countries Словения Любляна
+./memo.py create card countries Хорватия Загреб
+./memo.py create card countries Канада Оттава
+./memo.py create card countries Австралия Камберра
+./memo.py create card countries Азербайджан Баку
+./memo.py create card countries Армения Ереван
+./memo.py create card countries Грузия Тбилиси
+./memo.py create card countries Казахстан Астана
+./memo.py create card countries Кыргызстан Бишкек
+./memo.py create card countries Таджикистан Душанбе
+./memo.py create card countries Туркменистан Ашхабад
+./memo.py create card countries Узбекистан Ташкент
+./memo.py create template countries 1 country 'В какой стране столица {capital}?: '
+./memo.py create template countries 2 capital 'Столица какой страны {country}?: '
 # ### всё это надо переделать, нужна обработка особых случаев, к тому же тут не хватает многих стран
 
 ./memo.py create deck months number name days
