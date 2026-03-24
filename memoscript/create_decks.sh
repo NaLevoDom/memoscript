@@ -71,7 +71,7 @@
 ./memo.py create template elements 3 name "Напиши название элемента <{symbol}>: "
 
 ./memo.py create deck countries country capital
-./memo.py create card countries "Россия|Российская Федерация|РФ" Москва
+./memo.py create card countries "Россия" Москва
 ./memo.py create card countries Украина Киев
 ./memo.py create card countries Чехия Прага
 ./memo.py create card countries Словакия Братислава
@@ -84,12 +84,12 @@
 ./memo.py create card countries Лихтенштейн Вадуц
 ./memo.py create card countries Люксембург Люксембург
 ./memo.py create card countries Монако Монако
-./memo.py create card countries "Нидерланды|Голландия|Королевство Нидерландов" Амстердам
+./memo.py create card countries "Нидерланды" Амстердам
 ./memo.py create card countries Франция Париж
 ./memo.py create card countries Швейцария Берн
 ./memo.py create card countries Беларусь Минск
 ./memo.py create card countries Болгария София
-./memo.py create card countries "Молдова|Республика Молдова|Молдавия" Кишинёв
+./memo.py create card countries "Молдова" Кишинёв
 ./memo.py create card countries Румыния Бухарест
 ./memo.py create card countries Дания Копенгаген
 ./memo.py create card countries Исландия Рейкьявик
@@ -147,5 +147,26 @@
 # ### каждый тип особого случая будет отдельным шаблоном
 # ### поэтому сессии будут проходить не по шаблонам, а по группам шаблонов
 # ### но hardness будет привязан к шаблону а не группе?
+
+
+./memo.py create deck quaternions expression value
+./memo.py create card quaternions -- i^2 -1
+./memo.py create card quaternions -- ij k
+./memo.py create card quaternions -- ik -j
+./memo.py create card quaternions -- ji -k
+./memo.py create card quaternions -- j^2 -1
+./memo.py create card quaternions -- jk i
+./memo.py create card quaternions -- ki j
+./memo.py create card quaternions -- kj -i
+./memo.py create card quaternions -- k^2 -1
+./memo.py create template quaternions 1 value '{expression} = '
+
+
+
+
+
+
+
+
 
 

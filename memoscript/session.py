@@ -250,7 +250,7 @@ def get_auto_grade(delay, answer):
 
 def get_grade(auto_grade, task, guess, delay):
     if auto_grade:
-        if guess.replace(' ', '').replace('-', '').lower() == task.answer.replace(' ', '').replace('-', '').lower():
+        if guess.lower() == task.answer.lower():
             print(f"{start_green}Ты молодец!{start_normal}")
             print(f"Время ответа: {delay:0.2f}")
             grade = get_auto_grade(delay, task.answer)
