@@ -109,6 +109,7 @@ def decode_deck_fields_map(card_id, fields_json, field_names):
     fields = json.loads(fields_json)
     fields_map = dict(zip(field_names, fields))
     fields_map["card_id"] = card_id
+    fields_map = {k: v for k, v in fields_map.items() if v != ""}
     return fields_map
 
 
@@ -145,7 +146,7 @@ def get_daily_stats(dbpath, template_id):
         return new_count, total_count
 
 
-def get_sub_list(dbpath, template_id, answer_field, question_form, size, char, next_time, field_names):
+def get_sub_list(dbpath, template_id, answer_field, question_forms, size, char, next_time, field_names):
     with sqlite3.connect(dbpath) as c:
         q = f"""
             SELECT rs.card_id, rs.delta, rs.prev_delta, d.fields_json
@@ -163,13 +164,20 @@ def get_sub_list(dbpath, template_id, answer_field, question_form, size, char, n
             card_id, delta, prev_delta = row[:3]
             fields_map = decode_deck_fields_map(card_id, row[3], field_names)
             answer = fields_map[answer_field]
-            question = question_form.format(**fields_map)
+            for question_form in question_forms:
+                try:
+                    question = question_form.format(**fields_map)
+                    break
+                except KeyError:
+                    pass
+            else:
+                raise Exception('Нет подходящей формы!') # ### А что если не вбрасывать исключение, а просто не добавлять карточку? не баг, а фича!
             task = Task(next_time, answer, question, delta, prev_delta, card_id)
             sub_list.append(task)
         return sub_list
 
 
-def get_adhoc_list(dbpath, answer_field, question_form, id_list, limit, field_names):
+def get_adhoc_list(dbpath, answer_field, question_forms, id_list, limit, field_names):
     with sqlite3.connect(dbpath) as c:
         if id_list:
             placeholders = ', '.join(['?'] * len(id_list))
@@ -181,20 +189,29 @@ def get_adhoc_list(dbpath, answer_field, question_form, id_list, limit, field_na
         for card_id, fields_json in rows:
             fields_map = decode_deck_fields_map(card_id, fields_json, field_names)
             answer = fields_map[answer_field]
-            question = question_form.format(**fields_map)
+            for question_form in question_forms:
+                try:
+                    question = question_form.format(**fields_map)
+                    break
+                except KeyError:
+                    pass
+            else:
+                raise Exception('Нет подходящей формы!')
             task = Task(float('+inf'), answer, question, limit=limit)
             task_list.append(task)
         random.shuffle(task_list)
         return task_list
 
 
-
 def get_template(dbpath, template_id):
     with sqlite3.connect(dbpath) as c:
-        q = "SELECT auto_grade, answer_field, question_form FROM templates WHERE template_id = ?"
+        q = "SELECT auto_grade, answer_field, question_forms_json FROM templates WHERE template_id = ?"
         db_form = [template_id]
         i = c.execute(q, db_form)
-        return next(i)
+        auto_grade, answer_field, question_forms_json = next(i)
+        auto_grade = bool(auto_grade)
+        question_forms = json.loads(question_forms_json)
+        return auto_grade, answer_field, question_forms
 
 
 def get_scheduled_list(dbpath, template_id, answer_field, question_form, field_names):
@@ -365,14 +382,14 @@ if __name__ == '__main__':
     dbpath = args.deck_id
     template_id = args.template_id
     is_template_exist(dbpath, template_id)
-    auto_grade, answer_field, question_form = get_template(dbpath, template_id)
+    auto_grade, answer_field, question_forms = get_template(dbpath, template_id)
     field_names = get_field_names(dbpath)
     if ad_hoc:
         print("Режим ad-hoc")
         id_list = get_id_list(args.card_ids)
-        task_list = get_adhoc_list(dbpath, answer_field, question_form, id_list, limit, field_names)
+        task_list = get_adhoc_list(dbpath, answer_field, question_forms, id_list, limit, field_names)
     else:
         print("Режим scheduled")
         handle_newest(template_id)
-        task_list = get_scheduled_list(dbpath, template_id, answer_field, question_form, field_names)
+        task_list = get_scheduled_list(dbpath, template_id, answer_field, question_forms, field_names)
     proc(task_list, template_id, auto_grade)

@@ -6,6 +6,7 @@ import sqlite3
 import sys
 import types
 import argparse
+import json
 
 from common import is_db_exist, is_field_exist, validate_new_name
 
@@ -21,9 +22,10 @@ def add_daily_stats_record(dbpath, template_id):
         db_form = [template_id, current_date]
         c.execute(q, db_form)
 
-def add_template_record(dbpath, template_id, auto_grade, answer_field, question_form):
+def add_template_record(dbpath, template_id, auto_grade, answer_field, question_forms):
     with sqlite3.connect(dbpath) as c:
-        db_form = [template_id, auto_grade, answer_field, question_form]
+        json_items = json.dumps(question_forms, ensure_ascii = False)
+        db_form = [template_id, auto_grade, answer_field, json_items]
         q = "INSERT INTO templates VALUES(?, ?, ?, ?)"
         c.execute(q, db_form)
 
@@ -32,7 +34,7 @@ def handle_args():
     parser.add_argument(dest = "deck_id", type = is_db_exist)
     parser.add_argument(dest ='template_id', type = validate_new_name)
     parser.add_argument(dest = 'answer_field')
-    parser.add_argument(dest = 'question_form')
+    parser.add_argument(dest = 'question_forms', nargs = '+')
     parser.add_argument('-e', '--manual-evaluation', action = 'store_true')
     return parser.parse_args()
 
@@ -44,10 +46,10 @@ if __name__ == '__main__':
     dbpath = args.deck_id
     template_id = args.template_id
     answer_field = args.answer_field
-    question_form = args.question_form
+    question_forms = args.question_forms
     is_field_exist(dbpath, answer_field)
     current_date = datetime.date.today().toordinal()
     daily_stats_update(dbpath, template_id)
     add_daily_stats_record(dbpath, template_id)
-    add_template_record(dbpath, template_id, auto_grade, answer_field, question_form)
+    add_template_record(dbpath, template_id, auto_grade, answer_field, question_forms)
 

@@ -11,9 +11,12 @@ from common import get_field_count, is_db_exist
 
 
 def add_deck_record(dbpath, fields):
-    expected_count = get_field_count(dbpath)
-    if len(fields) != expected_count:
-        raise ValueError(f"Expected {expected_count} fields, got {len(fields)}")
+    maximum_count = get_field_count(dbpath)
+    actual_count = len(fields)
+    dif = maximum_count - actual_count
+    if dif < 0:
+        raise Exception(f'Too much arguments! Maximum is {maximum_count}, {actual_count} given')
+    fields += [""] * dif
     with sqlite3.connect(dbpath) as c:
         q = "INSERT INTO deck(card_id, fields_json) VALUES(?, ?)"
         db_form = [None, json.dumps(fields, ensure_ascii=False)]

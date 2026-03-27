@@ -6,6 +6,7 @@ import sys
 import types
 import os
 import argparse
+import json
 
 from common import get_db_path, validate_new_name
 
@@ -41,7 +42,7 @@ def create_templates_table(dbpath):
         template_id TEXT PRIMARY KEY,
         auto_grade INT,
         answer_field TEXT,
-        question_form TEXT);
+        question_forms_json TEXT);
         """
         c.execute(q)
 
