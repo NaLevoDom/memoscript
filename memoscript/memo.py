@@ -29,7 +29,7 @@ os.chdir(SCRIPT_DIR)
 def build_parser():
     parser = argparse.ArgumentParser(
         prog='memo.py',
-        description='memoscript — система интервального повторения',
+        description='memoscript система интервального повторения',
     )
     subparsers = parser.add_subparsers(dest='command', help='доступные команды')
 

@@ -71,59 +71,214 @@
 ./memo.py create template elements 3 name "Напиши название элемента <{symbol}>: "
 
 ./memo.py create deck countries country capital status
-# ./memo.py create card countries "Россия" Москва
-# ./memo.py create card countries Украина Киев
-# ./memo.py create card countries Чехия Прага
-# ./memo.py create card countries Словакия Братислава
-# ./memo.py create card countries Австрия Вена
-# ./memo.py create card countries Венгрия Будапешт
-# ./memo.py create card countries Великобритания Лондон
-./memo.py create card countries Ирландия Дублин
+./memo.py create card countries Австрия Вена
+./memo.py create card countries Албания Тирана
+./memo.py create card countries Андорра Андорра-ла-Велья
+./memo.py create card countries Беларусь Минск
 ./memo.py create card countries Бельгия Брюссель
+./memo.py create card countries Болгария София
+./memo.py create card countries "Босния и Герцеговина" Сараево
+./memo.py create card countries Ватикан Ватикан
+./memo.py create card countries Великобритания Лондон
+./memo.py create card countries Венгрия Будапешт
 ./memo.py create card countries Германия Берлин
+./memo.py create card countries Греция Афины
+./memo.py create card countries Дания Копенгаген
+./memo.py create card countries Ирландия Дублин
+./memo.py create card countries Исландия Рейкьявик
+./memo.py create card countries Испания Мадрид
+./memo.py create card countries Италия Рим
+./memo.py create card countries Латвия Рига
+./memo.py create card countries Литва Вильнюс
 ./memo.py create card countries Лихтенштейн Вадуц
 ./memo.py create card countries Люксембург Люксембург
+./memo.py create card countries Мальта Валетта
+./memo.py create card countries Молдова Кишинёв
 ./memo.py create card countries Монако Монако
-./memo.py create card countries "Нидерланды" Амстердам де-юре
-./memo.py create card countries "Нидерланды" Гаага де-факто
-# ./memo.py create card countries Франция Париж
-# ./memo.py create card countries Швейцария Берн
-# ./memo.py create card countries Беларусь Минск
-# ./memo.py create card countries Болгария София
-# ./memo.py create card countries "Молдова" Кишинёв
-# ./memo.py create card countries Румыния Бухарест
-# ./memo.py create card countries Дания Копенгаген
-# ./memo.py create card countries Исландия Рейкьявик
-# ./memo.py create card countries Латвия Рига
-# ./memo.py create card countries Литва Вильнюс
-# ./memo.py create card countries Эстония Таллин
-# ./memo.py create card countries Норвегия Осло
-# ./memo.py create card countries Финляндия Хельсинки
-# ./memo.py create card countries Швеция Стокгольм
-# ./memo.py create card countries Албания Тирана
-# ./memo.py create card countries Андора Андора-ла-Велья
-# ./memo.py create card countries 'Босния и Герцеговина' Сараево
-# ./memo.py create card countries Греция Афины
-# ./memo.py create card countries Испания Мадрид
-# ./memo.py create card countries Италия Рим
-# ./memo.py create card countries 'Северная Македония' Скопье
-# ./memo.py create card countries Мальта Валлетта
-# ./memo.py create card countries Португалия Лиссабон
-# ./memo.py create card countries Сан-Марино Сан-Марино
-# ./memo.py create card countries Косово Приштина
-# ./memo.py create card countries Сербия Белград
-# ./memo.py create card countries Словения Любляна
-# ./memo.py create card countries Хорватия Загреб
-# ./memo.py create card countries Канада Оттава
-# ./memo.py create card countries Австралия Камберра
-# ./memo.py create card countries Азербайджан Баку
-# ./memo.py create card countries Армения Ереван
-# ./memo.py create card countries Грузия Тбилиси
-# ./memo.py create card countries Казахстан Астана
-# ./memo.py create card countries Кыргызстан Бишкек
-# ./memo.py create card countries Таджикистан Душанбе
-# ./memo.py create card countries Туркменистан Ашхабад
-# ./memo.py create card countries Узбекистан Ташкент
+./memo.py create card countries Нидерланды Амстердам де-юре
+./memo.py create card countries Нидерланды Амстердам де-факто
+./memo.py create card countries Норвегия Осло
+./memo.py create card countries Польша Варшава
+./memo.py create card countries Португалия Лиссабон
+./memo.py create card countries Россия Москва
+./memo.py create card countries Румыния Бухарест
+./memo.py create card countries Сан-Марино Сан-Марино
+./memo.py create card countries Северная Македония Скопье
+./memo.py create card countries Сербия Белград
+./memo.py create card countries Словакия Братислава
+./memo.py create card countries Словения Любляна
+./memo.py create card countries Украина Киев
+./memo.py create card countries Финляндия Хельсинки
+./memo.py create card countries Франция Париж
+./memo.py create card countries Хорватия Загреб
+./memo.py create card countries Черногория Подгорица главная
+./memo.py create card countries Черногория Цетине историческая
+./memo.py create card countries Чехия Прага
+./memo.py create card countries Швейцария Берн де-факто
+./memo.py create card countries Швеция Стокгольм
+./memo.py create card countries Эстония Таллин
+./memo.py create card countries Азербайджан Баку
+./memo.py create card countries Армения Ереван
+./memo.py create card countries Афганистан Кабул
+./memo.py create card countries Бангладеш Дакка
+./memo.py create card countries Бахрейн Манама
+./memo.py create card countries Бруней Бандар-Сери-Бегаван
+./memo.py create card countries Бутан Тхимпху
+./memo.py create card countries "Восточный Тимор" Дили
+./memo.py create card countries Вьетнам Ханой
+./memo.py create card countries Грузия Тбилиси
+./memo.py create card countries Израиль Иерусалим непризнанная
+./memo.py create card countries Израиль Иерусалим признанная
+./memo.py create card countries Индия Нью-Дели
+./memo.py create card countries Индонезия Нусантара новая
+./memo.py create card countries Индонезия Джакарта старая
+./memo.py create card countries Иордания Амман
+./memo.py create card countries Ирак Багдад
+./memo.py create card countries Иран Тегеран
+./memo.py create card countries Йемен Сана
+./memo.py create card countries Казахстан Астана
+./memo.py create card countries Камбоджа Пномпень
+./memo.py create card countries Катар Доха
+./memo.py create card countries Кипр Никосия
+./memo.py create card countries Киргизия Бишкек
+./memo.py create card countries Китай Пекин
+./memo.py create card countries КНДР Пхеньян
+./memo.py create card countries Кувейт Эль-Кувейт
+./memo.py create card countries Лаос Вьентьян
+./memo.py create card countries Ливан Бейрут
+./memo.py create card countries Малайзия Куала-Лумпур де-юре
+./memo.py create card countries Малайзия Путраджая де-факто
+./memo.py create card countries Мальдивы Мале
+./memo.py create card countries Монголия Улан-Батор
+./memo.py create card countries Мьянма Нейпьидо
+./memo.py create card countries Непал Катманду
+./memo.py create card countries ОАЭ Абу-Даби
+./memo.py create card countries Оман Маскат
+./memo.py create card countries Пакистан Исламабад
+./memo.py create card countries "Саудовская Аравия" Эр-Рияд
+./memo.py create card countries Сингапур Сингапур
+./memo.py create card countries Сирия Дамаск
+./memo.py create card countries Таджикистан Душанбе
+./memo.py create card countries Таиланд Бангкок
+./memo.py create card countries Туркменистан Ашхабад
+./memo.py create card countries Турция Анкара
+./memo.py create card countries Узбекистан Ташкент
+./memo.py create card countries Филиппины Манила
+./memo.py create card countries Шри-Ланка Шри-Джаяварденепура-Котте де-юре
+./memo.py create card countries Шри-Ланка Коломбо де-факто
+./memo.py create card countries "Южная Корея" Сеул
+./memo.py create card countries Япония Токио
+./memo.py create card countries "Антигуа и Барбуда" Сент-Джонс
+./memo.py create card countries Аргентина Буэнос-Айрес
+./memo.py create card countries "Багамские Острова" Нассау
+./memo.py create card countries Барбадос Бриджтаун
+./memo.py create card countries Белиз Бельмопан
+./memo.py create card countries Боливия Сукре де-юре
+./memo.py create card countries Боливия Ла-Пас де-факто
+./memo.py create card countries Бразилия Бразилиа
+./memo.py create card countries Венесуэла Каракас
+./memo.py create card countries Гаити Порт-о-Пренс
+./memo.py create card countries Гайана Джорджтаун
+./memo.py create card countries Гватемала Гватемала
+./memo.py create card countries Гондурас Тегусигальпа
+./memo.py create card countries Гренада Сент-Джорджес
+./memo.py create card countries Доминика Розо
+./memo.py create card countries "Доминиканская Республика" Санто-Доминго
+./memo.py create card countries Канада Оттава
+./memo.py create card countries Колумбия Богота
+./memo.py create card countries Коста-Рика Сан-Хосе
+./memo.py create card countries Куба Гавана
+./memo.py create card countries Мексика Мехико
+./memo.py create card countries Никарагуа Манагуа
+./memo.py create card countries Панама Панама
+./memo.py create card countries Парагвай Асунсьон
+./memo.py create card countries Перу Лима
+./memo.py create card countries Сальвадор Сан-Сальвадор
+./memo.py create card countries "Сент-Винсент и Гренадины" Кингстаун
+./memo.py create card countries "Сент-Китс и Невис" Бастер
+./memo.py create card countries Сент-Люсия Кастри
+./memo.py create card countries Суринам Парамарибо
+./memo.py create card countries США Вашингтон
+./memo.py create card countries "Тринидад и Тобаго" Порт-оф-Спейн
+./memo.py create card countries Уругвай Монтевидео
+./memo.py create card countries Чили Сантьяго
+./memo.py create card countries Эквадор Кито
+./memo.py create card countries Ямайка Кингстон
+./memo.py create card countries Алжир Алжир
+./memo.py create card countries Ангола Луанда
+./memo.py create card countries Бенин Порто-Ново де-юре
+./memo.py create card countries Бенин Котону де-факто
+./memo.py create card countries Ботсвана Габороне
+./memo.py create card countries Буркина-Фасо Уагадугу
+./memo.py create card countries Бурунди Гитега
+./memo.py create card countries Габон Либревиль
+./memo.py create card countries Гамбия Банжул
+./memo.py create card countries Гана Аккра
+./memo.py create card countries Гвинея Конакри
+./memo.py create card countries Гвинея-Бисау Бисау
+./memo.py create card countries Джибути Джибути
+./memo.py create card countries Египет Каир
+./memo.py create card countries Замбия Лусака
+./memo.py create card countries Зимбабве Хараре
+./memo.py create card countries Кабо-Верде Прая
+./memo.py create card countries Камерун Яунде
+./memo.py create card countries Кения Найроби
+./memo.py create card countries Коморы Морони
+./memo.py create card countries Конго Браззавиль
+./memo.py create card countries "Демократическая Республика Конго" Киншаса
+./memo.py create card countries Кот-д-Ивуар Ямусукро де-юре
+./memo.py create card countries Кот-д-Ивуар Абиджан де-факто
+./memo.py create card countries Лесото Масеру
+./memo.py create card countries Либерия Монровия
+./memo.py create card countries Ливия Триполи
+./memo.py create card countries Маврикий Порт-Луи
+./memo.py create card countries Маврикания Нуакшот
+./memo.py create card countries Мадагаскар Антананариву
+./memo.py create card countries Малави Лилонгве
+./memo.py create card countries Мали Бамако
+./memo.py create card countries Марокко Рабат
+./memo.py create card countries Мозамбик Мапуту
+./memo.py create card countries Намибия Виндхук
+./memo.py create card countries Нигер Ниамей
+./memo.py create card countries Нигерия Абуджа
+./memo.py create card countries Руанда Кигали
+./memo.py create card countries "Сан-Томе и Принсипи" Сан-Томе
+./memo.py create card countries "Сейшельские Острова" Виктория
+./memo.py create card countries Сенегал Дакар
+./memo.py create card countries Сомали Могадишо
+./memo.py create card countries Судан Хартум
+./memo.py create card countries Сьерра-Леоне Фритаун
+./memo.py create card countries Танзания Додома де-юре
+./memo.py create card countries Танзания Дар-эс-Салам де-факто
+./memo.py create card countries Того Ломе
+./memo.py create card countries Тунис Тунис
+./memo.py create card countries Уганда Кампала
+./memo.py create card countries "Центральноафриканская Республика" Банги
+./memo.py create card countries Чад Нджамена
+./memo.py create card countries Экваториальная Гвинея Малабо
+./memo.py create card countries Эритрея Асмэра
+./memo.py create card countries Эсватини Мбабане административная
+./memo.py create card countries Эсватини Лобамба королевская
+./memo.py create card countries Эфиопия Аддис-Абеба
+./memo.py create card countries ЮАР Претория административная
+./memo.py create card countries ЮАР Кейптаун законодательная
+./memo.py create card countries ЮАР Блумфонтейн судебная
+./memo.py create card countries "Южный Судан" Джуба
+./memo.py create card countries Австралия и Океания
+./memo.py create card countries Австралия Канберра
+./memo.py create card countries Вануату Порт-Вила
+./memo.py create card countries Кирибати "Южная Тарава"
+./memo.py create card countries "Маршалловы Острова" Маджуро
+./memo.py create card countries Микронезия Паликир
+./memo.py create card countries Науру Ярен де-факто
+./memo.py create card countries Новая Зеландия Веллингтон
+./memo.py create card countries Палау Нгерулмуд
+./memo.py create card countries "Папуа-Новая Гвинея" Порт-Морсби
+./memo.py create card countries Самоа Апиа
+./memo.py create card countries "Соломоновы Острова" Хониара
+./memo.py create card countries Тонга Нукуалофа
+./memo.py create card countries Тувалу Фунафути
+./memo.py create card countries Фиджи Сува
 ./memo.py create template countries 1 country 'В какой стране столица {capital}? ({status}): ' 'В какой стране столица {capital}?: '
 ./memo.py create template countries 2 capital 'Какая столица в стране {country}? ({status}): ' 'Какая столица в стране {country}?: '
 # ### всё это надо переделать, нужна обработка особых случаев, к тому же тут не хватает многих стран
