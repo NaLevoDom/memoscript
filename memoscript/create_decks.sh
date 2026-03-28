@@ -74,7 +74,7 @@
 ./memo.py create card countries Австрия Вена
 ./memo.py create card countries Албания Тирана
 ./memo.py create card countries Андорра Андорра-ла-Велья
-./memo.py create card countries Беларусь Минск
+./memo.py create card countries "Беларусь|Белоруссия" Минск
 ./memo.py create card countries Бельгия Брюссель
 ./memo.py create card countries Болгария София
 ./memo.py create card countries "Босния и Герцеговина" Сараево
@@ -93,14 +93,14 @@
 ./memo.py create card countries Лихтенштейн Вадуц
 ./memo.py create card countries Люксембург Люксембург
 ./memo.py create card countries Мальта Валетта
-./memo.py create card countries Молдова Кишинёв
+./memo.py create card countries "Молдова|Молдавия" Кишинёв
 ./memo.py create card countries Монако Монако
-./memo.py create card countries Нидерланды Амстердам де-юре
-./memo.py create card countries Нидерланды Амстердам де-факто
+./memo.py create card countries "Нидерланды|Голландия" Амстердам де-юре
+./memo.py create card countries "Нидерланды|Голландия" Гаага де-факто
 ./memo.py create card countries Норвегия Осло
 ./memo.py create card countries Польша Варшава
 ./memo.py create card countries Португалия Лиссабон
-./memo.py create card countries Россия Москва
+./memo.py create card countries "Россия|РФ" Москва
 ./memo.py create card countries Румыния Бухарест
 ./memo.py create card countries Сан-Марино Сан-Марино
 ./memo.py create card countries Северная Македония Скопье
@@ -128,7 +128,7 @@
 ./memo.py create card countries Вьетнам Ханой
 ./memo.py create card countries Грузия Тбилиси
 ./memo.py create card countries Израиль Иерусалим непризнанная
-./memo.py create card countries Израиль Иерусалим признанная
+./memo.py create card countries Израиль Тель-Авив признанная
 ./memo.py create card countries Индия Нью-Дели
 ./memo.py create card countries Индонезия Нусантара новая
 ./memo.py create card countries Индонезия Джакарта старая
@@ -140,7 +140,7 @@
 ./memo.py create card countries Камбоджа Пномпень
 ./memo.py create card countries Катар Доха
 ./memo.py create card countries Кипр Никосия
-./memo.py create card countries Киргизия Бишкек
+./memo.py create card countries "Киргизия|Кыргызстан|Кыргызская Республика" Бишкек
 ./memo.py create card countries Китай Пекин
 ./memo.py create card countries КНДР Пхеньян
 ./memo.py create card countries Кувейт Эль-Кувейт
@@ -160,7 +160,7 @@
 ./memo.py create card countries Сирия Дамаск
 ./memo.py create card countries Таджикистан Душанбе
 ./memo.py create card countries Таиланд Бангкок
-./memo.py create card countries Туркменистан Ашхабад
+./memo.py create card countries "Туркменистан|Туркмения" Ашхабад
 ./memo.py create card countries Турция Анкара
 ./memo.py create card countries Узбекистан Ташкент
 ./memo.py create card countries Филиппины Манила
@@ -253,7 +253,7 @@
 ./memo.py create card countries Того Ломе
 ./memo.py create card countries Тунис Тунис
 ./memo.py create card countries Уганда Кампала
-./memo.py create card countries "Центральноафриканская Республика" Банги
+./memo.py create card countries ЦАР Банги
 ./memo.py create card countries Чад Нджамена
 ./memo.py create card countries Экваториальная Гвинея Малабо
 ./memo.py create card countries Эритрея Асмэра

@@ -73,13 +73,13 @@ class Task:
     ):
         self.next_time = next_time
         self.card_id = card_id
-        self.answer = answer
         self.question = question
         self.delta = delta
         self.prev_delta = prev_delta
         self.attempts = 0
         self.counter = 0
         self.limit = self._get_limit(limit)
+        self.answers = answer.split('|')
 
     def _get_limit(self, limit):
         if not limit:
@@ -267,18 +267,15 @@ def get_auto_grade(delay, answer):
 
 def get_grade(auto_grade, task, guess, delay):
     if auto_grade:
-        if guess.lower() == task.answer.lower():
-            print(f"{start_green}Ты молодец!{start_normal}")
-            print(f"Время ответа: {delay:0.2f}")
-            grade = get_auto_grade(delay, task.answer)
-        else:
-            print(
-                f"{start_red}Неправильно!{start_normal} Правильный ответ {start_blue}{task.answer}{start_normal}")
-            grade = 1
-    else:
-        print(f"Правильный ответ {task.answer}")
-        grade = get_manual_grade()
-    return grade
+        for answer in task.answers:
+            if guess.lower() == answer.lower():
+                print(f"{start_green}Ты молодец!{start_normal}")
+                print(f"Время ответа: {delay:0.2f}")
+                return get_auto_grade(delay, answer)
+        print(f"{start_red}Неправильно!{start_normal} Правильный ответ {start_blue}{task.answer}{start_normal}")
+        return 1
+    print(f"Правильный ответ {task.answers}")
+    return get_manual_grade()
 
 
 def update_counter(task, grade):

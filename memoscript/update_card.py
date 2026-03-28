@@ -14,7 +14,7 @@ def update_deck_record(dbpath, fields, card_id):
     actual_count = len(fields)
     dif = maximum_count - actual_count
     if dif < 0:
-        raise Exception(f'Too much arguments! Maximum is {maximum_count}, {actual_count} given')
+        raise Exception(f'Too much fields! Maximum is {maximum_count}, {actual_count} given')
     fields += [""] * dif
     with sqlite3.connect(dbpath) as c:
         q = "UPDATE deck SET fields_json = ? WHERE card_id = ?"
