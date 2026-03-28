@@ -1,18 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-Главный модуль memoscript. Git-подобная структура вызовов:
-
-  ./memo.py session <deck_id> <template_id> [options]
-  ./memo.py create deck <deck_id> <field_names>...
-  ./memo.py create card <deck_id> <fields>...
-  ./memo.py create template <deck_id> <template_id> <answer_field> <question_form> [options]
-  ./memo.py update card <deck_id> <fields>...
-  ./memo.py update template <deck_id> <template_id> ...
-  ./memo.py delete card <deck_id> [options]
-  ./memo.py delete template <deck_id> <template_id>
-  ./memo.py show deck <deck_id>
-"""
 
 import argparse
 import os

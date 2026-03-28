@@ -140,7 +140,7 @@
 ./memo.py create card countries Камбоджа Пномпень
 ./memo.py create card countries Катар Доха
 ./memo.py create card countries Кипр Никосия
-./memo.py create card countries "Киргизия|Кыргызстан|Кыргызская Республика" Бишкек
+./memo.py create card countries "Киргизия|Кыргызстан" Бишкек
 ./memo.py create card countries Китай Пекин
 ./memo.py create card countries КНДР Пхеньян
 ./memo.py create card countries Кувейт Эль-Кувейт
