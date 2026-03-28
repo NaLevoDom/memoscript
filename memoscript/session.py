@@ -272,7 +272,7 @@ def get_grade(auto_grade, task, guess, delay):
                 print(f"{start_green}Ты молодец!{start_normal}")
                 print(f"Время ответа: {delay:0.2f}")
                 return get_auto_grade(delay, answer)
-        print(f"{start_red}Неправильно!{start_normal} Правильный ответ {start_blue}{task.answer}{start_normal}")
+        print(f"{start_red}Неправильно!{start_normal} Правильный ответ {start_blue}{task.answers}{start_normal}")
         return 1
     print(f"Правильный ответ {task.answers}")
     return get_manual_grade()
