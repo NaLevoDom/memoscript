@@ -8,7 +8,7 @@ import types
 import argparse
 import json
 
-from common import is_db_exist, is_field_exist, validate_new_name
+from common import is_db_exist, is_field_exist, validate_name
 
 def daily_stats_update(dbpath, template_id):
     with sqlite3.connect(dbpath) as c:
@@ -32,7 +32,7 @@ def add_template_record(dbpath, template_id, auto_grade, answer_field, question_
 def handle_args():
     parser = argparse.ArgumentParser()
     parser.add_argument(dest = "deck_id", type = is_db_exist)
-    parser.add_argument(dest ='template_id', type = validate_new_name)
+    parser.add_argument(dest ='template_id', type = validate_name)
     parser.add_argument(dest = 'answer_field')
     parser.add_argument(dest = 'question_forms', nargs = '+')
     parser.add_argument('-e', '--manual-evaluation', action = 'store_true')

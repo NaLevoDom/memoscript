@@ -5,25 +5,34 @@ import os
 import re
 import sqlite3
 import sys
+from pathlib import Path
+from copy import copy
 
+# is_field_exist function? ###
 
-def validate_new_name(name):
-    if re.fullmatch(r'[a-zA-Z0-9_]+', name):
-        return name
-    raise ValueError('Имя может содержать только латинские буквы, цифры и знак _.')
+def validate_name(field_name):
+    if re.fullmatch(r'[a-zA-Z0-9_]+', field_name):
+        return field_name
+    raise ValueError('Имя поля может содержать только латинские буквы, цифры и знак _.')
 
+def validate_deck_name(deck_name):
+    if re.fullmatch(r'[a-zA-Z0-9_/]+', deck_name):
+        return deck_name
+    raise ValueError('Имя колоды может содержать только латинские буквы, цифры и знаки _/.')
 
-def get_db_path(name):
-    """Путь к БД колоды по имени. Каталог decks/ захардкожен."""
-    return 'decks/' + validate_new_name(name) + '.db'
+def get_db_path(deck_name):
+    p = copy(PATH_TO_DECK)
+    path_components = deck_name.split('/')
+    path_components[-1] += '.db'
+    for c in path_components:
+        p /= c
+    return p
 
-
-def is_db_exist(deck_id):
-    dbpath = 'decks/' + deck_id + '.db'
-    if os.path.isfile(dbpath):
-        return dbpath
+def is_db_exist(deck_name):
+    p = get_db_path(deck_name)
+    if os.path.isfile(p):
+        return p
     raise ValueError('Нет колоды с таким именем')
-
 
 def is_template_exist(dbpath, template_id):
     with sqlite3.connect(dbpath) as c:
@@ -81,3 +90,5 @@ def get_field_names(dbpath):
         q = "SELECT field_name FROM deck_fields ORDER BY field_position ASC"
         i = c.execute(q)
         return [row[0] for row in i]
+
+PATH_TO_DECK = Path('decks')

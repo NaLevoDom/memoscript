@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
+rm -rf decks
 ./memo.py create deck elements number symbol name
+./memo.py create template elements 1 number "Напиши номер элемента <{name}>: "
+./memo.py create template elements 2 symbol "Напиши обозначение элемента №{number}: "
+./memo.py create template elements 3 name "Напиши название элемента <{symbol}>: "
 ./memo.py create card elements 1 H Водород
 ./memo.py create card elements 2 He Гелий
 ./memo.py create card elements 3 Li Литий
@@ -66,11 +70,10 @@
 ./memo.py create card elements 64 Gd Гадолиний
 ./memo.py create card elements 65 Tb Тербий
 ./memo.py create card elements 66 Dy Диспрозий
-./memo.py create template elements 1 number "Напиши номер элемента <{name}>: "
-./memo.py create template elements 2 symbol "Напиши обозначение элемента №{number}: "
-./memo.py create template elements 3 name "Напиши название элемента <{symbol}>: "
 
 ./memo.py create deck countries country capital status
+./memo.py create template countries 1 country 'В какой стране столица {capital}? ({status}): ' 'В какой стране столица {capital}?: '
+./memo.py create template countries 2 capital 'Какая столица в стране {country}? ({status}): ' 'Какая столица в стране {country}?: '
 ./memo.py create card countries Австрия Вена
 ./memo.py create card countries Албания Тирана
 ./memo.py create card countries Андорра Андорра-ла-Велья
@@ -264,7 +267,6 @@
 ./memo.py create card countries ЮАР Кейптаун законодательная
 ./memo.py create card countries ЮАР Блумфонтейн судебная
 ./memo.py create card countries "Южный Судан" Джуба
-./memo.py create card countries Австралия и Океания
 ./memo.py create card countries Австралия Канберра
 ./memo.py create card countries Вануату Порт-Вила
 ./memo.py create card countries Кирибати "Южная Тарава"
@@ -279,11 +281,11 @@
 ./memo.py create card countries Тонга Нукуалофа
 ./memo.py create card countries Тувалу Фунафути
 ./memo.py create card countries Фиджи Сува
-./memo.py create template countries 1 country 'В какой стране столица {capital}? ({status}): ' 'В какой стране столица {capital}?: '
-./memo.py create template countries 2 capital 'Какая столица в стране {country}? ({status}): ' 'Какая столица в стране {country}?: '
-# ### всё это надо переделать, нужна обработка особых случаев, к тому же тут не хватает многих стран
 
 ./memo.py create deck months number name days
+./memo.py create template months 1 number 'Напиши порядковый номер месяца <{name}>: '
+./memo.py create template months 2 name 'Напиши месяц №{number}: '
+./memo.py create template months 3 days 'Сколько дней в {name}: '
 ./memo.py create card months 1 Январь 31
 ./memo.py create card months 2 Февраль 28
 ./memo.py create card months 3 Март 31
@@ -296,31 +298,73 @@
 ./memo.py create card months 10 Октябрь 31
 ./memo.py create card months 11 Ноябрь 30
 ./memo.py create card months 12 Декабрь 31
-./memo.py create template months 1 number 'Напиши порядковый номер месяца <{name}>: '
-./memo.py create template months 2 name 'Напиши месяц №{number}: '
-./memo.py create template months 3 days 'Сколько дней в {name}: '
 # ### февраль, по хорошему, тоже нужно обрабатывать как особый случай
-# ### каждый тип особого случая будет отдельным шаблоном
-# ### поэтому сессии будут проходить не по шаблонам, а по группам шаблонов
-# ### но hardness будет привязан к шаблону а не группе?
 
+./memo.py create deck math/quaternions expression value
+./memo.py create template math/quaternions 1 value '{expression} = '
+./memo.py create card math/quaternions -- i^2 -1
+./memo.py create card math/quaternions -- ij k
+./memo.py create card math/quaternions -- ik -j
+./memo.py create card math/quaternions -- ji -k
+./memo.py create card math/quaternions -- j^2 -1
+./memo.py create card math/quaternions -- jk i
+./memo.py create card math/quaternions -- ki j
+./memo.py create card math/quaternions -- kj -i
+./memo.py create card math/quaternions -- k^2 -1
 
-./memo.py create deck quaternions expression value
-./memo.py create card quaternions -- i^2 -1
-./memo.py create card quaternions -- ij k
-./memo.py create card quaternions -- ik -j
-./memo.py create card quaternions -- ji -k
-./memo.py create card quaternions -- j^2 -1
-./memo.py create card quaternions -- jk i
-./memo.py create card quaternions -- ki j
-./memo.py create card quaternions -- kj -i
-./memo.py create card quaternions -- k^2 -1
-./memo.py create template quaternions 1 value '{expression} = '
-
-
-
-
-
+# кватернионы могут быть отдельной ТРЕНИРОВКОЙ в рамках октанионов?
+# видимо пора вводить новую сущность тренировка, это как заранее заданный адхок?
+./memo.py create deck math/octonions expression value
+./memo.py create template math/octonions 1 value '{expression} = '
+./memo.py create card math/octonions -- i^2 -1
+./memo.py create card math/octonions -- j^2 -1
+./memo.py create card math/octonions -- k^2 -1
+./memo.py create card math/octonions -- l^2 -1
+./memo.py create card math/octonions -- m^2 -1
+./memo.py create card math/octonions -- n^2 -1
+./memo.py create card math/octonions -- o^2 -1
+./memo.py create card math/octonions -- ij k
+./memo.py create card math/octonions -- jk i
+./memo.py create card math/octonions -- ki j
+./memo.py create card math/octonions -- ji -k
+./memo.py create card math/octonions -- kj -i
+./memo.py create card math/octonions -- ik -j
+./memo.py create card math/octonions -- il m
+./memo.py create card math/octonions -- lm i
+./memo.py create card math/octonions -- mi l
+./memo.py create card math/octonions -- li -m
+./memo.py create card math/octonions -- ml -i
+./memo.py create card math/octonions -- im -l
+./memo.py create card math/octonions -- jl n
+./memo.py create card math/octonions -- ln j
+./memo.py create card math/octonions -- nj l
+./memo.py create card math/octonions -- lj -n
+./memo.py create card math/octonions -- nl -j
+./memo.py create card math/octonions -- jn -l
+./memo.py create card math/octonions -- kl o
+./memo.py create card math/octonions -- lo k
+./memo.py create card math/octonions -- ok l
+./memo.py create card math/octonions -- lk -o
+./memo.py create card math/octonions -- ol -k
+./memo.py create card math/octonions -- ko -l
+./memo.py create card math/octonions -- io n
+./memo.py create card math/octonions -- on i
+./memo.py create card math/octonions -- ni o
+./memo.py create card math/octonions -- oi -n
+./memo.py create card math/octonions -- no -i
+./memo.py create card math/octonions -- in -o
+./memo.py create card math/octonions -- jo m
+./memo.py create card math/octonions -- om j
+./memo.py create card math/octonions -- mj o
+./memo.py create card math/octonions -- oj -m
+./memo.py create card math/octonions -- mo -j
+./memo.py create card math/octonions -- jm -o
+./memo.py create card math/octonions -- kn m
+./memo.py create card math/octonions -- nm k
+./memo.py create card math/octonions -- mk n
+./memo.py create card math/octonions -- nk -m
+./memo.py create card math/octonions -- mn -k
+./memo.py create card math/octonions -- km -n
 
 
 
