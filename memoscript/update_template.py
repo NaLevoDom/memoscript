@@ -2,14 +2,11 @@
 # -*- coding: utf-8 -*-
 
 import sqlite3
-import sys
-import types
-import argparse
 
 from common import is_field_exist, is_template_exist, get_db_path
 
-def update_template(dbpath, template_id, answer_field, question_forms, auto_grade):
-    with sqlite3.connect(dbpath) as c:
+def update_template(db_path, template_id, answer_field, question_forms, auto_grade):
+    with sqlite3.connect(db_path) as c:
         json_items = json.dumps(question_forms, ensure_ascii = False)
         q = "UPDATE templates SET auto_grade = ?, answer_field = ?, question_forms_json = ? WHERE template_id = ?"
         db_form = [auto_grade, answer_field, json_items, template_id]
@@ -19,11 +16,11 @@ def update_template(args):
     auto_grade = 1
     if args.manual_evaluation == True:
         auto_grade = 0
-    dbpath = get_db_path(args.deck_id)
+    db_path = get_db_path(args.deck_id)
     template_id = args.template_id
     answer_field = args.answer_field
     question_forms = args.question_forms
-    is_field_exist(dbpath, answer_field)
-    is_template_exist(dbpath, template_id)
-    update_template(dbpath, template_id, answer_field, question_forms, auto_grade)
+    is_field_exist(db_path, answer_field)
+    is_template_exist(db_path, template_id)
+    update_template(db_path, template_id, answer_field, question_forms, auto_grade)
 

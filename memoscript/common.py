@@ -35,8 +35,8 @@ def get_db_path(deck_name, check_exist = True):
             raise ValueError('Имя колоды может содержать только латинские буквы, цифры и знаки _/.')
     return p
 
-def is_template_exist(dbpath, template_id):
-    with sqlite3.connect(dbpath) as c:
+def is_template_exist(db_path, template_id):
+    with sqlite3.connect(db_path) as c:
         i = c.execute("SELECT * FROM daily_stats WHERE template_id = ?", (template_id,))
         try:
             next(i)
@@ -69,8 +69,8 @@ def ranger(id_range):
     return id_list
 
 
-def is_field_exist(dbpath, field_name):
-    with sqlite3.connect(dbpath) as c:
+def is_field_exist(db_path, field_name):
+    with sqlite3.connect(db_path) as c:
         i = c.execute("SELECT field_name FROM deck_fields WHERE field_name = ?", (field_name,))
         try:
             next(i)
@@ -79,15 +79,15 @@ def is_field_exist(dbpath, field_name):
     return field_name
 
 
-def get_field_count(dbpath):
-    with sqlite3.connect(dbpath) as c:
+def get_field_count(db_path):
+    with sqlite3.connect(db_path) as c:
         i = c.execute("SELECT COUNT(*) FROM deck_fields")
         count, = next(i)
         return count
 
 
-def get_field_names(dbpath):
-    with sqlite3.connect(dbpath) as c:
+def get_field_names(db_path):
+    with sqlite3.connect(db_path) as c:
         q = "SELECT field_name FROM deck_fields ORDER BY field_position ASC"
         i = c.execute(q)
         return [row[0] for row in i]

@@ -2,23 +2,20 @@
 # -*- coding: utf-8 -*-
 
 import sqlite3
-import sys
-import types
 import json
-import argparse
 
 from common import get_field_names, get_db_path
 
-def print_deck(dbpath):
-    with sqlite3.connect(dbpath) as c:
+def print_deck(db_path):
+    with sqlite3.connect(db_path) as c:
         q = "SELECT card_id, fields_json FROM deck ORDER BY card_id ASC"
         i = c.execute(q)
         for card_id, fields_json in i:
             fields = json.loads(fields_json)
             print((card_id, *fields))
 
-def print_template(dbpath, template_id):
-    with sqlite3.connect(dbpath) as c:
+def print_template(db_path, template_id):
+    with sqlite3.connect(db_path) as c:
         q = """
             SELECT s.card_id, s.delta, s.prev_delta, s.due_date, d.fields_json
             FROM schedule s
@@ -31,20 +28,20 @@ def print_template(dbpath, template_id):
             fields = (card_id, *json.loads(fields_json))
             print(f"{fields=}, {delta=}, {prev_delta=}, {due_date=}")
 
-def get_templates(dbpath):
-    with sqlite3.connect(dbpath) as c:
+def get_templates(db_path):
+    with sqlite3.connect(db_path) as c:
         q = "SELECT * FROM templates"
         i = c.execute(q)
         l = list(i)
     return l
 
 def show_deck(args):
-    dbpath = get_db_path(args.deck_id)
-    field_names = get_field_names(dbpath)
+    db_path = get_db_path(args.deck_id)
+    field_names = get_field_names(db_path)
     print(f"{field_names=}")
-    print_deck(dbpath)
-    templates = get_templates(dbpath)
+    print_deck(db_path)
+    templates = get_templates(db_path)
     for template_id, auto_grade, answer_field, question_form in templates:
         print()
         print(f"{template_id=}, {auto_grade=}, {answer_field=}, {question_form=}")
-        print_template(dbpath, template_id)
+        print_template(db_path, template_id)

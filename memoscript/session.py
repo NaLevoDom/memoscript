@@ -6,11 +6,8 @@ import sqlite3
 import sys
 import time
 import os
-import types
 import math
-import re
 import json
-import argparse
 if os.name == 'posix':
     import readline
 
@@ -47,8 +44,8 @@ def get_manual_grade():
         print("Ещё раз. ", end='')
 
 
-def write_db(template_id, new_delta, next_date, task, dbpath):
-    with sqlite3.connect(dbpath) as c:
+def write_db(template_id, new_delta, next_date, task, db_path):
+    with sqlite3.connect(db_path) as c:
         q = "SELECT * FROM daily_stats WHERE template_id = ?"
         db_form = [template_id]
         i = c.execute(q, db_form)
@@ -118,8 +115,8 @@ def decode_deck_fields_map(card_id, fields_json, field_names):
     return fields_map
 
 
-def handle_newest(template_id, dbpath):
-    with sqlite3.connect(dbpath) as c:
+def handle_newest(template_id, db_path):
+    with sqlite3.connect(db_path) as c:
         select_cursor = c.cursor()
         insert_cursor = c.cursor()
         q_select = """
@@ -135,8 +132,8 @@ def handle_newest(template_id, dbpath):
         print(f"Докинуто {inserted} новейших задач в расписание")
 
 
-def get_daily_stats(dbpath, template_id):
-    with sqlite3.connect(dbpath) as c:
+def get_daily_stats(db_path, template_id):
+    with sqlite3.connect(db_path) as c:
         q = "SELECT * FROM daily_stats WHERE template_id = ?"
         db_form = [template_id]
         i = c.execute(q, db_form)
@@ -151,8 +148,8 @@ def get_daily_stats(dbpath, template_id):
         return new_count, total_count
 
 
-def get_sub_list(dbpath, template_id, answer_field, question_forms, size, char, next_time, field_names):
-    with sqlite3.connect(dbpath) as c:
+def get_sub_list(db_path, template_id, answer_field, question_forms, size, char, next_time, field_names):
+    with sqlite3.connect(db_path) as c:
         q = f"""
             SELECT rs.card_id, rs.delta, rs.prev_delta, d.fields_json
             FROM schedule rs
@@ -182,8 +179,8 @@ def get_sub_list(dbpath, template_id, answer_field, question_forms, size, char, 
         return sub_list
 
 
-def get_adhoc_list(dbpath, answer_field, question_forms, id_list, limit, field_names):
-    with sqlite3.connect(dbpath) as c:
+def get_adhoc_list(db_path, answer_field, question_forms, id_list, limit, field_names):
+    with sqlite3.connect(db_path) as c:
         if id_list:
             placeholders = ', '.join(['?'] * len(id_list))
             q = f"SELECT card_id, fields_json FROM deck WHERE card_id IN ({placeholders})"
@@ -208,8 +205,8 @@ def get_adhoc_list(dbpath, answer_field, question_forms, id_list, limit, field_n
         return task_list
 
 
-def get_template(dbpath, template_id):
-    with sqlite3.connect(dbpath) as c:
+def get_template(db_path, template_id):
+    with sqlite3.connect(db_path) as c:
         q = "SELECT auto_grade, answer_field, question_forms_json FROM templates WHERE template_id = ?"
         db_form = [template_id]
         i = c.execute(q, db_form)
@@ -219,16 +216,16 @@ def get_template(dbpath, template_id):
         return auto_grade, answer_field, question_forms
 
 
-def get_scheduled_list(dbpath, template_id, answer_field, question_form, field_names):
+def get_scheduled_list(db_path, template_id, answer_field, question_form, field_names):
     new_limit = 8
     total_limit = 24
-    old_new_count, old_total_count = get_daily_stats(dbpath, template_id)
+    old_new_count, old_total_count = get_daily_stats(db_path, template_id)
     new_count, total_count = old_new_count, old_total_count
     size = max(total_limit - total_count, 0)
-    repeat_list = get_sub_list(dbpath, template_id, answer_field, question_form, size, '>', float('+inf'), field_names)
+    repeat_list = get_sub_list(db_path, template_id, answer_field, question_form, size, '>', float('+inf'), field_names)
     total_count += len(repeat_list)
     size = max(min(new_limit - new_count, total_limit - total_count), 0)
-    new_list = get_sub_list(dbpath, template_id, answer_field, question_form, size, '=', 0, field_names)
+    new_list = get_sub_list(db_path, template_id, answer_field, question_form, size, '=', 0, field_names)
     total_count += len(new_list)
     new_count += len(new_list)
     task_list = new_list + repeat_list
@@ -307,7 +304,7 @@ def update_counter(task, grade):
         print(f"Попыток: {task.attempts}, счётчик: {task.counter}, лимит: {task.limit}")
 
 
-def check_exit_conditions(task_list, template_id, previous, dbpath):
+def check_exit_conditions(task_list, template_id, previous, db_path):
     if previous:
         temp_list = task_list + [previous]
     else:
@@ -319,20 +316,20 @@ def check_exit_conditions(task_list, template_id, previous, dbpath):
         else:
             for temp in temp_list:
                 if temp.card_id is not None:
-                    write_db(template_id, 0, current_date + 1, temp, dbpath)
+                    write_db(template_id, 0, current_date + 1, temp, db_path)
                 print(f'{temp.question}{temp.answer} откладывается')
             print("Пока!")
             sys.exit()
 
 
-def update_task_list(task, template_id, previous, task_list, dbpath):
+def update_task_list(task, template_id, previous, task_list, db_path):
     if previous:
         task_list.append(previous)
     if task.counter >= task.limit:
         if task.card_id is not None:
             new_delta = task.get_new_delta()
             next_date = current_date + new_delta
-            write_db(template_id, new_delta, next_date, task, dbpath)
+            write_db(template_id, new_delta, next_date, task, db_path)
             print(f"{new_delta=}")
         previous = None
         print('Задача добита')
@@ -341,15 +338,15 @@ def update_task_list(task, template_id, previous, task_list, dbpath):
     return previous, task_list
 
 
-def proc(task_list, template_id, auto_grade, dbpath):
+def proc(task_list, template_id, auto_grade, db_path):
     previous = None
     while True:
-        check_exit_conditions(task_list, template_id, previous, dbpath)
+        check_exit_conditions(task_list, template_id, previous, db_path)
         task = get_task(task_list)
         guess, delay = get_guess(task)
         grade = get_grade(auto_grade, task, guess, delay)
         update_counter(task, grade)
-        previous, task_list = update_task_list(task, template_id, previous, task_list, dbpath)
+        previous, task_list = update_task_list(task, template_id, previous, task_list, db_path)
 
 
 def session(args):
@@ -358,17 +355,17 @@ def session(args):
     if args.ad_hoc or args.limit or args.card_ids:
         ad_hoc = True
         limit = get_limit(args.limit)
-    dbpath = get_db_path(args.deck_id)
+    db_path = get_db_path(args.deck_id)
     template_id = args.template_id
-    is_template_exist(dbpath, template_id)
-    auto_grade, answer_field, question_forms = get_template(dbpath, template_id)
-    field_names = get_field_names(dbpath)
+    is_template_exist(db_path, template_id)
+    auto_grade, answer_field, question_forms = get_template(db_path, template_id)
+    field_names = get_field_names(db_path)
     if ad_hoc:
         print("Режим ad-hoc")
         id_list = get_id_list(args.card_ids)
-        task_list = get_adhoc_list(dbpath, answer_field, question_forms, id_list, limit, field_names)
+        task_list = get_adhoc_list(db_path, answer_field, question_forms, id_list, limit, field_names)
     else:
         print("Режим scheduled")
-        handle_newest(template_id, dbpath)
-        task_list = get_scheduled_list(dbpath, template_id, answer_field, question_forms, field_names)
-    proc(task_list, template_id, auto_grade, dbpath)
+        handle_newest(template_id, db_path)
+        task_list = get_scheduled_list(db_path, template_id, answer_field, question_forms, field_names)
+    proc(task_list, template_id, auto_grade, db_path)
