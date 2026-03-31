@@ -366,7 +366,19 @@ rm -rf decks
 ./memo.py create card math/octonions -- mn -k
 ./memo.py create card math/octonions -- km -n
 
-
-
-
-
+./memo.py create deck orthography word pronunciation
+./memo.py create template orthography 1 word '[{pronunciation}]: '
+./memo.py create card orthography аппроксимация апраксимация
+./memo.py create card orthography координаты кардинаты
+./memo.py create card orthography дифференцировать дифиринциравать
+./memo.py create card orthography абонемент абанимент
+./memo.py create card orthography ажиотаж ажиатаж
+./memo.py create card orthography акклиматизация аклиматизация
+./memo.py create card orthography аккомпанемент акампанимент
+./memo.py create card orthography аккорд акорд
+./memo.py create card orthography аккордеон  акардион
+./memo.py create card orthography аккуратность акуратнасть
+./memo.py create card orthography акробатический акрабатичиский
+./memo.py create card orthography аксессуар аксисуар
+./memo.py create card orthography аллегория алигория
+./memo.py create card orthography единица единица
