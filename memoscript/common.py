@@ -19,21 +19,21 @@ def validate_name(field_name):
 def validate_deck_name(deck_name):
     if re.fullmatch(r'[a-zA-Z0-9_/]+', deck_name):
         return deck_name
-    raise ValueError('Имя колоды может содержать только латинские буквы, цифры и знаки _/.')
-
-def get_db_path(deck_name):
+    
+def get_db_path(deck_name, check_exist = True):
     p = copy(PATH_TO_DECK)
     path_components = deck_name.split('/')
     path_components[-1] += '.db'
     for c in path_components:
         p /= c
+    if check_exist:
+        if not os.path.isfile(p):
+            print('Нет колоды с таким именем!')
+            exit(1)
+    else:
+        if not re.fullmatch(r'[a-zA-Z0-9_/]+', deck_name): # ### БАРДАК! надо привести ошибки к одному виду, но сейчас мне лень
+            raise ValueError('Имя колоды может содержать только латинские буквы, цифры и знаки _/.')
     return p
-
-def is_db_exist(deck_name):
-    p = get_db_path(deck_name)
-    if os.path.isfile(p):
-        return p
-    raise ValueError('Нет колоды с таким именем')
 
 def is_template_exist(dbpath, template_id):
     with sqlite3.connect(dbpath) as c:

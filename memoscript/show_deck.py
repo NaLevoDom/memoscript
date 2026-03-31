@@ -7,7 +7,7 @@ import types
 import json
 import argparse
 
-from common import get_field_names
+from common import get_field_names, get_db_path
 
 def print_deck(dbpath):
     with sqlite3.connect(dbpath) as c:
@@ -39,7 +39,7 @@ def get_templates(dbpath):
     return l
 
 def show_deck(args):
-    dbpath = args.deck_id
+    dbpath = get_db_path(args.deck_id)
     field_names = get_field_names(dbpath)
     print(f"{field_names=}")
     print_deck(dbpath)

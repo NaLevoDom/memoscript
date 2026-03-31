@@ -7,7 +7,7 @@ import types
 import re
 import argparse
 
-from common import get_id_list
+from common import get_id_list, get_db_path
 
 def delete_deck_record(dbpath, card_id):
     with sqlite3.connect(dbpath) as c:
@@ -22,7 +22,7 @@ def delete_schedule_records(dbpath, card_id):
         c.execute(q, db_form)
 
 def delete_card(args):
-    dbpath = args.deck_id
+    dbpath = get_db_path(args.deck_id)
     card_id_list = get_id_list(args.card_ids)
     for card_id in card_id_list: # n + 1 problem ###
         delete_deck_record(dbpath, card_id)

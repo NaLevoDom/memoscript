@@ -7,7 +7,7 @@ import types
 import argparse
 import json
 
-from common import is_field_exist, current_date
+from common import is_field_exist, current_date, get_db_path, validate_name
 
 def daily_stats_update(dbpath, template_id):
     with sqlite3.connect(dbpath) as c:
@@ -32,8 +32,8 @@ def create_template(args):
     auto_grade = 1
     if args.manual_evaluation == True:
         auto_grade = 0
-    dbpath = args.deck_id
-    template_id = args.template_id
+    dbpath = get_db_path(args.deck_id)
+    template_id = validate_name(args.template_id)
     answer_field = args.answer_field
     question_forms = args.question_forms
     is_field_exist(dbpath, answer_field)

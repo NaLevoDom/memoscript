@@ -6,7 +6,7 @@ import sys
 import types
 import argparse
 
-from common import is_field_exist, is_template_exist
+from common import is_field_exist, is_template_exist, get_db_path
 
 def update_template(dbpath, template_id, answer_field, question_forms, auto_grade):
     with sqlite3.connect(dbpath) as c:
@@ -19,7 +19,7 @@ def update_template(args):
     auto_grade = 1
     if args.manual_evaluation == True:
         auto_grade = 0
-    dbpath = args.deck_id
+    dbpath = get_db_path(args.deck_id)
     template_id = args.template_id
     answer_field = args.answer_field
     question_forms = args.question_forms

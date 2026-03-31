@@ -14,7 +14,7 @@ import argparse
 if os.name == 'posix':
     import readline
 
-from common import is_template_exist, get_field_names, get_id_list, ranger, current_date
+from common import is_template_exist, get_field_names, get_id_list, current_date, get_db_path
 
 
 def ctrl_l():
@@ -27,6 +27,12 @@ def get_input(text):
     except EOFError:
         print("\nПока!")
         sys.exit()
+
+
+def get_limit(limit):
+    if limit == 'inf' or not limit or limit <= 0: # ### по идее вместо нуля должна быть минимальная граница нестрогая
+        return float('+inf')
+    return float(limit)
 
 
 def get_manual_grade():
@@ -351,10 +357,8 @@ def session(args):
     ad_hoc = False
     if args.ad_hoc or args.limit or args.card_ids:
         ad_hoc = True
-        limit = args.limit
-        if not limit:
-            limit = float('+inf')
-    dbpath = args.deck_id
+        limit = get_limit(args.limit)
+    dbpath = get_db_path(args.deck_id)
     template_id = args.template_id
     is_template_exist(dbpath, template_id)
     auto_grade, answer_field, question_forms = get_template(dbpath, template_id)
