@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import datetime
 import random
 import sqlite3
 import sys
@@ -15,7 +14,7 @@ import argparse
 if os.name == 'posix':
     import readline
 
-from common import is_db_exist, is_template_exist, get_field_names, get_id_list, ranger
+from common import is_template_exist, get_field_names, get_id_list, ranger, current_date
 
 
 def ctrl_l():
@@ -42,7 +41,7 @@ def get_manual_grade():
         print("Ещё раз. ", end='')
 
 
-def write_db(template_id, new_delta, next_date, task):
+def write_db(template_id, new_delta, next_date, task, dbpath):
     with sqlite3.connect(dbpath) as c:
         q = "SELECT * FROM daily_stats WHERE template_id = ?"
         db_form = [template_id]
@@ -113,7 +112,7 @@ def decode_deck_fields_map(card_id, fields_json, field_names):
     return fields_map
 
 
-def handle_newest(template_id):
+def handle_newest(template_id, dbpath):
     with sqlite3.connect(dbpath) as c:
         select_cursor = c.cursor()
         insert_cursor = c.cursor()
@@ -215,6 +214,8 @@ def get_template(dbpath, template_id):
 
 
 def get_scheduled_list(dbpath, template_id, answer_field, question_form, field_names):
+    new_limit = 8
+    total_limit = 24
     old_new_count, old_total_count = get_daily_stats(dbpath, template_id)
     new_count, total_count = old_new_count, old_total_count
     size = max(total_limit - total_count, 0)
@@ -266,6 +267,10 @@ def get_auto_grade(delay, answer):
 
 
 def get_grade(auto_grade, task, guess, delay):
+    start_red = "\033[91m"
+    start_green = "\033[92m"
+    start_blue = "\033[94m"
+    start_normal = "\033[39m"
     if auto_grade:
         for answer in task.answers:
             if guess.lower() == answer.lower():
@@ -296,7 +301,7 @@ def update_counter(task, grade):
         print(f"Попыток: {task.attempts}, счётчик: {task.counter}, лимит: {task.limit}")
 
 
-def check_exit_conditions(task_list, template_id, previous):
+def check_exit_conditions(task_list, template_id, previous, dbpath):
     if previous:
         temp_list = task_list + [previous]
     else:
@@ -308,20 +313,20 @@ def check_exit_conditions(task_list, template_id, previous):
         else:
             for temp in temp_list:
                 if temp.card_id is not None:
-                    write_db(template_id, 0, current_date + 1, temp)
+                    write_db(template_id, 0, current_date + 1, temp, dbpath)
                 print(f'{temp.question}{temp.answer} откладывается')
             print("Пока!")
             sys.exit()
 
 
-def update_task_list(task, template_id, previous, task_list):
+def update_task_list(task, template_id, previous, task_list, dbpath):
     if previous:
         task_list.append(previous)
     if task.counter >= task.limit:
         if task.card_id is not None:
             new_delta = task.get_new_delta()
             next_date = current_date + new_delta
-            write_db(template_id, new_delta, next_date, task)
+            write_db(template_id, new_delta, next_date, task, dbpath)
             print(f"{new_delta=}")
         previous = None
         print('Задача добита')
@@ -330,46 +335,19 @@ def update_task_list(task, template_id, previous, task_list):
     return previous, task_list
 
 
-def proc(task_list, template_id, auto_grade):
+def proc(task_list, template_id, auto_grade, dbpath):
     previous = None
     while True:
-        check_exit_conditions(task_list, template_id, previous)
+        check_exit_conditions(task_list, template_id, previous, dbpath)
         task = get_task(task_list)
         guess, delay = get_guess(task)
         grade = get_grade(auto_grade, task, guess, delay)
         update_counter(task, grade)
-        previous, task_list = update_task_list(task, template_id, previous, task_list)
+        previous, task_list = update_task_list(task, template_id, previous, task_list, dbpath)
 
 
-def get_limit(limit):
-    if limit == 'inf':
-        return float('+inf')
-    limit = float(limit)
-    if limit == 0:
-        raise ValueError()
-    return limit
-
-
-def handle_args():
-    parser = argparse.ArgumentParser()
-    parser.add_argument(dest = "deck_id", type = is_db_exist)
-    parser.add_argument(dest ='template_id')
-    parser.add_argument('-c', '--card-ids', nargs = '+')
-    parser.add_argument('-l', '--limit', type = get_limit)
-    parser.add_argument('-a', '--ad-hoc', action = 'store_true')
-    return parser.parse_args()
-    # а если принимать не id, а sql запрос?
-
-start_red = "\033[91m"
-start_green = "\033[92m"
-start_blue = "\033[94m"
-start_normal = "\033[39m"
-os.chdir(os.path.dirname(__file__))
-current_date = datetime.date.today().toordinal()
-new_limit = 8
-total_limit = 24
-if __name__ == '__main__':
-    args = handle_args()
+def session(args):
+    os.chdir(os.path.dirname(__file__))
     ad_hoc = False
     if args.ad_hoc or args.limit or args.card_ids:
         ad_hoc = True
@@ -387,6 +365,6 @@ if __name__ == '__main__':
         task_list = get_adhoc_list(dbpath, answer_field, question_forms, id_list, limit, field_names)
     else:
         print("Режим scheduled")
-        handle_newest(template_id)
+        handle_newest(template_id, dbpath)
         task_list = get_scheduled_list(dbpath, template_id, answer_field, question_forms, field_names)
-    proc(task_list, template_id, auto_grade)
+    proc(task_list, template_id, auto_grade, dbpath)

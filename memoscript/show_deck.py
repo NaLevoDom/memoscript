@@ -7,7 +7,7 @@ import types
 import json
 import argparse
 
-from common import get_field_names, is_db_exist
+from common import get_field_names
 
 def print_deck(dbpath):
     with sqlite3.connect(dbpath) as c:
@@ -38,13 +38,7 @@ def get_templates(dbpath):
         l = list(i)
     return l
 
-def handle_args():
-    parser = argparse.ArgumentParser()
-    parser.add_argument(dest = "deck_id", type = is_db_exist)
-    return parser.parse_args()
-
-if __name__ == '__main__':
-    args = handle_args()
+def show_deck(args):
     dbpath = args.deck_id
     field_names = get_field_names(dbpath)
     print(f"{field_names=}")

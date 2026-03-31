@@ -5,6 +5,7 @@ import os
 import re
 import sqlite3
 import sys
+import datetime
 from pathlib import Path
 from copy import copy
 
@@ -91,4 +92,5 @@ def get_field_names(dbpath):
         i = c.execute(q)
         return [row[0] for row in i]
 
+current_date = datetime.date.today().toordinal()
 PATH_TO_DECK = Path('decks')

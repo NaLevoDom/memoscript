@@ -7,7 +7,7 @@ import types
 import json
 import argparse
 
-from common import get_field_count, is_db_exist
+from common import get_field_count
 
 def update_deck_record(dbpath, fields, card_id):
     maximum_count = get_field_count(dbpath)
@@ -21,19 +21,9 @@ def update_deck_record(dbpath, fields, card_id):
         db_form = [json.dumps(fields, ensure_ascii=False), card_id]
         c.execute(q, db_form)
 
-
-def handle_args():
-    parser = argparse.ArgumentParser()
-    parser.add_argument(dest = "deck_id", type = is_db_exist)
-    parser.add_argument(dest = "card_id")
-    parser.add_argument(dest = 'fields', nargs = '+')
-    return parser.parse_args()
-
-
-if __name__ == '__main__':
-    args = handle_args()
+def update_card(args):
     dbpath = args.deck_id
     fields = args.fields
     card_id = args.card_id
-    update_deck_record(dbpath, fields)
+    update_deck_record(dbpath, fields) # где card_id лол ###
     

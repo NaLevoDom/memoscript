@@ -8,7 +8,7 @@ import os
 import argparse
 import json
 
-from common import get_db_path, validate_name, validate_deck_name
+from common import get_db_path, current_date
 
 
 def create_deck_table(dbpath):
@@ -57,14 +57,7 @@ def create_schedule_table(dbpath):
         """
         c.execute(q)
 
-def handle_args():
-    parser = argparse.ArgumentParser()
-    parser.add_argument(dest = "deck_id", type = validate_deck_name)
-    parser.add_argument(dest = 'field_names', nargs = '+', type = validate_name)
-    return parser.parse_args()
-
-if __name__ == '__main__':
-    args = handle_args()
+def create_deck(args):
     if not os.path.exists('decks'):
         os.makedirs('decks')
     dbpath = get_db_path(args.deck_id)

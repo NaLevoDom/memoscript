@@ -7,7 +7,7 @@ import types
 import json
 import argparse
 
-from common import get_field_count, is_db_exist
+from common import get_field_count
 
 
 def add_deck_record(dbpath, fields):
@@ -22,15 +22,7 @@ def add_deck_record(dbpath, fields):
         db_form = [None, json.dumps(fields, ensure_ascii=False)]
         c.execute(q, db_form)
 
-def handle_args():
-    parser = argparse.ArgumentParser()
-    parser.add_argument(dest = "deck_id", type = is_db_exist)
-    parser.add_argument(dest = 'fields', nargs = '+')
-    return parser.parse_args()
-
-if __name__ == '__main__':
-    args = handle_args()
+def create_card(args):
     dbpath = args.deck_id
     fields = args.fields
     add_deck_record(dbpath, fields)
-    
