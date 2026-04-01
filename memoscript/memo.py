@@ -21,8 +21,6 @@ def build_parser():
         description='memoscript система интервального повторения',
     )
     subparsers = parser.add_subparsers(dest='command', help='доступные команды')
-    
-    
     p_session = subparsers.add_parser('session', help='запустить сессию')
     session_sub = p_session.add_subparsers(dest='session_cmd', required=True)
     ss_sub = session_sub.add_parser('scheduled', help='запустить сессию по расписанию')
@@ -33,8 +31,6 @@ def build_parser():
     sa_sub.add_argument(dest ='template_id')
     sa_sub.add_argument('-c', '--card-ids', nargs = '+')
     sa_sub.add_argument('-l', '--limit')
-    
-    
     p_create = subparsers.add_parser('create', help='создать deck/card/template')
     create_sub = p_create.add_subparsers(dest='create_cmd', required=True)
     cc_sub = create_sub.add_parser('card', help='создать карточку')
@@ -45,12 +41,10 @@ def build_parser():
     ct_sub.add_argument(dest = 'template_id')
     ct_sub.add_argument(dest = 'answer_field')
     ct_sub.add_argument(dest = 'question_forms', nargs = '+')
-    ct_sub.add_argument('-e', '--manual-evaluation', action = 'store_true')
+    ct_sub.add_argument('-m', '--manual-evaluation', action = 'store_true')
     cd_sub = create_sub.add_parser('deck', help='создать колоду')
     cd_sub.add_argument(dest = "deck_id")
     cd_sub.add_argument(dest = 'field_names', nargs = '+')
-    
-    
     p_update = subparsers.add_parser('update', help='обновить card/template')
     update_sub = p_update.add_subparsers(dest='update_cmd', required=True)
     uc_sub = update_sub.add_parser('card', help='обновить карточку')
@@ -62,7 +56,7 @@ def build_parser():
     ut_sub.add_argument(dest ='template_id')
     ut_sub.add_argument(dest = 'answer_field')
     ut_sub.add_argument(dest = 'question_forms', nargs = '+')
-    ut_sub.add_argument('-e', '--manual-evaluation', action = 'store_true')
+    ut_sub.add_argument('-m', '--manual-evaluation', action = 'store_true')
     p_delete = subparsers.add_parser('delete', help='удалить card/template')
     delete_sub = p_delete.add_subparsers(dest='delete_cmd', required=True)
     dc_sub = delete_sub.add_parser('card', help='удалить карточку')
@@ -81,28 +75,31 @@ def build_parser():
 def main():
     parser = build_parser()
     args = parser.parse_args()
-    if args.command == 'session':        
-        session(args)
+    if args.command == 'session':
+        if args.session_cmd == 'adhoc':
+            session(args.deck_id, args.template_id, True, args.limit, args.card_ids)
+        else:
+            session(args.deck_id, args.template_id, False)
     elif args.command == 'create':
         if args.create_cmd == 'card':
-            utils.create_card(args)
+            utils.create_card(args.deck_id, args.fields)
         elif args.create_cmd == 'template':
-            utils.create_template(args)
+            utils.create_template(args.deck_id, args.template_id, args.answer_field, args.question_forms, not args.manual_evaluation)
         elif args.create_cmd == 'deck':
-            utils.create_deck(args)
+            utils.create_deck(args.deck_id, args.field_names)
     elif args.command == 'update':
         if args.update_cmd == 'card':
-            utils.update_card(args)
+            utils.update_card(args.deck_id, args.card_id, args.fields)
         elif args.update_cmd == 'template':
-            utils.update_template(args)
+            utils.update_template(args.deck_id, args.template_id, args.answer_field, args.question_forms, not args.manual_evaluation)
     elif args.command == 'delete':
         if args.delete_cmd == 'card':
-            utils.delete_card(args)
+            utils.delete_card(args.deck_id, args.card_ids)
         elif args.command == 'template':
-            utils.delete_template(args)
+            utils.delete_template(args.deck_id, args.template_id)
     elif args.command == 'show':
         if args.show_cmd == 'deck':
-            utils.show_deck(args)
+            utils.show_deck(args.deck_id)
     else:
         parser.print_help()
         sys.exit(1)

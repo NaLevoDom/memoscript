@@ -352,20 +352,17 @@ def proc(task_list, template_id, auto_grade, db_path):
         previous, task_list = update_task_list(task, template_id, previous, task_list, db_path)
 
 
-def session(args):
+def session(deck_id, template_id, ad_hoc, limit = None, card_ids = None):
     os.chdir(os.path.dirname(__file__))
-    ad_hoc = False
-    if args.session_cmd == 'adhoc':
-        ad_hoc = True
-        limit = get_limit(args.limit)
-    db_path = get_db_path(args.deck_id)
-    template_id = args.template_id
+    limit = get_limit(limit)
+    db_path = get_db_path(deck_id)
+    template_id = template_id
     is_template_exist(db_path, template_id)
     auto_grade, answer_field, question_forms = get_template(db_path, template_id)
     field_names = get_field_names(db_path)
     if ad_hoc:
         print("Режим ad-hoc")
-        id_list = get_id_list(args.card_ids)
+        id_list = get_id_list(card_ids)
         task_list = get_adhoc_list(db_path, answer_field, question_forms, id_list, limit, field_names)
     else:
         print("Режим scheduled")

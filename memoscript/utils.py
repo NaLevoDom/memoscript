@@ -92,17 +92,17 @@ def get_field_names(db_path):
         i = c.execute(q)
         return [row[0] for row in i]
 
-def create_card(args):
-    db_path = get_db_path(args.deck_id)
+def create_card(deck_id, fields):
+    db_path = get_db_path(deck_id)
     maximum_count = get_field_count(db_path)
-    actual_count = len(args.fields)
+    actual_count = len(fields)
     dif = maximum_count - actual_count
     if dif < 0:
         raise Exception(f'Too much fields! Maximum is {maximum_count}, {actual_count} given')
-    args.fields += [""] * dif
+    fields += [""] * dif
     with sqlite3.connect(db_path) as c:
         q = "INSERT INTO deck(card_id, fields_json) VALUES(?, ?)"
-        db_form = [None, json.dumps(args.fields, ensure_ascii=False)]
+        db_form = [None, json.dumps(fields, ensure_ascii=False)]
         c.execute(q, db_form)
 
 def create_deck_table(db_path):
@@ -151,13 +151,13 @@ def create_schedule_table(db_path):
         """
         c.execute(q)
 
-def create_deck(args):
+def create_deck(deck_id, field_names):
     if not os.path.exists('decks'):
         os.makedirs('decks')
-    db_path = get_db_path(args.deck_id, False)
+    db_path = get_db_path(deck_id, False)
     db_path.parent.mkdir(parents=True, exist_ok=True)
     create_deck_table(db_path)
-    create_deck_fields_table(db_path, args.field_names)
+    create_deck_fields_table(db_path, field_names)
     create_daily_stats_table(db_path)
     create_templates_table(db_path)
     create_schedule_table(db_path)
@@ -181,31 +181,13 @@ def add_template_record(db_path, template_id, auto_grade, answer_field, question
         q = "INSERT INTO templates VALUES(?, ?, ?, ?)"
         c.execute(q, db_form)
 
-def create_template(args):
-    auto_grade = 1
-    if args.manual_evaluation == True:
-        auto_grade = 0
-    db_path = get_db_path(args.deck_id)
-    template_id = validate_name(args.template_id)
-    answer_field = args.answer_field
-    question_forms = args.question_forms
+def create_template(deck_id, template_id, answer_field, question_forms, auto_grade):
+    db_path = get_db_path(deck_id)
+    template_id = validate_name(template_id)
     is_field_exist(db_path, answer_field)
     daily_stats_update(db_path, template_id)
     add_daily_stats_record(db_path, template_id)
     add_template_record(db_path, template_id, auto_grade, answer_field, question_forms)
-
-def update_card(args):
-    db_path = get_db_path(args.deck_id)
-    maximum_count = get_field_count(db_path)
-    actual_count = len(args.fields)
-    dif = maximum_count - actual_count
-    if dif < 0:
-        raise Exception(f'Too much fields! Maximum is {maximum_count}, {actual_count} given')
-    args.fields += [""] * dif
-    with sqlite3.connect(db_path) as c:
-        q = "UPDATE deck SET fields_json = ? WHERE card_id = ?"
-        db_form = [json.dumps(args.fields, ensure_ascii=False), args.card_id]
-        c.execute(q, db_form)
 
 def delete_deck_record(db_path, card_id):
     with sqlite3.connect(db_path) as c:
@@ -219,9 +201,9 @@ def delete_schedule_records(db_path, card_id):
         db_form = [card_id]
         c.execute(q, db_form)
 
-def delete_card(args):
-    db_path = get_db_path(args.deck_id)
-    card_id_list = get_id_list(args.card_ids)
+def delete_card(deck_id, card_ids):
+    db_path = get_db_path(deck_id)
+    card_id_list = get_id_list(card_ids)
     for card_id in card_id_list: # n + 1 problem ###
         delete_deck_record(db_path, card_id)
         delete_schedule_records(db_path, card_id)
@@ -232,24 +214,21 @@ def drop_template(db_path, template_id):
         db_form = [template_id]
         c.execute(q, db_form)
 
-def delete_template(db_path, template_id):
-    with sqlite3.connect(db_path) as c:
-        q = "DELETE FROM templates WHERE template_id = ?"
-        db_form = [template_id]
-        c.execute(q, db_form)
-
 def delete_daily_stats(db_path, template_id):
     with sqlite3.connect(db_path) as c:
         q = "DELETE FROM daily_stats WHERE template_id = ?"
         db_form = [template_id]
         c.execute(q, db_form)
 
-def delete_template(args):
-    db_path = get_db_path(args.deck_id)
-    template_id = args.template_id
+def delete_template(deck_id, template_id):
+    db_path = get_db_path(deck_id)
     drop_template(db_path, template_id)
-    delete_template(db_path, template_id)
     delete_daily_stats(db_path, template_id)
+    with sqlite3.connect(db_path) as c:
+        q = "DELETE FROM templates WHERE template_id = ?"
+        db_form = [template_id]
+        c.execute(q, db_form)
+    
 def print_deck(db_path):
     with sqlite3.connect(db_path) as c:
         q = "SELECT card_id, fields_json FROM deck ORDER BY card_id ASC"
@@ -279,8 +258,8 @@ def get_templates(db_path):
         l = list(i)
     return l
 
-def show_deck(args):
-    db_path = get_db_path(args.deck_id)
+def show_deck(deck_id):
+    db_path = get_db_path(deck_id)
     field_names = get_field_names(db_path)
     print(f"{field_names=}")
     print_deck(db_path)
@@ -290,37 +269,29 @@ def show_deck(args):
         print(f"{template_id=}, {auto_grade=}, {answer_field=}, {question_form=}")
         print_template(db_path, template_id)
 
-def update_card(args):
-    db_path = get_db_path(args.deck_id)
+def update_card(deck_id, card_id, fields):
+    db_path = get_db_path(deck_id)
     maximum_count = get_field_count(db_path)
-    actual_count = len(args.fields)
+    actual_count = len(fields)
     dif = maximum_count - actual_count
     if dif < 0:
         raise Exception(f'Too much fields! Maximum is {maximum_count}, {actual_count} given')
-    args.fields += [""] * dif
+    fields += [""] * dif
     with sqlite3.connect(db_path) as c:
         q = "UPDATE deck SET fields_json = ? WHERE card_id = ?"
-        db_form = [json.dumps(args.fields, ensure_ascii=False), args.card_id]
+        db_form = [json.dumps(fields, ensure_ascii=False), card_id]
         c.execute(q, db_form)
 
-def update_template(db_path, template_id, answer_field, question_forms, auto_grade):
+
+def update_template(deck_id, template_id, answer_field, question_forms, auto_grade):
+    db_path = get_db_path(deck_id)
+    is_field_exist(db_path, answer_field)
+    is_template_exist(db_path, template_id)
     with sqlite3.connect(db_path) as c:
         json_items = json.dumps(question_forms, ensure_ascii = False)
         q = "UPDATE templates SET auto_grade = ?, answer_field = ?, question_forms_json = ? WHERE template_id = ?"
         db_form = [auto_grade, answer_field, json_items, template_id]
         c.execute(q, db_form)
-
-def update_template(args):
-    auto_grade = 1
-    if args.manual_evaluation == True:
-        auto_grade = 0
-    db_path = get_db_path(args.deck_id)
-    template_id = args.template_id
-    answer_field = args.answer_field
-    question_forms = args.question_forms
-    is_field_exist(db_path, answer_field)
-    is_template_exist(db_path, template_id)
-    update_template(db_path, template_id, answer_field, question_forms, auto_grade)
     
 current_date = datetime.date.today().toordinal()
 PATH_TO_DECK = Path('decks')
