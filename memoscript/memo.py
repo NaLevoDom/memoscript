@@ -5,15 +5,8 @@ import argparse
 import os
 import sys
 
+import utils
 from session import session
-from create_card import create_card
-from create_template import create_template
-from create_deck import create_deck
-from update_card import update_card
-from update_template import update_template
-from delete_card import delete_card
-from delete_template import delete_template
-from show_deck import show_deck
 
 # Обеспечиваем, что при запуске скрипта его директория в sys.path
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -82,24 +75,24 @@ def main():
         session(args)
     elif args.command == 'create':
         if args.create_cmd == 'card':
-            create_card(args)
+            utils.create_card(args)
         elif args.create_cmd == 'template':
-            create_template(args)
+            utils.create_template(args)
         elif args.create_cmd == 'deck':
-            create_deck(args)
+            utils.create_deck(args)
     elif args.command == 'update':
         if args.update_cmd == 'card':
-            update_card(args)
+            utils.update_card(args)
         elif args.update_cmd == 'template':
-            update_template(args)
+            utils.update_template(args)
     elif args.command == 'delete':
         if args.delete_cmd == 'card':
-            delete_card(args)
+            utils.delete_card(args)
         elif args.command == 'template':
-            delete_template(args)
+            utils.delete_template(args)
     elif args.command == 'show':
         if args.show_cmd == 'deck':
-            show_deck(args)
+            utils.show_deck(args)
     else:
         parser.print_help()
         sys.exit(1)

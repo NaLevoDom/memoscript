@@ -382,3 +382,7 @@ rm -rf decks
 ./memo.py create card orthography аксессуар "(а/о)к?с(и/е)с?уар"
 ./memo.py create card orthography аллегория "(а/о)л?(и/е)гория"
 ./memo.py create card orthography единица "ед(и/е)ница"
+./memo.py create card orthography трансцендентный "трансце?дентный"
+./memo.py create card orthography инцидент "инц(и/е)дент"
+./memo.py create card orthography прецедент "пр(и/е)ц(и/е)дент"
+./memo.py create card orthography президент "пр(и/е)з(и/е)дент"

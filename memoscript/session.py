@@ -11,7 +11,7 @@ import json
 if os.name == 'posix':
     import readline
 
-from common import is_template_exist, get_field_names, get_id_list, current_date, get_db_path
+from utils import is_template_exist, get_field_names, get_id_list, current_date, get_db_path
 
 
 def ctrl_l():
