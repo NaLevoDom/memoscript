@@ -21,12 +21,20 @@ def build_parser():
         description='memoscript система интервального повторения',
     )
     subparsers = parser.add_subparsers(dest='command', help='доступные команды')
-    p_session = subparsers.add_parser('session', help='запустить сессию повторений')
-    p_session.add_argument(dest = "deck_id")
-    p_session.add_argument(dest ='template_id')
-    p_session.add_argument('-c', '--card-ids', nargs = '+')
-    p_session.add_argument('-l', '--limit')
-    p_session.add_argument('-a', '--ad-hoc', action = 'store_true')
+    
+    
+    p_session = subparsers.add_parser('session', help='запустить сессию')
+    session_sub = p_session.add_subparsers(dest='session_cmd', required=True)
+    ss_sub = session_sub.add_parser('scheduled', help='запустить сессию по расписанию')
+    ss_sub.add_argument(dest = "deck_id")
+    ss_sub.add_argument(dest ='template_id')
+    sa_sub = session_sub.add_parser('adhoc', help='запустить адхок сессию')
+    sa_sub.add_argument(dest = "deck_id")
+    sa_sub.add_argument(dest ='template_id')
+    sa_sub.add_argument('-c', '--card-ids', nargs = '+')
+    sa_sub.add_argument('-l', '--limit')
+    
+    
     p_create = subparsers.add_parser('create', help='создать deck/card/template')
     create_sub = p_create.add_subparsers(dest='create_cmd', required=True)
     cc_sub = create_sub.add_parser('card', help='создать карточку')
@@ -41,6 +49,8 @@ def build_parser():
     cd_sub = create_sub.add_parser('deck', help='создать колоду')
     cd_sub.add_argument(dest = "deck_id")
     cd_sub.add_argument(dest = 'field_names', nargs = '+')
+    
+    
     p_update = subparsers.add_parser('update', help='обновить card/template')
     update_sub = p_update.add_subparsers(dest='update_cmd', required=True)
     uc_sub = update_sub.add_parser('card', help='обновить карточку')
@@ -70,8 +80,8 @@ def build_parser():
 
 def main():
     parser = build_parser()
-    args, remaining = parser.parse_known_args()
-    if args.command == 'session':
+    args = parser.parse_args()
+    if args.command == 'session':        
         session(args)
     elif args.command == 'create':
         if args.create_cmd == 'card':

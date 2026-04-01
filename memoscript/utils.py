@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-"""Общие утилиты для модулей memoscript."""
 
 import os
 import re

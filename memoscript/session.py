@@ -26,12 +26,11 @@ def get_input(text):
         sys.exit()
 
 
-def get_limit(limit):
+def get_limit(limit): # порнография, конечно, но пусть пока так
     try:
         limit = float(limit)
-    except ValueError:
-        print('Недопустимое значение лимита!')
-        exit(1)
+    except Exception:
+        return float('+inf')
     if limit <= 0: # ### по идее вместо нуля должна быть минимальная граница нестрогая
         return float('+inf')
     return limit
@@ -356,7 +355,7 @@ def proc(task_list, template_id, auto_grade, db_path):
 def session(args):
     os.chdir(os.path.dirname(__file__))
     ad_hoc = False
-    if args.ad_hoc or args.limit or args.card_ids:
+    if args.session_cmd == 'adhoc':
         ad_hoc = True
         limit = get_limit(args.limit)
     db_path = get_db_path(args.deck_id)
