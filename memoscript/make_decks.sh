@@ -368,17 +368,17 @@ rm -rf decks
 
 ./memo.py create deck orthography word pronunciation
 ./memo.py create template orthography 1 word '[{pronunciation}]: '
-./memo.py create card orthography аппроксимация апраксимация
-./memo.py create card orthography координаты кардинаты
-./memo.py create card orthography дифференцировать дифиринциравать
-./memo.py create card orthography абонемент абанимент
-./memo.py create card orthography ажиотаж ажиатаж
-./memo.py create card orthography акклиматизация аклиматизация
-./memo.py create card orthography аккомпанемент акампанимент
-./memo.py create card orthography аккорд акорд
-./memo.py create card orthography аккордеон  акардион
-./memo.py create card orthography аккуратность акуратнасть
-./memo.py create card orthography акробатический акрабатичиский
-./memo.py create card orthography аксессуар аксисуар
-./memo.py create card orthography аллегория алигория
-./memo.py create card orthography единица единица
+./memo.py create card orthography аппроксимация "(а/о)п?р(а/о)кс(и/е)м?ация"
+./memo.py create card orthography координаты "к(а/о)?рд(и/е)наты"
+./memo.py create card orthography дифференцировать "д(и/е)ф?(и/е)р?(и/е)нцировать"
+./memo.py create card orthography абонемент "(а/о)б?н(и/е)мент"
+./memo.py create card orthography ажиотаж "(а/о)ж(и/е)(а/о)таж"
+./memo.py create card orthography акклиматизация "(а/о)к?л(и/е)м(а/о)т(и/е)зация"
+./memo.py create card orthography аккомпанемент "(а/о)к?(а/о)мп(а/о)н(и/е)мент"
+./memo.py create card orthography аккорд "(а/о)к?орд"
+./memo.py create card orthography аккордеон  "(а/о)к?(а/о)рд(и/е)он"
+./memo.py create card orthography аккуратность "(а/о)к?уратность"
+./memo.py create card orthography акробатика "(а/о)к?р(а/о)батика"
+./memo.py create card orthography аксессуар "(а/о)к?с(и/е)с?уар"
+./memo.py create card orthography аллегория "(а/о)л?(и/е)гория"
+./memo.py create card orthography единица "ед(и/е)ница"

@@ -27,10 +27,14 @@ def get_input(text):
 
 
 def get_limit(limit):
-    if limit == 'inf' or not limit or limit <= 0: # ### по идее вместо нуля должна быть минимальная граница нестрогая
+    try:
+        limit = float(limit)
+    except ValueError:
+        print('Недопустимое значение лимита!')
+        exit(1)
+    if limit <= 0: # ### по идее вместо нуля должна быть минимальная граница нестрогая
         return float('+inf')
-    return float(limit)
-
+    return limit
 
 def get_manual_grade():
     while True:
@@ -317,7 +321,7 @@ def check_exit_conditions(task_list, template_id, previous, db_path):
             for temp in temp_list:
                 if temp.card_id is not None:
                     write_db(template_id, 0, current_date + 1, temp, db_path)
-                print(f'{temp.question}{temp.answer} откладывается')
+                print(f'{temp.question}{temp.answers} откладывается')
             print("Пока!")
             sys.exit()
 
