@@ -4,6 +4,7 @@
 import argparse
 import os
 import sys
+import time
 
 import utils
 from session import session
@@ -14,6 +15,36 @@ if SCRIPT_DIR not in sys.path:
     sys.path.insert(0, SCRIPT_DIR)
 os.chdir(SCRIPT_DIR)
 
+def ctrl_l():
+    print('\n' * (os.get_terminal_size().lines - 1) + "\033[H\033[J", end='')
+
+def get_input(text):
+    try:
+        return input(text)
+    except EOFError:
+        print("\nПока!")
+        sys.exit()
+
+def get_guess(task):
+    get_input('\nНажмите Enter чтобы показать задачу...')
+    ctrl_l()
+    start_time = time.time()
+    guess = get_input(task.question)
+    end_time = time.time()
+    delay = end_time - start_time
+    return guess, delay
+
+def get_manual_grade(task):
+    print(f"Правильный ответ {task.answers}")
+    while True:
+        try:
+            s = int(get_input('Оцени (1-4)?: '))
+        except ValueError:
+            pass
+        else:
+            if 1 <= s <= 4:
+                return s
+        print("Ещё раз. ", end='')
 
 def build_parser():
     parser = argparse.ArgumentParser(
@@ -75,11 +106,43 @@ def build_parser():
 def main():
     parser = build_parser()
     args = parser.parse_args()
+    start_red = "\033[91m"
+    start_green = "\033[92m"
+    start_blue = "\033[94m"
+    start_normal = "\033[39m"
     if args.command == 'session':
         if args.session_cmd == 'adhoc':
-            session(args.deck_id, args.template_id, True, args.limit, args.card_ids)
+            i = session(args.deck_id, args.template_id, get_guess, get_manual_grade, True, args.limit, args.card_ids)
         else:
-            session(args.deck_id, args.template_id, False)
+            i = session(args.deck_id, args.template_id, get_guess, get_manual_grade, False)
+        for r in i:
+            if r.type == 'exit':
+                for temp in r.temp_list:
+                    print(f'{temp.question}{temp.answers} откладывается')
+            elif r.type == 'regular':
+                if r.right:
+                    print(f"{start_green}Ты молодец!{start_normal}")
+                    print(f"Время ответа: {r.delay:0.2f}")
+                    print(f"Расчётное время вспоминания: {r.recall_time:0.2f}")
+                else:
+                    print(f"{start_red}Неправильно!{start_normal} Правильный ответ {start_blue}{r.task.answers}{start_normal}")
+                if r.grade == 1:
+                    print("Обнуляем счётчик")
+                elif r.grade == 2:
+                    print("Не делаем ничего")
+                elif r.grade == 3:
+                    print("Счётчик + 1")
+                elif r.grade == 4:
+                    print("Счётчик + 1.5")
+                print(f"Попыток: {r.task.attempts}, счётчик: {r.task.counter}, лимит: {r.task.limit}")
+                if r.task_done:
+                    print('Задача добита')
+                    if r.task.card_id is not None:
+                        print(f"{r.new_delta=}")
+
+
+
+
     elif args.command == 'create':
         if args.create_cmd == 'card':
             utils.create_card(args.deck_id, args.fields)

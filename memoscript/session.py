@@ -8,22 +8,11 @@ import time
 import os
 import math
 import json
+import types
 if os.name == 'posix':
     import readline
 
 from utils import is_template_exist, get_field_names, get_id_list, current_date, get_db_path
-
-
-def ctrl_l():
-    print('\n' * (os.get_terminal_size().lines - 1) + "\033[H\033[J", end='')
-
-
-def get_input(text):
-    try:
-        return input(text)
-    except EOFError:
-        print("\nПока!")
-        sys.exit()
 
 
 def get_limit(limit): # порнография, конечно, но пусть пока так
@@ -34,18 +23,6 @@ def get_limit(limit): # порнография, конечно, но пусть 
     if limit <= 0: # ### по идее вместо нуля должна быть минимальная граница нестрогая
         return float('+inf')
     return limit
-
-def get_manual_grade():
-    while True:
-        try:
-            s = int(get_input('Оцени (1-4)?: '))
-        except ValueError:
-            pass
-        else:
-            if 1 <= s <= 4:
-                return s
-        print("Ещё раз. ", end='')
-
 
 def write_db(template_id, new_delta, next_date, task, db_path):
     with sqlite3.connect(db_path) as c:
@@ -129,10 +106,8 @@ def handle_newest(template_id, db_path):
         """
         rows_iter = select_cursor.execute(q_select, (template_id,))
         to_insert = ((template_id, row[0], 0, 0, current_date) for row in rows_iter)
-        before_changes = c.total_changes
         insert_cursor.executemany("INSERT INTO schedule VALUES(?, ?, ?, ?, ?)", to_insert)
-        inserted = c.total_changes - before_changes
-        print(f"Докинуто {inserted} новейших задач в расписание")
+        return c.total_changes
 
 
 def get_daily_stats(db_path, template_id):
@@ -147,7 +122,7 @@ def get_daily_stats(db_path, template_id):
             c.execute(q, db_form)
             new_count = 0
             total_count = 0
-        print(f"Сегодня было выполнено задач всего: {total_count}, новых: {new_count}, репитов: {total_count - new_count}")
+        print(f"Сегодня было выполнено задач всего: {total_count}, новых: {new_count}, репитов: {total_count - new_count}") # ### вырезать
         return new_count, total_count
 
 
@@ -235,7 +210,7 @@ def get_scheduled_list(db_path, template_id, answer_field, question_form, field_
     random.shuffle(task_list)
     added_total = total_count - old_total_count
     added_new = new_count - old_new_count
-    print(f"В текущей сессии всего задач: {added_total}, новых: {added_new}, репитов: {added_total - added_new}\n")
+    print(f"В текущей сессии всего задач: {added_total}, новых: {added_new}, репитов: {added_total - added_new}\n") # ### вырезать отседова
     return task_list
 
 
@@ -248,63 +223,33 @@ def get_task(task_list):
         return task_list.pop() # берём репит в работу
     return task_list.pop(0) # берём ближайшую к зрелости
 
-
-def get_guess(task):
-    get_input('\nНажмите Enter чтобы показать задачу...')
-    ctrl_l()
-    start_time = time.time()
-    guess = get_input(task.question)
-    end_time = time.time()
-    delay = end_time - start_time
-    return guess, delay
-
-
-def get_auto_grade(delay, answer):
-    l = len(answer)
-    estimated_recall_time = delay - 1 - l / 4
-    print(f"Расчётное время вспоминания: {estimated_recall_time:0.2f}")
-    if estimated_recall_time < 3:
-        return 4
-    if estimated_recall_time < 6:
-        return 3
-    if estimated_recall_time < 9:
-        return 2
-    return 1
-
-
-def get_grade(auto_grade, task, guess, delay):
-    start_red = "\033[91m"
-    start_green = "\033[92m"
-    start_blue = "\033[94m"
-    start_normal = "\033[39m"
-    if auto_grade:
-        for answer in task.answers:
-            if guess.lower() == answer.lower():
-                print(f"{start_green}Ты молодец!{start_normal}")
-                print(f"Время ответа: {delay:0.2f}")
-                return get_auto_grade(delay, answer)
-        print(f"{start_red}Неправильно!{start_normal} Правильный ответ {start_blue}{task.answers}{start_normal}")
-        return 1
-    print(f"Правильный ответ {task.answers}")
-    return get_manual_grade()
-
+def get_auto_grade(task, guess, delay):
+    l = len(guess)
+    recall_time = delay - 1 - l / 4
+    for answer in task.answers:
+        if guess.lower() == answer.lower():
+            if recall_time < 3:
+                return 4, recall_time, True
+            if recall_time < 6:
+                return 3, recall_time, True
+            if recall_time < 9:
+                return 2, recall_time, True
+            return 1, recall_time, True
+    return 1, recall_time, False
 
 def update_counter(task, grade):
-        current_time = time.time()
-        task.attempts += 1
-        task.next_time = current_time + grade * 30
-        if grade == 1:
-            print("Обнуляем счётчик")
-            task.counter = 0
-        elif grade == 2:
-            print("Не делаем ничего")
-        elif grade == 3:
-            print("Счётчик + 1")
-            task.counter += 1
-        elif grade == 4:
-            print("Счётчик + 1.5")
-            task.counter += 1.5
-        print(f"Попыток: {task.attempts}, счётчик: {task.counter}, лимит: {task.limit}")
+    current_time = time.time()
+    task.attempts += 1
+    task.next_time = current_time + grade * 30
+    if grade == 1:
+        task.counter = 0
+    elif grade == 2:
+        pass
+        # print("Не делаем ничего")
+    elif grade == 3:
+        task.counter += 1
+    elif grade == 4:
+        task.counter += 1.5
 
 
 def check_exit_conditions(task_list, template_id, previous, db_path):
@@ -320,52 +265,73 @@ def check_exit_conditions(task_list, template_id, previous, db_path):
             for temp in temp_list:
                 if temp.card_id is not None:
                     write_db(template_id, 0, current_date + 1, temp, db_path)
-                print(f'{temp.question}{temp.answers} откладывается')
-            print("Пока!")
-            sys.exit()
+                # print(f'{temp.question}{temp.answers} откладывается')
+            return temp_list
 
 
 def update_task_list(task, template_id, previous, task_list, db_path):
+    new_delta = None
+    task_done = False
     if previous:
         task_list.append(previous)
     if task.counter >= task.limit:
+        task_done = True
         if task.card_id is not None:
             new_delta = task.get_new_delta()
             next_date = current_date + new_delta
             write_db(template_id, new_delta, next_date, task, db_path)
-            print(f"{new_delta=}")
+            # print(f"{new_delta=}")
         previous = None
-        print('Задача добита')
+        # print('Задача добита')
     else:
         previous = task
-    return previous, task_list
+    return previous, task_list, new_delta, task_done
 
-
-def proc(task_list, template_id, auto_grade, db_path):
+def proc(task_list, template_id, auto_grade, db_path, get_guess, get_manual_grade):
     previous = None
+    recall_time = None
+    temp_list = None
     while True:
-        check_exit_conditions(task_list, template_id, previous, db_path)
+        temp_list = check_exit_conditions(task_list, template_id, previous, db_path)
+        if temp_list is not None:
+            yield types.SimpleNamespace(
+                type = 'exit',
+                temp_list = temp_list
+                )
+            break
+
         task = get_task(task_list)
         guess, delay = get_guess(task)
-        grade = get_grade(auto_grade, task, guess, delay)
+        if auto_grade:
+            grade, recall_time, right = get_auto_grade(task, guess, delay) # how about a function that evaluating how accurate your answer is? it should understand typos etc
+        else:
+            grade = get_manual_grade(task)
         update_counter(task, grade)
-        previous, task_list = update_task_list(task, template_id, previous, task_list, db_path)
+        previous, task_list, new_delta, task_done = update_task_list(task, template_id, previous, task_list, db_path)
+        yield types.SimpleNamespace(
+            type = 'regular',
+            grade = grade,
+            recall_time = recall_time,
+            delay = delay,
+            task = task,
+            new_delta = new_delta,
+            task_done = task_done,
+            right = right
+            )
 
 
-def session(deck_id, template_id, ad_hoc, limit = None, card_ids = None):
+
+def session(deck_id, template_id, get_guess, get_manual_grade, ad_hoc, limit = None, card_ids = None):
     os.chdir(os.path.dirname(__file__))
     limit = get_limit(limit)
     db_path = get_db_path(deck_id)
-    template_id = template_id
     is_template_exist(db_path, template_id)
     auto_grade, answer_field, question_forms = get_template(db_path, template_id)
     field_names = get_field_names(db_path)
     if ad_hoc:
-        print("Режим ad-hoc")
         id_list = get_id_list(card_ids)
         task_list = get_adhoc_list(db_path, answer_field, question_forms, id_list, limit, field_names)
     else:
-        print("Режим scheduled")
-        handle_newest(template_id, db_path)
+        newest_added = handle_newest(template_id, db_path)
         task_list = get_scheduled_list(db_path, template_id, answer_field, question_forms, field_names)
-    proc(task_list, template_id, auto_grade, db_path)
+    return proc(task_list, template_id, auto_grade, db_path, get_guess, get_manual_grade)

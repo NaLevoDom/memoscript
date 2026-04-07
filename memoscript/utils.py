@@ -28,8 +28,7 @@ def get_db_path(deck_name, check_exist = True):
         p /= c
     if check_exist:
         if not os.path.isfile(p):
-            print('Нет колоды с таким именем!')
-            exit(1)
+            raise ValueError('Нет колоды с таким именем!')
     else:
         if not re.fullmatch(r'[a-zA-Z0-9_/]+', deck_name): # ### БАРДАК! надо привести ошибки к одному виду, но сейчас мне лень
             raise ValueError('Имя колоды может содержать только латинские буквы, цифры и знаки _/.')
@@ -41,8 +40,7 @@ def is_template_exist(db_path, template_id):
         try:
             next(i)
         except StopIteration:
-            print(f"There's no '{template_id}' template in this deck")
-            sys.exit(1)
+            raise ValueError(f"Нет такого '{template_id}' шаблона в этой колоде!")
     return template_id
 
 
@@ -64,8 +62,7 @@ def ranger(id_range):
         n2 = int(ss[1])
         id_list = list(range(n1, n2 + 1))
     if not id_list:
-        print(f"'{id_range}' is not correct option")
-        sys.exit(1)
+        raise ValueError(f"'{id_range}' is not correct option")
     return id_list
 
 
