@@ -122,7 +122,6 @@ def get_daily_stats(db_path, template_id):
             c.execute(q, db_form)
             new_count = 0
             total_count = 0
-        print(f"Сегодня было выполнено задач всего: {total_count}, новых: {new_count}, репитов: {total_count - new_count}") # ### вырезать
         return new_count, total_count
 
 
@@ -210,8 +209,8 @@ def get_scheduled_list(db_path, template_id, answer_field, question_form, field_
     random.shuffle(task_list)
     added_total = total_count - old_total_count
     added_new = new_count - old_new_count
-    print(f"В текущей сессии всего задач: {added_total}, новых: {added_new}, репитов: {added_total - added_new}\n") # ### вырезать отседова
-    return task_list
+    stats = [old_new_count, old_total_count, added_new, added_total]
+    return task_list, stats
 
 
 def get_task(task_list):
@@ -245,7 +244,6 @@ def update_counter(task, grade):
         task.counter = 0
     elif grade == 2:
         pass
-        # print("Не делаем ничего")
     elif grade == 3:
         task.counter += 1
     elif grade == 4:
@@ -265,7 +263,6 @@ def check_exit_conditions(task_list, template_id, previous, db_path):
             for temp in temp_list:
                 if temp.card_id is not None:
                     write_db(template_id, 0, current_date + 1, temp, db_path)
-                # print(f'{temp.question}{temp.answers} откладывается')
             return temp_list
 
 
@@ -280,17 +277,23 @@ def update_task_list(task, template_id, previous, task_list, db_path):
             new_delta = task.get_new_delta()
             next_date = current_date + new_delta
             write_db(template_id, new_delta, next_date, task, db_path)
-            # print(f"{new_delta=}")
         previous = None
-        # print('Задача добита')
     else:
         previous = task
     return previous, task_list, new_delta, task_done
 
-def proc(task_list, template_id, auto_grade, db_path, get_guess, get_manual_grade):
+def proc(task_list, template_id, auto_grade, db_path, get_guess, get_manual_grade, stats):
     previous = None
     recall_time = None
     temp_list = None
+    if stats:
+        yield types.SimpleNamespace(
+            type = 'stats',
+            old_new_count = stats[0],
+            old_total_count = stats[1],
+            added_new = stats[2],
+            added_total = stats[3]
+            )
     while True:
         temp_list = check_exit_conditions(task_list, template_id, previous, db_path)
         if temp_list is not None:
@@ -331,7 +334,8 @@ def session(deck_id, template_id, get_guess, get_manual_grade, ad_hoc, limit = N
     if ad_hoc:
         id_list = get_id_list(card_ids)
         task_list = get_adhoc_list(db_path, answer_field, question_forms, id_list, limit, field_names)
+        stats = None
     else:
         newest_added = handle_newest(template_id, db_path)
-        task_list = get_scheduled_list(db_path, template_id, answer_field, question_forms, field_names)
-    return proc(task_list, template_id, auto_grade, db_path, get_guess, get_manual_grade)
+        task_list, stats = get_scheduled_list(db_path, template_id, answer_field, question_forms, field_names)
+    return proc(task_list, template_id, auto_grade, db_path, get_guess, get_manual_grade, stats)

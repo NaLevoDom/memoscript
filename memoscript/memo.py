@@ -117,6 +117,7 @@ def main():
             i = session(args.deck_id, args.template_id, get_guess, get_manual_grade, False)
         for r in i:
             if r.type == 'exit':
+                print()
                 for temp in r.temp_list:
                     print(f'{temp.question}{temp.answers} откладывается')
             elif r.type == 'regular':
@@ -139,10 +140,13 @@ def main():
                     print('Задача добита')
                     if r.task.card_id is not None:
                         print(f"{r.new_delta=}")
-
-
-
-
+            elif r.type == 'stats':
+                print(f"Сегодня было выполнено задач всего: {r.old_total_count}, новых: {r.old_new_count}, репитов: {r.old_total_count - r.old_new_count}")
+                print(f"В текущей сессии всего задач: {r.added_total}, новых: {r.added_new}, репитов: {r.added_total - r.added_new}\n")
+                
+            else:
+                raise Exception
+                
     elif args.command == 'create':
         if args.create_cmd == 'card':
             utils.create_card(args.deck_id, args.fields)
