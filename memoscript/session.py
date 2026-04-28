@@ -239,7 +239,9 @@ def get_auto_grade(task, guess, delay):
 def update_counter(task, grade):
     current_time = time.time()
     task.attempts += 1
-    task.next_time = current_time + grade * 30
+    diff = grade * 30
+    part = diff / 2
+    task.next_time = current_time + diff + random.triangular(-part, part, 0)
     if grade == 1:
         task.counter = 0
     elif grade == 2:
@@ -321,7 +323,6 @@ def proc(task_list, template_id, auto_grade, db_path, get_guess, get_manual_grad
             task_done = task_done,
             right = right
             )
-
 
 
 def session(deck_id, template_id, get_guess, get_manual_grade, ad_hoc, limit = None, card_ids = None):
