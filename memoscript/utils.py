@@ -102,6 +102,38 @@ def create_card(deck_id, fields):
         db_form = [None, json.dumps(fields, ensure_ascii=False)]
         c.execute(q, db_form)
 
+def update_card(deck_id, fields, card_id):
+    db_path = get_db_path(deck_id)
+    maximum_count = get_field_count(db_path)
+    actual_count = len(fields)
+    dif = maximum_count - actual_count
+    if dif < 0:
+        raise Exception(f'Too much fields! Maximum is {maximum_count}, {actual_count} given')
+    fields += [""] * dif
+    with sqlite3.connect(db_path) as c:
+        q = "UPDATE deck SET fields_json = ? WHERE card_id = ?"
+        db_form = [json.dumps(fields, ensure_ascii=False), card_id]
+        c.execute(q, db_form)
+
+def create_update_card(deck_id, fields, card_id = None):
+    db_path = get_db_path(deck_id)
+    maximum_count = get_field_count(db_path)
+    actual_count = len(fields)
+    dif = maximum_count - actual_count
+    if dif < 0:
+        raise Exception(f'Too much fields! Maximum is {maximum_count}, {actual_count} given')
+    fields += [""] * dif
+    with sqlite3.connect(db_path) as c:
+        if card_id is not None:
+            q = "UPDATE deck SET fields_json = ? WHERE card_id = ?"
+            db_form = [json.dumps(fields, ensure_ascii=False), card_id]
+        else:
+            q = "INSERT INTO deck(card_id, fields_json) VALUES(?, ?)"
+            db_form = [None, json.dumps(fields, ensure_ascii=False)]
+        c.execute(q, db_form)
+
+
+
 def create_deck_table(db_path):
     with sqlite3.connect(db_path) as c:
         q = "CREATE TABLE deck(card_id INTEGER PRIMARY KEY, fields_json TEXT NOT NULL);"
@@ -265,20 +297,6 @@ def show_deck(deck_id):
         print()
         print(f"{template_id=}, {auto_grade=}, {answer_field=}, {question_form=}")
         print_template(db_path, template_id)
-
-def update_card(deck_id, card_id, fields):
-    db_path = get_db_path(deck_id)
-    maximum_count = get_field_count(db_path)
-    actual_count = len(fields)
-    dif = maximum_count - actual_count
-    if dif < 0:
-        raise Exception(f'Too much fields! Maximum is {maximum_count}, {actual_count} given')
-    fields += [""] * dif
-    with sqlite3.connect(db_path) as c:
-        q = "UPDATE deck SET fields_json = ? WHERE card_id = ?"
-        db_form = [json.dumps(fields, ensure_ascii=False), card_id]
-        c.execute(q, db_form)
-
 
 def update_template(deck_id, template_id, answer_field, question_forms, auto_grade):
     db_path = get_db_path(deck_id)

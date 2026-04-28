@@ -146,17 +146,16 @@ def main():
                 
             else:
                 raise Exception
-                
     elif args.command == 'create':
         if args.create_cmd == 'card':
-            utils.create_card(args.deck_id, args.fields)
+            utils.create_update_card(args.deck_id, args.fields)
         elif args.create_cmd == 'template':
             utils.create_template(args.deck_id, args.template_id, args.answer_field, args.question_forms, not args.manual_evaluation)
         elif args.create_cmd == 'deck':
             utils.create_deck(args.deck_id, args.field_names)
     elif args.command == 'update':
         if args.update_cmd == 'card':
-            utils.update_card(args.deck_id, args.card_id, args.fields)
+            utils.create_update_card(args.deck_id, args.fields, args.card_id)
         elif args.update_cmd == 'template':
             utils.update_template(args.deck_id, args.template_id, args.answer_field, args.question_forms, not args.manual_evaluation)
     elif args.command == 'delete':

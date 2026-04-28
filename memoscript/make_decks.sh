@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 rm -rf decks
 ./memo.py create deck elements number symbol name
-./memo.py create template elements 1 number "Напиши номер элемента <{name}>: "
+./memo.py create template elements 1 number "Напиши номер элемента <{symbol}>: "
 ./memo.py create template elements 2 symbol "Напиши обозначение элемента №{number}: "
 ./memo.py create template elements 3 name "Напиши название элемента <{symbol}>: "
 ./memo.py create card elements 1 H Водород
