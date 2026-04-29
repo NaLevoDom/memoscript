@@ -257,17 +257,12 @@ def check_exit_conditions(task_list, template_id, previous, db_path):
         temp_list = task_list + [previous]
     else:
         temp_list = task_list
-    # print(f'\n{len(temp_list)}{temp_list}')
     if len(temp_list) <= 2:
+        full_major = True
         for temp in temp_list:
             if temp.limit - temp.counter <= 1.5:
-                break
-        else: # выполняется, когда у каждой задачи разница лимита и каунтера больше 1.5 
-            for temp in temp_list:
-                if temp.card_id is not None:
-                    write_db(template_id, 0, current_date + 1, temp, db_path)
-            return temp_list
-        if not task_list: # ### временная заплатка, если это убрать будет баг
+                full_major = False
+        if full_major or not task_list:
             for temp in temp_list:
                 if temp.card_id is not None:
                     write_db(template_id, 0, current_date + 1, temp, db_path)
