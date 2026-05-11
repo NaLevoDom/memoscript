@@ -245,7 +245,7 @@ def update_counter(task, grade):
     if grade == 1:
         task.counter = 0
     elif grade == 2:
-        pass
+        task.counter += 0.5
     elif grade == 3:
         task.counter += 1
     elif grade == 4:

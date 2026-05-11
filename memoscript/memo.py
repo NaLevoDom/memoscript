@@ -130,7 +130,7 @@ def main():
                 if r.grade == 1:
                     print("Обнуляем счётчик")
                 elif r.grade == 2:
-                    print("Не делаем ничего")
+                    print("Счётчик + 0.5")
                 elif r.grade == 3:
                     print("Счётчик + 1")
                 elif r.grade == 4:
