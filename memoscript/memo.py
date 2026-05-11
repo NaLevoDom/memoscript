@@ -135,6 +135,8 @@ def main():
                     print("Счётчик + 1")
                 elif r.grade == 4:
                     print("Счётчик + 1.5")
+                elif r.grade == 5:
+                    print("Счётчик + 2")
                 print(f"Попыток: {r.task.attempts}, счётчик: {r.task.counter}, лимит: {r.task.limit}")
                 if r.task_done:
                     print('Задача добита')

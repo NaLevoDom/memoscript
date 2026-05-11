@@ -228,12 +228,12 @@ def get_auto_grade(task, guess, delay):
     for answer in task.answers:
         if guess.lower() == answer.lower():
             if recall_time < 3:
-                return 4, recall_time, True
+                return 5, recall_time, True
             if recall_time < 6:
-                return 3, recall_time, True
+                return 4, recall_time, True
             if recall_time < 9:
-                return 2, recall_time, True
-            return 1, recall_time, True
+                return 3, recall_time, True
+            return 2, recall_time, True
     return 1, recall_time, False
 
 def update_counter(task, grade):
@@ -250,6 +250,8 @@ def update_counter(task, grade):
         task.counter += 1
     elif grade == 4:
         task.counter += 1.5
+    elif grade == 5:
+        task.counter += 2
 
 
 def check_exit_conditions(task_list, template_id, previous, db_path):
