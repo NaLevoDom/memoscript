@@ -138,6 +138,8 @@ def main():
                 elif r.grade == 5:
                     print("Счётчик + 2")
                 print(f"Попыток: {r.task.attempts}, счётчик: {r.task.counter}, лимит: {r.task.limit}")
+                print(f"Сделано {r.start_task_count - r.task_count}/{r.start_task_count}")
+                # print(f"{r.task_count=}")
                 if r.task_done:
                     print('Задача добита')
                     if r.task.card_id is not None:

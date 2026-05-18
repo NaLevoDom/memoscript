@@ -286,10 +286,17 @@ def update_task_list(task, template_id, previous, task_list, db_path):
         previous = task
     return previous, task_list, new_delta, task_done
 
+def get_task_count(task_list, previous):
+    count = len(task_list)
+    if previous:
+        count += 1
+    return count
+
 def proc(task_list, template_id, auto_grade, db_path, get_guess, get_manual_grade, stats):
     previous = None
     recall_time = None
     temp_list = None
+    start_task_count = len(task_list)
     if stats:
         yield types.SimpleNamespace(
             type = 'stats',
@@ -323,7 +330,9 @@ def proc(task_list, template_id, auto_grade, db_path, get_guess, get_manual_grad
             task = task,
             new_delta = new_delta,
             task_done = task_done,
-            right = right
+            right = right,
+            task_count = get_task_count(task_list, previous),
+            start_task_count = start_task_count
             )
 
 
