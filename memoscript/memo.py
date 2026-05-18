@@ -120,6 +120,11 @@ def main():
                 print()
                 for temp in r.temp_list:
                     print(f'{temp.question}{temp.answers} откладывается')
+                print('В следующих карточках были ошибки:')
+                for task in r.mistaken_tasks:
+                    print(f'{task.question}{task.answers} {r.mistaken_tasks[task]} раз')
+                    
+                    
             elif r.type == 'regular':
                 if r.right:
                     print(f"{start_green}Ты молодец!{start_normal}")
@@ -139,7 +144,6 @@ def main():
                     print("Счётчик + 2")
                 print(f"Попыток: {r.task.attempts}, счётчик: {r.task.counter}, лимит: {r.task.limit}")
                 print(f"Сделано {r.start_task_count - r.task_count}/{r.start_task_count}")
-                # print(f"{r.task_count=}")
                 if r.task_done:
                     print('Задача добита')
                     if r.task.card_id is not None:

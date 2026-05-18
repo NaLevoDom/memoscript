@@ -296,6 +296,7 @@ def proc(task_list, template_id, auto_grade, db_path, get_guess, get_manual_grad
     previous = None
     recall_time = None
     temp_list = None
+    mistaken_tasks = dict()
     start_task_count = len(task_list)
     if stats:
         yield types.SimpleNamespace(
@@ -310,7 +311,8 @@ def proc(task_list, template_id, auto_grade, db_path, get_guess, get_manual_grad
         if temp_list is not None:
             yield types.SimpleNamespace(
                 type = 'exit',
-                temp_list = temp_list
+                temp_list = temp_list,
+                mistaken_tasks = mistaken_tasks
                 )
             break
 
@@ -320,6 +322,13 @@ def proc(task_list, template_id, auto_grade, db_path, get_guess, get_manual_grad
             grade, recall_time, right = get_auto_grade(task, guess, delay) # how about a function that evaluating how accurate your answer is? it should understand typos etc
         else:
             grade = get_manual_grade(task)
+        
+        if grade == 1:
+            if task in mistaken_tasks:
+                mistaken_tasks[task] += 1
+            else:
+                mistaken_tasks[task] = 1
+        
         update_counter(task, grade)
         previous, task_list, new_delta, task_done = update_task_list(task, template_id, previous, task_list, db_path)
         yield types.SimpleNamespace(
