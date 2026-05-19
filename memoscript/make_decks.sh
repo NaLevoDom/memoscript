@@ -6,23 +6,23 @@ rm -rf decks
 ./memo.py create template elements 3 symbol "Напиши обозначение элемента №{number}: "
 ./memo.py create template elements 4 type "Напиши тип элемента <{symbol}>: "
 ./memo.py create card elements 1 H Водород Неметалл
-./memo.py create card elements 2 He Гелий Инертный
+./memo.py create card elements 2 He Гелий "Инертный газ|Благородный газ"
 ./memo.py create card elements 3 Li Литий "Щелочной металл"
 ./memo.py create card elements 4 Be Бериллий "Щелочноземельный металл"
-./memo.py create card elements 5 B Бор Полуметалл
+./memo.py create card elements 5 B Бор "Полуметалл|Металлоид"
 ./memo.py create card elements 6 C Углерод Неметалл
 ./memo.py create card elements 7 N Азот Неметалл
 ./memo.py create card elements 8 O Кислород Неметалл
 ./memo.py create card elements 9 F Фтор Галоген
-./memo.py create card elements 10 Ne Неон Инертный
+./memo.py create card elements 10 Ne Неон "Инертный газ|Благородный газ"
 ./memo.py create card elements 11 Na Натрий "Щелочной металл"
 ./memo.py create card elements 12 Mg Магний "Щелочноземельный металл"
 ./memo.py create card elements 13 Al Алюминий "Постпереходный металл"
-./memo.py create card elements 14 Si Кремний Полуметалл
+./memo.py create card elements 14 Si Кремний "Полуметалл|Металлоид"
 ./memo.py create card elements 15 P Фосфор Неметалл
 ./memo.py create card elements 16 S Сера Неметалл
 ./memo.py create card elements 17 Cl Хлор Галоген
-./memo.py create card elements 18 Ar Аргон Инертный
+./memo.py create card elements 18 Ar Аргон "Инертный газ|Благородный газ"
 ./memo.py create card elements 19 K Калий "Щелочной металл"
 ./memo.py create card elements 20 Ca Кальций "Щелочноземельный металл"
 ./memo.py create card elements 21 Sc Скандий "Переходный металл"
@@ -36,11 +36,11 @@ rm -rf decks
 ./memo.py create card elements 29 Cu Медь "Переходный металл"
 ./memo.py create card elements 30 Zn Цинк "Переходный металл"
 ./memo.py create card elements 31 Ga Галлий "Постпереходный металл"
-./memo.py create card elements 32 Ge Германий Полуметалл
-./memo.py create card elements 33 As Мышьяк Полуметалл
+./memo.py create card elements 32 Ge Германий "Полуметалл|Металлоид"
+./memo.py create card elements 33 As Мышьяк "Полуметалл|Металлоид"
 ./memo.py create card elements 34 Se Селен Неметалл
 ./memo.py create card elements 35 Br Бром Галоген
-./memo.py create card elements 36 Kr Криптон Инертный
+./memo.py create card elements 36 Kr Криптон "Инертный газ|Благородный газ"
 ./memo.py create card elements 37 Rb Рубидий "Щелочной металл"
 ./memo.py create card elements 38 Sr Стронций "Щелочноземельный металл"
 ./memo.py create card elements 39 Y Иттрий "Переходный металл"
@@ -55,10 +55,10 @@ rm -rf decks
 ./memo.py create card elements 48 Cd Кадмий "Переходный металл"
 ./memo.py create card elements 49 In Индий "Постпереходный металл"
 ./memo.py create card elements 50 Sn Олово "Постпереходный металл"
-./memo.py create card elements 51 Sb Сурьма Полуметалл
-./memo.py create card elements 52 Te Теллур Полуметалл
+./memo.py create card elements 51 Sb Сурьма "Полуметалл|Металлоид"
+./memo.py create card elements 52 Te Теллур "Полуметалл|Металлоид"
 ./memo.py create card elements 53 I Иод  Галоген
-./memo.py create card elements 54 Xe Ксенон Инертный
+./memo.py create card elements 54 Xe Ксенон "Инертный газ|Благородный газ"
 ./memo.py create card elements 55 Cs Цезий "Щелочной металл"
 ./memo.py create card elements 56 Ba Барий "Щелочноземельный металл"
 ./memo.py create card elements 57 La Лантан Лантаноид
@@ -88,9 +88,9 @@ rm -rf decks
 ./memo.py create card elements 81 Tl Таллий "Постпереходный металл"
 ./memo.py create card elements 82 Pb Свинец "Постпереходный металл"
 ./memo.py create card elements 83 Bi Висмут "Постпереходный металл"
-./memo.py create card elements 84 Po Полоний Полуметалл
+./memo.py create card elements 84 Po Полоний "Полуметалл|Металлоид"
 ./memo.py create card elements 85 At Астат Галоген
-./memo.py create card elements 86 Rn Радон Инертный
+./memo.py create card elements 86 Rn Радон "Инертный газ|Благородный газ"
 ./memo.py create card elements 87 Fr Франций "Щелочной металл"
 ./memo.py create card elements 88 Ra Радий "Щелочноземельный металл"
 ./memo.py create card elements 89 Ac Актиний Актиноид
@@ -122,7 +122,7 @@ rm -rf decks
 ./memo.py create card elements 115 Mc Московий "Постпереходный металл"
 ./memo.py create card elements 116 Lv Ливерморий "Постпереходный металл"
 ./memo.py create card elements 117 Ts Теннессин Галоген
-./memo.py create card elements 118 Og Оганесон Инертный
+./memo.py create card elements 118 Og Оганесон "Инертный газ|Благородный газ"
 
 ./memo.py create deck countries country capital status
 ./memo.py create template countries 1 country 'В какой стране столица {capital}? ({status}): ' 'В какой стране столица {capital}?: '
